@@ -30,7 +30,7 @@ __url__ = ["http://www.freecadweb.org"]
 This Script includes the GUI Commands of the GDML module
 '''
 
-import FreeCAD,FreeCADGui
+import FreeCAD,FreeCADGui, Part, Draft, Sketcher
 from PySide import QtGui, QtCore
 
 class Face2SketchFeature:
@@ -55,16 +55,58 @@ class Face2SketchFeature:
                print('Planar')
                #print(dir(sel.SubObjects[0].Wires))
                #print(dir(sel.SubObjects[0].SubShapes))
+               print('Print Dir Surface')
                print(dir(sel.SubObjects[0].Surface))
-               shape = sel.SubObjects[0].Surface.toShape()
+               #shape = sel.SubObjects[0].Surface.toShape()
+               shape = sel.SubObjects[0]
+               print('Selected Shape')
                print(shape)
+               print(shape.TypeId)
+               print(shape.ShapeType)
+               print('Sub Shapes')
+               print(shape.SubShapes)
+               print('Shape Vertexes')
+               print(shape.Vertexes)
+               print('Shape Wires')
+               print(len(shape.Wires))
+               print(shape.Wires)
+               #newWire = Draft.makeWire(shape.Wires[0])
+               #print(newWire)
+               #Draft.makeSketch(newWire, autoconstraints=False, addTo=None, delete=False, name="Sketch", radiusPrecision=-1)
+               Draft.draftify(shape)
+               Draft.makeSketch(shape, autoconstraints=False, addTo=None, delete=False, name="Sketch2", radiusPrecision=-1)
+               #print(ret)
+               # Wire is depreciated replaced by OuterWire
+               #print(shape.Wire)
+               print('Outer Wire')
+               print(shape.OuterWire)
+               print('Wire Type')
+               print(shape.OuterWire.TypeId)
+               print('Wire ShapeType')
+               #print(shape.OuterWire.ShapeType)
+               print('Wire Edges')
+               print(shape.OuterWire.Edges)
+               #print(shape.OuterWire.Length)
+               print('Wire Vertexes')
+               print(shape.OuterWire.Vertexes)
+               print(shape.OuterWire.Wires)
+
+               print(dir(shape.OuterWire))
+               print(shape.Shells)
+               #print(shape.childShapes)
+               #print(shape.defeaturing)
                print('Print Dir Shape')
                print(dir(shape))
                shape.exportStep('/tmp/exported.step')
                shape.exportBrep('/tmp/exported.brep')
 
-            print(dir(sel.SubObjects))
-            print(dir(sel.SubObjects[0]))
+            #obj1 = FreeCAD.ActiveDocument.addObject('Sketcher::SketchObject','one')
+            #obj1.Shape = shape
+            #print('Part2DObject')
+            #print(obj1)
+            #print(dir(obj1))
+            #obj2 = FreeCAD.ActiveDocument.addObject('Sketcher::SketcherObjectPython','two')
+            #print(dir(obj2))
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
