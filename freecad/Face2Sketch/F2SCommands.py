@@ -30,83 +30,47 @@ __url__ = ["http://www.freecadweb.org"]
 This Script includes the GUI Commands of the GDML module
 '''
 
-import FreeCAD,FreeCADGui, Part, Draft, Sketcher
+import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
 from PySide import QtGui, QtCore
 
 class Face2SketchFeature:
     #    def IsActive(self):
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
 
+    def ActivateSketch(self, sname) :
+        doc = FreeCAD.ActiveDocument
+        AS = doc.getObject('Sketch')
+        tv = Show.TempoVis(doc, tag= AS.ViewObject.TypeId)
+        AS.ViewObject.TempoVis = tv
+        if AS.ViewObject.EditingWorkbench:
+           tv.activateWorkbench(AS.ViewObject.EditingWorkbench)
+        if AS.ViewObject.HideDependent:
+           tv.hide(tv.get_all_dependent(FreeCAD.getDocument('Unnamed') \
+              .getObject(sname), ''))
+        if AS.ViewObject.ShowSupport:
+           tv.show([ref[0] for ref in AS.Support if not ref[0].isDerivedFrom("PartDesign::Plane")])
+        if AS.ViewObject.ShowLinks:
+           tv.show([ref[0] for ref in AS.ExternalGeometry])
+        tv.hide(AS)
+        del(tv)
+
     def Activated(self):
         #from .GDMLObjects import GDMLBox, ViewProvider
-#        for obj in FreeCADGui.Selection.getSelection():
+#       for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
             #if len(obj.InList) == 0: # allowed only for for top level objects
             #cycle(obj)
             print("Selected")
-            print(sel.HasSubObjects)
-            print(sel.Object)
-            print(sel.Object.Label)
-            print(sel.SubObjects)
-            print(sel.SubObjects[0])
-            print(sel.SubObjects[0].ShapeType)
-            print(sel.SubObjects[0].Surface)
-            if str(sel.SubObjects[0].Surface) == '<Plane object>' :
-               print('Planar')
-               #print(dir(sel.SubObjects[0].Wires))
-               #print(dir(sel.SubObjects[0].SubShapes))
-               print('Print Dir Surface')
-               print(dir(sel.SubObjects[0].Surface))
-               #shape = sel.SubObjects[0].Surface.toShape()
-               shape = sel.SubObjects[0]
-               print('Selected Shape')
-               print(shape)
-               print(shape.TypeId)
-               print(shape.ShapeType)
-               print('Sub Shapes')
-               print(shape.SubShapes)
-               print('Shape Vertexes')
-               print(shape.Vertexes)
-               print('Shape Wires')
-               print(len(shape.Wires))
-               print(shape.Wires)
-               #newWire = Draft.makeWire(shape.Wires[0])
-               #print(newWire)
-               #Draft.makeSketch(newWire, autoconstraints=False, addTo=None, delete=False, name="Sketch", radiusPrecision=-1)
-               Draft.draftify(shape)
-               Draft.makeSketch(shape, autoconstraints=False, addTo=None, delete=False, name="Sketch2", radiusPrecision=-1)
-               #print(ret)
-               # Wire is depreciated replaced by OuterWire
-               #print(shape.Wire)
-               print('Outer Wire')
-               print(shape.OuterWire)
-               print('Wire Type')
-               print(shape.OuterWire.TypeId)
-               print('Wire ShapeType')
-               #print(shape.OuterWire.ShapeType)
-               print('Wire Edges')
-               print(shape.OuterWire.Edges)
-               #print(shape.OuterWire.Length)
-               print('Wire Vertexes')
-               print(shape.OuterWire.Vertexes)
-               print(shape.OuterWire.Wires)
-
-               print(dir(shape.OuterWire))
-               print(shape.Shells)
-               #print(shape.childShapes)
-               #print(shape.defeaturing)
-               print('Print Dir Shape')
-               print(dir(shape))
-               shape.exportStep('/tmp/exported.step')
-               shape.exportBrep('/tmp/exported.brep')
-
-            #obj1 = FreeCAD.ActiveDocument.addObject('Sketcher::SketchObject','one')
-            #obj1.Shape = shape
-            #print('Part2DObject')
-            #print(obj1)
-            #print(dir(obj1))
-            #obj2 = FreeCAD.ActiveDocument.addObject('Sketcher::SketcherObjectPython','two')
-            #print(dir(obj2))
+            if sel.HasSubObjects == True :
+               if str(sel.SubObjects[0].Surface) == '<Plane object>' :
+                  print('Planar')
+                  shape = sel.SubObjects[0]
+                  Draft.draftify(shape)
+                  Draft.makeSketch(shape, autoconstraints=False, addTo=None, \
+                        delete=False, name="Sketch", radiusPrecision=-1)
+                  #shape.exportStep('/tmp/exported.step')
+                  #shape.exportBrep('/tmp/exported.brep')
+                  self.ActivateSketch('Sketch')
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
