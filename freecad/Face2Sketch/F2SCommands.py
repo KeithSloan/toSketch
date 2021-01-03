@@ -65,9 +65,16 @@ class Face2SketchFeature:
                if str(sel.SubObjects[0].Surface) == '<Plane object>' :
                   print('Planar')
                   shape = sel.SubObjects[0]
-                  Draft.draftify(shape)
-                  Draft.makeSketch(shape, autoconstraints=False, addTo=None, \
-                        delete=False, name="Sketch", radiusPrecision=-1)
+                  #Draft.draftify(shape)
+                  Draft.draftify(shape, makeblock=False, delete=True)
+                  try :
+                      Draft.makeSketch(shape, autoconstraints=True, \
+                         addTo=None, delete=False, name="Sketch",  \
+                         radiusPrecision=-1)
+                  except :
+                      Draft.makeSketch(shape, autoconstraints=False, \
+                         addTo=None, delete=False, name="Sketch",  \
+                         radiusPrecision=-1)
                   #shape.exportStep('/tmp/exported.step')
                   #shape.exportBrep('/tmp/exported.brep')
                   self.ActivateSketch('Sketch')
