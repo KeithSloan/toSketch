@@ -59,9 +59,9 @@ class Face2Sketch_Workbench ( FreeCADGui.Workbench ):
         
         #import GDMLCommands, GDMLResources
         #import F2SCommands
-        commands=['Face2SketchCommand']
+        commands=['Face2SketchCommand','F2SPlaneCommand']
 
-        toolbarcommands=['Face2SketchCommand']
+        toolbarcommands=['Face2SketchCommand','F2SPlaneCommand']
 
         self.appendToolbar(QT_TRANSLATE_NOOP('Workbench','F2S_Tools'),toolbarcommands)
         self.appendMenu('Face2Sketch',commands)

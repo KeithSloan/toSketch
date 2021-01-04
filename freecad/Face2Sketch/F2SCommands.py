@@ -27,7 +27,7 @@ __author__ = "Keith Sloan"
 __url__ = ["http://www.freecadweb.org"]
 
 '''
-This Script includes the GUI Commands of the GDML module
+This Script includes the GUI Commands of the F2S module
 '''
 
 import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
@@ -55,7 +55,6 @@ class Face2SketchFeature:
         del(tv)
 
     def Activated(self):
-        #from .GDMLObjects import GDMLBox, ViewProvider
 #       for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
             #if len(obj.InList) == 0: # allowed only for for top level objects
@@ -92,4 +91,31 @@ class Face2SketchFeature:
                 QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
                 'Face 2 Sketch')}
 
+class F2SPlaneFeature :    
+
+    def Activated(self) :
+        from .F2SObjects import F2SPlane, ViewProvider
+
+        obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
+                   'Plane')
+        F2SPlane(obj)
+        ViewProvider(obj.ViewObject)
+        FreeCAD.ActiveDocument.recompute()
+        # need Shape but do not want Placement
+        obj.setEditorMode('Placement',2)
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'F2SPlane', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('F2SPlaneFeature',\
+                'F2SPlane'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
+                'F2SPlane')}
+
 FreeCADGui.addCommand('Face2SketchCommand',Face2SketchFeature())
+FreeCADGui.addCommand('F2SPlaneCommand',F2SPlaneFeature())
