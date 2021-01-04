@@ -49,7 +49,7 @@ class Face2Sketch_Workbench ( FreeCADGui.Workbench ):
 
     "Face2Sketch workbench object"
     def __init__(self):
-        self.__class__.Icon = joinDir("Resources/icons/face2SketchWorkbench.svg")
+        self.__class__.Icon = joinDir("Resources/icons/F2SWorkbench.svg")
         self.__class__.MenuText = "Face2Sketch"
         self.__class__.ToolTip = "Face2Sketch workbench"
 

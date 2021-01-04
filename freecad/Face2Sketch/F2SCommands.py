@@ -86,7 +86,7 @@ class Face2SketchFeature:
            return True
 
     def GetResources(self):
-        return {'Pixmap'  : 'Face2SketchFeature', 'MenuText': \
+        return {'Pixmap'  : 'Face2Sketch', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
                 'Face 2 Sketch'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
