@@ -29,42 +29,41 @@ __url__ = ["http://www.freecadweb.org"]
 class F2SPlane :
 
     def __init__(self,obj) :
-        obj.addProperty("App::PropertyBool","xAxis","Plane", \
-              "X Axis enabled?").xAxis=False
-        obj.addProperty("App::PropertyFloat","xOffset","Plane", \
-              "X Offset").xOffset=0.0
-        obj.addProperty("App::PropertyBool","yAxis","Plane", \
-              "Y Axis enabled?").yAxis=False
-        obj.addProperty("App::PropertyFloat","yOffset","Plane", \
-              "Y Offset").yOffset=0.0
-        obj.addProperty("App::PropertyBool","zAxis","Plane", \
-              "Z Axis enabled?").zAxis=False
-        obj.addProperty("App::PropertyFloat","zOffset","Plane", \
-            "Z Offset").zOffset=0.0
-        obj.addProperty("App::PropertyBool","Axis","Custom Axis", \
-            "Custom enabled?").Axis=False
-        obj.addProperty("App::PropertyFloat","Offset","Custom Axis", \
-            "Custom Offset").Offset=0.0
-        obj.addProperty("App::PropertyFloat","Xdir","Custom Axis", \
-            "Custom XDir").Xdir=0.0
-        obj.addProperty("App::PropertyFloat","Ydir","Custom Axis", \
-            "Custom YDir").Ydir=0.0
-        obj.addProperty("App::PropertyFloat","Zdir","Custom Axis", \
-             "Custom ZDir").Zdir=0.0
+        AxisList = ['X Plane','Y Plane','Z Plane','Custom']
+        obj.addProperty("App::PropertyEnumeration","Axis","Base", \
+            "Axis").Axis=AxisList
+        obj.addProperty("App::PropertyFloat","Offset","Base", \
+            "Offset").Offset=0.0
+        obj.addProperty("App::PropertyFloat","XDir","Custom Axis", \
+            "Custom XDir").XDir=0.0
+        obj.addProperty("App::PropertyFloat","YDir","Custom Axis", \
+            "Custom YDir").YDir=0.0
+        obj.addProperty("App::PropertyFloat","ZDir","Custom Axis", \
+             "Custom ZDir").ZDir=1.0
+        obj.setEditorMode("Placement",2)
+        self.disableAxisParms(obj)
+        obj.Proxy = self
 
-    def onChange(self, fp, prop):
+    def enableAxisParms(self, obj) :
+        print('Enable Axis Parms')
+        obj.setEditorMode("XDir",0)
+        obj.setEditorMode("YDir",0)
+        obj.setEditorMode("ZDir",0)
+
+    def disableAxisParms(self, obj) :
+        print('Disable Axis Parms')
+        obj.setEditorMode("XDir",1)
+        obj.setEditorMode("YDir",1)
+        obj.setEditorMode("ZDir",1)
+
+    def onChanged(self, fp, prop):
         print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
-        if 'custAxis' in fp.State :
-           fp.xAxis = fp.yAxis = fp.z,zAxis = False
-        
-        if 'xAxis' in fp.State :
-           fp.custAxis = False
-
-        if 'yAxis' in fp.State :
-           fp.custAxis = False
-
-        if 'zAxis' in fp.State :
-           fp.custAxis = False
+        if 'Axis' in prop :
+           print('Axis set to : '+fp.Axis)
+           if fp.Axis == 'Custom' :
+              self.enableAxisParms(fp)
+           else :
+              self.disableAxisParms(fp) 
 
     def createGeometry(self, fp) :
         print('create Geometry')
@@ -87,17 +86,36 @@ class ViewProvider():
    def __init__(self, obj):
        '''Set this object to the proxy object of the actual view provider'''
        obj.Proxy = self
+
+   def attach(self,obj):
+       return
  
    def updateData(self, fp, prop):
        '''If a property of the handled feature has changed we have the chance to handle this here'''
+       print('updateData')
+       #pass
+       return
+
+   def getDisplayModes(self,obj):
+       return []
+
+   def getDefaultDisplayMode(self):
+        """
+        Return the name of the default display mode. It must be defined in getDisplayModes.
+        """
+        return "Shaded"
 
    def setDisplayMode(self,mode):
-       '''Map the display mode defined in attach with those defined in getDisplayModes.\
-               Since they have the same names nothing needs to be done. This method is optional'''
-       return mode
- 
+        """
+        Map the display mode defined in attach with those defined in getDisplayModes.
+        Since they have the same names nothing needs to be done.
+        This method is optional.
+        """
+        return mode
+
    def onChanged(self, vp, prop):
        '''Here we can do something when a single property got changed'''
+       print('onChanged')
 
    def getIcon(self):
        '''Return the icon in XPM format which will appear in the tree view. This method is\

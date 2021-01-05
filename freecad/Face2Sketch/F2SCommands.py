@@ -102,7 +102,7 @@ class F2SPlaneFeature :
         ViewProvider(obj.ViewObject)
         FreeCAD.ActiveDocument.recompute()
         # need Shape but do not want Placement
-        obj.setEditorMode('Placement',2)
+        #obj.setEditorMode('Placement',2)
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
