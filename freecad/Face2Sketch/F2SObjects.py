@@ -26,10 +26,12 @@ __title__="FreeCAD Face2Sketch Workbench - Objects"
 __author__ = "Keith Sloan"
 __url__ = ["http://www.freecadweb.org"]
 
+import FreeCAD, Part
+
 class F2SPlane :
 
     def __init__(self,obj) :
-        AxisList = ['X Plane','Y Plane','Z Plane','Custom']
+        AxisList = ['XY Plane','XZ Plane','YZ Plane','Custom']
         obj.addProperty("App::PropertyEnumeration","Axis","Base", \
             "Axis").Axis=AxisList
         obj.addProperty("App::PropertyFloat","Offset","Base", \
@@ -63,13 +65,45 @@ class F2SPlane :
            if fp.Axis == 'Custom' :
               self.enableAxisParms(fp)
            else :
-              self.disableAxisParms(fp) 
+              self.disableAxisParms(fp)
+        self.updateGeometry(fp)
+
+    def getPlaneParms(self, fp) :
+        if fp.Axis == 'Custom' : 
+           self.dir = FreeCAD.Vector(fp.XDir, fp.YDir, fp.ZDir)
+           self.point = FreeCAD.Vector(0.0, 0.0, 0.0)
+        elif fp.Axis == 'XY Plane' :
+           self.dir = FreeCAD.Vector(0.0, 0.0, 1.0)
+           self.point = FreeCAD.Vector(fp.Offset, 0.0, 0.0)
+        elif fp.Axis == 'XZPlane' :
+           self.dir = FreeCAD.Vector(0.0, 1.0, 0.0)
+           self.point = FreeCAD.Vector(0.0, fp.Offset, 0.0)
+        elif fp.Axis == 'YZPlane' :
+           self.dir = FreeCAD.Vector(1.0, 0.0, 0.0)
+           self.point = FreeCAD.Vector(0.0, 0.0, fp.Offset)
+        else :
+           print('Invalid Axis')
+           exit(3)
 
     def createGeometry(self, fp) :
         print('create Geometry')
+        #print(fp.Shape)
+        if hasattr(self, 'Plane') == False :
+           self.getPlaneParms(fp)
+           self.Plane = Part.makePlane(1000,1000,self.point, self.dir)
+           fp.Shape = self.Plane
+        
+    def updateGeometry(self, fp) :
+        print('update Geometry')
+        #if self.Plane is None :
+        #   self.getPlaneParms(fp)
+        #   self.Plane = Part.makePlane(1000,1000,self.point, self.dir)
+        #   fp.Shape = self.Plane
+        print(dir(fp.Shape))
         
     def execute(self,fp):
         print('execute')
+        self.createGeometry(fp)
 
     def __getstate__(self):
         '''When saving the document this object gets stored using Python's json module.\
