@@ -49,7 +49,6 @@ class Face2SketchFeature:
                   shape = sel.SubObjects[0]
                   #shape.exportStep('/tmp/exported.step')
                   #shape.exportBrep('/tmp/exported.brep')
-                  #Draft.draftify(shape)
                   Draft.draftify(shape, makeblock=False, delete=True)
                   try :
                       Draft.makeSketch(shape, autoconstraints=True, \
@@ -85,7 +84,10 @@ class F2SPlaneFeature :
         ViewProvider(obj.ViewObject)
         FreeCAD.ActiveDocument.recompute()
         # need Shape but do not want Placement
-        #obj.setEditorMode('Placement',2)
+        obj.setEditorMode('Placement',2)
+        #print(dir(obj))
+        #print(dir(obj.ViewObject))
+        obj.ViewObject.Transparency = 20
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
