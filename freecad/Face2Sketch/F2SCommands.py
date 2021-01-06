@@ -37,26 +37,8 @@ class Face2SketchFeature:
     #    def IsActive(self):
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
 
-    def ActivateSketch(self, sname) :
-        doc = FreeCAD.ActiveDocument
-        AS = doc.getObject('Sketch')
-        tv = Show.TempoVis(doc, tag= AS.ViewObject.TypeId)
-        AS.ViewObject.TempoVis = tv
-        if AS.ViewObject.EditingWorkbench:
-           tv.activateWorkbench(AS.ViewObject.EditingWorkbench)
-        if AS.ViewObject.HideDependent:
-           tv.hide(tv.get_all_dependent(FreeCAD.getDocument('Unnamed') \
-              .getObject(sname), ''))
-        if AS.ViewObject.ShowSupport:
-           tv.show([ref[0] for ref in AS.Support if not ref[0].isDerivedFrom("PartDesign::Plane")])
-        if AS.ViewObject.ShowLinks:
-           tv.show([ref[0] for ref in AS.ExternalGeometry])
-        tv.hide(AS)
-        del(tv)
-
     def Activated(self):
-        #from .GDMLObjects import GDMLBox, ViewProvider
-#       for obj in FreeCADGui.Selection.getSelection():
+        #   for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
             #if len(obj.InList) == 0: # allowed only for for top level objects
             #cycle(obj)
@@ -77,7 +59,7 @@ class Face2SketchFeature:
                       Draft.makeSketch(shape, autoconstraints=False, \
                          addTo=None, delete=False, name="Sketch",  \
                          radiusPrecision=-1)
-                  self.ActivateSketch('Sketch')
+                  FreeCADGui.ActiveDocument.setEdit('Sketch',0)
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
