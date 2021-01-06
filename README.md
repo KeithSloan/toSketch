@@ -4,8 +4,13 @@
 
 ## Installation
 
-* Clone into FreeCAD's Mod diectory
+* Clone into FreeCAD's Mod directory
+
+   * Change to FreeCAD Mod directory
+   * **git clone https://github.com/KeithSloan/Face2Sketch.git**
+
 * Start/Restart FreeCAD
+
 
 ## Use
 
