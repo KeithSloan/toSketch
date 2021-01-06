@@ -99,7 +99,16 @@ class F2SPlane :
         #   self.getPlaneParms(fp)
         #   self.Plane = Part.makePlane(1000,1000,self.point, self.dir)
         #   fp.Shape = self.Plane
-        print(dir(fp.Shape))
+        # print(dir(fp.Shape))
+        print(self.Plane.Placement)
+        print(self.Plane.Placement.Base)
+        print(self.Plane.Placement.Rotation)
+        print(self.Plane.Placement.Rotation.Angle)
+        print(self.Plane.Placement.Rotation.Axis)
+        print(self.Plane.Placement.Rotation.RawAxis)
+        print(self.Plane.Placement.Rotation.toEuler())
+        print(dir(self.Plane.Placement))
+        print(dir(self.Plane.Placement.Rotation))
         
     def execute(self,fp):
         print('execute')
