@@ -42,7 +42,13 @@ class F2SPlane :
             "Custom YDir").YDir=0.0
         obj.addProperty("App::PropertyFloat","ZDir","Custom Axis", \
              "Custom ZDir").ZDir=1.0
-        obj.setEditorMode("Placement",2)
+        obj.addProperty("App::PropertyFloat","Length","Base", \
+             "Length").Length = 500.0 
+        self.halfLen = 250.0
+        obj.addProperty("App::PropertyFloat","Width","Base", \
+             "Width").Width = 500.0 
+        self.halfWidth = 250 
+        #obj.setEditorMode("Placement",2)
         self.disableAxisParms(obj)
         obj.Proxy = self
 
@@ -66,21 +72,31 @@ class F2SPlane :
               self.enableAxisParms(fp)
            else :
               self.disableAxisParms(fp)
-        self.updateGeometry(fp)
+           self.updateGeometry(fp)
+
+        if 'Length' in prop :
+           self.halfLen = fp.Length/2
+           print('Need to update')
+
+        if 'Width' in prop :
+           self.halfWidth = fp.Width/2
+           print('Need to update')
 
     def getPlaneParms(self, fp) :
+        print('getplaneParms')
+        print(fp.Axis)
         if fp.Axis == 'Custom' : 
-           self.dir = FreeCAD.Vector(fp.XDir, fp.YDir, fp.ZDir)
+           self.dir  = FreeCAD.Vector(fp.XDir, fp.YDir, fp.ZDir)
            self.point = FreeCAD.Vector(0.0, 0.0, 0.0)
         elif fp.Axis == 'XY Plane' :
-           self.dir = FreeCAD.Vector(0.0, 0.0, 1.0)
-           self.point = FreeCAD.Vector(fp.Offset, 0.0, 0.0)
-        elif fp.Axis == 'XZPlane' :
-           self.dir = FreeCAD.Vector(0.0, 1.0, 0.0)
-           self.point = FreeCAD.Vector(0.0, fp.Offset, 0.0)
-        elif fp.Axis == 'YZPlane' :
-           self.dir = FreeCAD.Vector(1.0, 0.0, 0.0)
-           self.point = FreeCAD.Vector(0.0, 0.0, fp.Offset)
+           self.dir  = FreeCAD.Vector(0.0, 0.0, 1.0)
+           self.point = FreeCAD.Vector(-self.halfLen,-self.halfWidth,fp.Offset)
+        elif fp.Axis == 'XZ Plane' :
+           self.dir  = FreeCAD.Vector(0.0, 1.0, 0.0)
+           self.point = FreeCAD.Vector(-self.halfLen,fp.Offset,-self.halfWidth)
+        elif fp.Axis == 'YZ Plane' :
+           self.dir  = FreeCAD.Vector(1.0, 0.0, 0.0)
+           self.point = FreeCAD.Vector(fp.Offset,-self.halfLen,-self.halfWidth)
         else :
            print('Invalid Axis')
            exit(3)
@@ -90,25 +106,20 @@ class F2SPlane :
         #print(fp.Shape)
         if hasattr(self, 'Plane') == False :
            self.getPlaneParms(fp)
-           self.Plane = Part.makePlane(1000,1000,self.point, self.dir)
+           self.Plane = Part.makePlane(fp.Length, fp.Width,self.point, self.dir)
            fp.Shape = self.Plane
         
     def updateGeometry(self, fp) :
         print('update Geometry')
-        #if self.Plane is None :
-        #   self.getPlaneParms(fp)
-        #   self.Plane = Part.makePlane(1000,1000,self.point, self.dir)
-        #   fp.Shape = self.Plane
-        # print(dir(fp.Shape))
-        print(self.Plane.Placement)
+        self.getPlaneParms(fp)
+        print('Current plane parms')
+        print('Point : '+str(self.point))
+        print('Dir   : '+str(self.dir))
+        self.Plane.Placement.Rotation = FreeCAD.Rotation(FreeCAD.Vector(0,0,1),\
+              self.dir)
         print(self.Plane.Placement.Base)
         print(self.Plane.Placement.Rotation)
-        print(self.Plane.Placement.Rotation.Angle)
-        print(self.Plane.Placement.Rotation.Axis)
-        print(self.Plane.Placement.Rotation.RawAxis)
-        print(self.Plane.Placement.Rotation.toEuler())
-        print(dir(self.Plane.Placement))
-        print(dir(self.Plane.Placement.Rotation))
+        fp.Shape = self.Plane
         
     def execute(self,fp):
         print('execute')
