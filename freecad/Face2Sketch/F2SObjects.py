@@ -74,16 +74,17 @@ class F2SPlane :
               self.disableAxisParms(fp)
            self.updateGeometry(fp)
 
+        if 'Placement' in prop :
+           print(fp.Placement)
+
         if 'Offset' in prop :
            self.updateGeometry(fp)
 
-        if 'Length' in prop :
-           self.halfLen = fp.Length/2
-           print('Need to update')
-
-        if 'Width' in prop :
-           self.halfWidth = fp.Width/2
-           print('Need to update')
+        if 'Length' in prop or 'Width' in prop :
+           fp.Shape = Part.makePlane(fp.Length,fp.Width, \
+                      FreeCAD.Vector(-fp.Length/2,-fp.Width/2),\
+                      FreeCAD.Vector(0,0,1))
+           self.updateGeometry(fp)
 
     def getPlaneParms(self, fp) :
         print('getplaneParms')
@@ -93,38 +94,44 @@ class F2SPlane :
            self.point = FreeCAD.Vector(0.0, 0.0, 0.0)
         elif fp.Axis == 'XY Plane' :
            self.dir  = FreeCAD.Vector(0.0, 0.0, 1.0)
-           self.point = FreeCAD.Vector(-self.halfLen,-self.halfWidth,fp.Offset)
+           self.point = FreeCAD.Vector(0.0,0.0,fp.Offset)
         elif fp.Axis == 'XZ Plane' :
            self.dir  = FreeCAD.Vector(0.0, 1.0, 0.0)
-           self.point = FreeCAD.Vector(-self.halfLen,fp.Offset,-self.halfWidth)
+           self.point = FreeCAD.Vector(0.0,fp.Offset,0.0)
         elif fp.Axis == 'YZ Plane' :
            self.dir  = FreeCAD.Vector(1.0, 0.0, 0.0)
-           self.point = FreeCAD.Vector(fp.Offset,-self.halfLen,-self.halfWidth)
+           self.point = FreeCAD.Vector(fp.Offset,0.0,0.0)
         else :
            print('Invalid Axis')
            exit(3)
 
     def createGeometry(self, fp) :
         print('create Geometry')
-        #print(fp.Shape)
+        print(fp.Placement.Base)
+        print(fp.Placement.Rotation)
         if hasattr(self, 'Plane') == False :
            print('Create Plane')
-           self.getPlaneParms(fp)
-           self.Plane = Part.makePlane(fp.Length, fp.Width,self.point, self.dir)
+           #self.getPlaneParms(fp)
+           self.Plane = Part.makePlane(fp.Length, fp.Width, \
+               FreeCAD.Vector(-250,-250,0),FreeCAD.Vector(0,0,1))
            fp.Shape = self.Plane
         
     def updateGeometry(self, fp) :
         print('update Geometry')
+        print(fp.Placement)
         self.getPlaneParms(fp)
         print('Current plane parms')
         print('Point : '+str(self.point))
         print('Dir   : '+str(self.dir))
-        self.Plane.Placement.Base = self.point
-        self.Plane.Placement.Rotation = FreeCAD.Rotation(FreeCAD.Vector(0,0,1),\
+        #self.Plane.Placement.Base = self.point
+        fp.Placement.Base = self.point
+        #self.Plane.Placement.Rotation = FreeCAD.Rotation(FreeCAD.Vector(0,0,1),\
+        fp.Placement.Rotation = FreeCAD.Rotation(FreeCAD.Vector(0,0,1),\
               self.dir)
-        print(self.Plane.Placement.Base)
-        print(self.Plane.Placement.Rotation)
-        fp.Shape = self.Plane
+        #print(self.Plane.Placement.Base)
+        #print(self.Plane.Placement.Rotation)
+        # Following line would update Shape and drive onChanged Shape
+        #fp.Shape = self.Plane
         
     def execute(self,fp):
         print('execute')
