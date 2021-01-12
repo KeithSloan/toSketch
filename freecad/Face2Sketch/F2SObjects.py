@@ -74,6 +74,9 @@ class F2SPlane :
               self.disableAxisParms(fp)
            self.updateGeometry(fp)
 
+        if 'Offset' in prop :
+           self.updateGeometry(fp)
+
         if 'Length' in prop :
            self.halfLen = fp.Length/2
            print('Need to update')
@@ -105,6 +108,7 @@ class F2SPlane :
         print('create Geometry')
         #print(fp.Shape)
         if hasattr(self, 'Plane') == False :
+           print('Create Plane')
            self.getPlaneParms(fp)
            self.Plane = Part.makePlane(fp.Length, fp.Width,self.point, self.dir)
            fp.Shape = self.Plane
@@ -115,6 +119,7 @@ class F2SPlane :
         print('Current plane parms')
         print('Point : '+str(self.point))
         print('Dir   : '+str(self.dir))
+        self.Plane.Placement.Base = self.point
         self.Plane.Placement.Rotation = FreeCAD.Rotation(FreeCAD.Vector(0,0,1),\
               self.dir)
         print(self.Plane.Placement.Base)

@@ -84,7 +84,7 @@ class F2SPlaneFeature :
         ViewProvider(obj.ViewObject)
         FreeCAD.ActiveDocument.recompute()
         # need Shape but do not want Placement
-        obj.setEditorMode('Placement',2)
+        #obj.setEditorMode('Placement',2)
         #print(dir(obj))
         #print(dir(obj.ViewObject))
         obj.ViewObject.Transparency = 20
