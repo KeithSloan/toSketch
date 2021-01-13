@@ -137,5 +137,67 @@ class toSPlaneFeature :
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
                 'to SPlane')}
 
+class toScaleFeature :
+
+    def Activated(self):
+      from .toSObjects import toScale, ViewProvider
+
+      for sel in FreeCADGui.Selection.getSelection() :
+          print('Selected')
+          print(sel.Label)
+          print(sel.TypeId)
+          print(dir(sel))
+          print(dir(sel.Shape))
+          sel.Shape.scale(2.0)
+          #obj = FreeCAD.ActiveDocument.addObject('App::Link', \
+          #         'Scale')
+          #obj.LinkedObject = sel
+          #scale = FreeCAD.Vector(1.0,1.0,1.0)
+          #obj.ScaleVector = scale
+          #obj.addProperty("App::PropertyVector","Scale","Link", \
+          #         "Scale Vector").Scale = scale
+          obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
+          toScale(obj, sel)
+          ViewProvider(obj.ViewObject)
+          FreeCAD.ActiveDocument.recompute()
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'toScale', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toScaleFeature',\
+                'To Scale'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toScalesFeature',\
+                'To Scale')}
+
+class toTransformFeature :
+
+    def Activated(self):
+      from .toSObjects import toTransform, ViewProvider
+
+      for sel in FreeCADGui.Selection.getSelection() :
+          print('Selected')
+          print(sel.Label)
+          print(sel.TypeId)
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'toTransform', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toTransformFeature',\
+                'To Transform'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toTransformFeature',\
+                'To Transform')}
+
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
+FreeCADGui.addCommand('toScaleCommand',toScaleFeature())
+FreeCADGui.addCommand('toTransformCommand',toTransformFeature())

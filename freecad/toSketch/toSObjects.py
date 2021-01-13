@@ -26,7 +26,7 @@ __title__="FreeCAD toSketch Workbench - Objects"
 __author__ = "Keith Sloan"
 __url__ = ["http://www.freecadweb.org"]
 
-import FreeCAD, Part
+import FreeCAD, Part, Draft
 
 class toSPlane :
 
@@ -147,6 +147,72 @@ class toSPlane :
         '''When restoring the serialized object from document we have the chance to set some internals here.\
                 Since no data were serialized nothing needs to be done here.'''
         return None
+
+class toScale() :
+   def __init__(self, obj, sel) :
+       obj.Proxy = self
+       obj.addProperty("App::PropertyFloat","Scale","Base", \
+              "Scale").Scale = 1.0
+       obj.addProperty("App::PropertyVector","Centre","Base", \
+              "Centre Vector").Centre = FreeCAD.Vector(0.0,0.0,0.0)
+       obj.addProperty("App::PropertyBool","Replace","Base", \
+              "Replace").Replace = False
+       self.Sel = sel
+
+   def onChanged(self, fp, prop) :
+       print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
+
+   def createGeometry(self, fp) :
+       print('create Geometry')
+       clone = Draft.clone(self.Sel)
+       #fp.Shape = Part.makebox()
+       clone.Shape.scale(fp.Scale, fp.Centre)
+       fp.Shape = clone.Shape
+
+   def execute(self,fp):
+       print('execute')
+       self.createGeometry(fp)
+
+   def __getstate__(self):
+        '''When saving the document this object gets stored using Python's json module.\
+                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+                to return a tuple of all serializable objects or None.'''
+        return None
+
+   def __setstate__(self,state):
+        '''When restoring the serialized object from document we have the chance to set some internals here.\
+                Since no data were serialized nothing needs to be done here.'''
+        return None
+
+class toTransform() :
+   def __init__(self, obj) :
+       obj.Proxy = self
+       obj.addProperty("App::PropertyMatrix","Matrix","Base", \
+              "Transform Matrix")
+       obj.addProperty("App::PropertyBool","Replace","Base", \
+              "Replace").Replace = False
+
+   def onChanged(self, fp, prop) :
+       print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
+
+   def createGeometry(self, fp) :
+        print('create Geometry')
+
+   def execute(self,fp):
+        print('execute')
+        self.createGeometry(fp)
+
+   def __getstate__(self):
+        '''When saving the document this object gets stored using Python's json module.\
+                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+                to return a tuple of all serializable objects or None.'''
+        return None
+
+   def __setstate__(self,state):
+        '''When restoring the serialized object from document we have the chance to set some internals here.\
+                Since no data were serialized nothing needs to be done here.'''
+        return None
+
 
 class ViewProvider():
    def __init__(self, obj):
