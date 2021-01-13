@@ -35,7 +35,7 @@
 import FreeCAD
 #import PartGui
 import FreeCADGui
-from freecad.Face2Sketch import toSCommands
+from freecad.toSketch import toSCommands
 
 def joinDir(path) :
     import os
