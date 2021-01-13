@@ -27,21 +27,19 @@ __author__ = "Keith Sloan"
 __url__ = ["http://www.freecadweb.org"]
 
 '''
-This Script includes the GUI Commands of the F2S module
+This Script includes the GUI Commands of the 2S module
 '''
 
 import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
 from PySide import QtGui, QtCore
 
-class Face2SketchFeature:
+class toSketchFeature:
     #    def IsActive(self):
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
 
     def Activated(self):
         #   for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
-            #if len(obj.InList) == 0: # allowed only for for top level objects
-            #cycle(obj)
             print("Selected")
             if sel.HasSubObjects == True :
                if str(sel.SubObjects[0].Surface) == '<Plane object>' :
@@ -49,16 +47,21 @@ class Face2SketchFeature:
                   shape = sel.SubObjects[0]
                   #shape.exportStep('/tmp/exported.step')
                   #shape.exportBrep('/tmp/exported.brep')
-                  Draft.draftify(shape, makeblock=False, delete=True)
-                  try :
-                      Draft.makeSketch(shape, autoconstraints=True, \
-                         addTo=None, delete=False, name="Sketch",  \
-                         radiusPrecision=-1)
-                  except :
-                      Draft.makeSketch(shape, autoconstraints=False, \
-                         addTo=None, delete=False, name="Sketch",  \
-                         radiusPrecision=-1)
-                  FreeCADGui.ActiveDocument.setEdit('Sketch',0)
+                  self.shapes2Sketch(shape,'Sketch')
+        
+        for sel in FreeCADGui.Selection.getSelection() :
+            if sel.TypeId == 'Part::FeaturePython' and \
+               sel.Label[:5] == 'Plane' : 
+               self.actionSection(sel.Shape)
+            if sel.TypeId == 'Part::Plane' :
+               self.actionSection(sel)
+            print(sel.ViewObject.Visibility)
+            sel.ViewObject.Visibility = False
+
+        try :
+            FreeCADGui.ActiveDocument.setEdit('Sketch',0)
+        except :
+            pass
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -67,20 +70,52 @@ class Face2SketchFeature:
            return True
 
     def GetResources(self):
-        return {'Pixmap'  : 'Face2Sketch', 'MenuText': \
-                QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
-                'Face 2 Sketch'), 'ToolTip': \
-                QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
-                'Face 2 Sketch')}
+        return {'Pixmap'  : 'toSketch', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
+                'To Sketch'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
+                'To Sketch')}
 
-class F2SPlaneFeature :    
+    def actionSection(self,plane):
+        print('Action Section')
+        edges = []
+        for obj in FreeCAD.ActiveDocument.Objects :
+            if hasattr(obj,'Shape') :
+               print(obj.Label)
+               sect = obj.Shape.section(plane)
+               #print(sect)
+               #print(sect.ShapeType)
+               #print(sect.Wires)
+               print(sect.SubShapes)
+               if len(sect.SubShapes) > 0 :
+                  print('Intesect : '+obj.Label)
+                  for e in sect.SubShapes :
+                      edges.append(e)
+               obj.ViewObject.Visibility = False
+               #print(dir(sect))
+        self.shapes2Sketch(edges,'Sketch')
+        #Draft.makeSketch(edges,autoconstraints=False, addTo= None, \
+        #       delete=False, name='Sketch', radiusPrecision=-1)
+
+    def shapes2Sketch(self, shapes, name) :
+        Draft.draftify(shapes, makeblock=False, delete=True)
+        try :
+            Draft.makeSketch(shapes, autoconstraints=True, \
+                 addTo=None, delete=False, name=name,  \
+                       radiusPrecision=-1)
+        except :
+            Draft.makeSketch(shapes, autoconstraints=False, \
+                 addTo=None, delete=False, name=name,  \
+                         radiusPrecision=-1)
+        
+class toSPlaneFeature :    
 
     def Activated(self) :
-        from .F2SObjects import F2SPlane, ViewProvider
+        from .toSObjects import toSPlane, ViewProvider
 
         obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
                    'Plane')
-        F2SPlane(obj)
+        toSPlane(obj)
         ViewProvider(obj.ViewObject)
         FreeCAD.ActiveDocument.recompute()
         # need Shape but do not want Placement
@@ -96,11 +131,11 @@ class F2SPlaneFeature :
            return True
 
     def GetResources(self):
-        return {'Pixmap'  : 'F2SPlane', 'MenuText': \
-                QtCore.QT_TRANSLATE_NOOP('F2SPlaneFeature',\
-                'F2SPlane'), 'ToolTip': \
-                QtCore.QT_TRANSLATE_NOOP('Face2SketchFeature',\
-                'F2SPlane')}
+        return {'Pixmap'  : 'toSPlane', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
+                'to SPlane'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
+                'to SPlane')}
 
-FreeCADGui.addCommand('Face2SketchCommand',Face2SketchFeature())
-FreeCADGui.addCommand('F2SPlaneCommand',F2SPlaneFeature())
+FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
+FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())

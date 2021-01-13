@@ -1,4 +1,4 @@
-# Face2Sketch wrkbench gui init module
+# toSketch workbench gui init module
 #
 # Gathering all the information to start FreeCAD
 # This is the second one of three init scripts, the third one
@@ -35,43 +35,47 @@
 import FreeCAD
 #import PartGui
 import FreeCADGui
-#from freecad.gdml import F2SCommands, F2SResources
-from freecad.Face2Sketch import F2SCommands
+from freecad.Face2Sketch import toSCommands
 
 def joinDir(path) :
     import os
     __dirname__ = os.path.dirname(__file__)
     return(os.path.join(__dirname__,path))
 
-class Face2Sketch_Workbench ( FreeCADGui.Workbench ):
+class toSketch_Workbench ( FreeCADGui.Workbench ):
 
 #    import FreeCAD
 
-    "Face2Sketch workbench object"
+    "to workbench object"
     def __init__(self):
-        self.__class__.Icon = joinDir("Resources/icons/F2SWorkbench.svg")
-        self.__class__.MenuText = "Face2Sketch"
-        self.__class__.ToolTip = "Face2Sketch workbench"
+        self.__class__.Icon = joinDir("Resources/icons/toSWorkbench.svg")
+        self.__class__.MenuText = "toSketch"
+        self.__class__.ToolTip = "toSketch workbench"
 
     def Initialize(self):
         def QT_TRANSLATE_NOOP(scope, text):
             return text
         
-        #import GDMLCommands, GDMLResources
-        #import F2SCommands
-        commands=['Face2SketchCommand','F2SPlaneCommand']
+        #import 2SCommands
+        commands=['toSketchCommand','toSPlaneCommand']
 
-        toolbarcommands=['Face2SketchCommand','F2SPlaneCommand']
+        toolbarcommands=['toSketchCommand','toSPlaneCommand']
 
-        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench','F2S_Tools'),toolbarcommands)
-        self.appendMenu('Face2Sketch',commands)
+        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench','toS_Tools'),toolbarcommands)
+        self.appendMenu('toSketch',commands)
         FreeCADGui.addIconPath(joinDir("Resources/icons"))
         FreeCADGui.addLanguagePath(joinDir("Resources/translations"))
-        #FreeCADGui.addPreferencePage(joinDir("Resources/ui/Face2Sketch-base.ui"),"Face2Sketch")
+        #FreeCADGui.addPreferencePage(joinDir("Resources/ui/toSketch-base.ui"),"Face2Sketch")
 
     def Activated(self):
         "This function is executed when the workbench is activated"
         print ("Activated")
+        actDoc = FreeCAD.ActiveDocument
+        if actDoc is not None :
+           objs = actDoc.Objects
+           if objs is not None :
+              for obj in objs :
+                  obj.ViewObject.Visibility = True
         return
 
     def Deactivated(self):
@@ -81,5 +85,5 @@ class Face2Sketch_Workbench ( FreeCADGui.Workbench ):
     def GetClassName(self):
         return "Gui::PythonWorkbench"
 
-FreeCADGui.addWorkbench(Face2Sketch_Workbench())
+FreeCADGui.addWorkbench(toSketch_Workbench())
 

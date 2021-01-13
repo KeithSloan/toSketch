@@ -22,13 +22,13 @@
 #*                                                                        *
 #**************************************************************************
 
-__title__="FreeCAD Face2Sketch Workbench - Objects"
+__title__="FreeCAD toSketch Workbench - Objects"
 __author__ = "Keith Sloan"
 __url__ = ["http://www.freecadweb.org"]
 
 import FreeCAD, Part
 
-class F2SPlane :
+class toSPlane :
 
     def __init__(self,obj) :
         AxisList = ['XY Plane','XZ Plane','YZ Plane','Custom']
@@ -42,13 +42,13 @@ class F2SPlane :
             "Custom YDir").YDir=0.0
         obj.addProperty("App::PropertyFloat","ZDir","Custom Axis", \
              "Custom ZDir").ZDir=1.0
-        obj.addProperty("App::PropertyFloat","Length","Base", \
+        obj.addProperty("App::PropertyFloat","Length","Plane", \
              "Length").Length = 500.0 
         self.halfLen = 250.0
-        obj.addProperty("App::PropertyFloat","Width","Base", \
+        obj.addProperty("App::PropertyFloat","Width","Plane", \
              "Width").Width = 500.0 
         self.halfWidth = 250 
-        #obj.setEditorMode("Placement",2)
+        obj.setEditorMode("Placement",2)
         self.disableAxisParms(obj)
         obj.Proxy = self
 
