@@ -58,10 +58,10 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
         
         #import 2SCommands
         commands=['toSketchCommand','toSPlaneCommand', \
-                   'toScaleCommand','toTransformCommand']
+                   'toScaleCommand','toTransformCommand','toShapeInfoCommand']
 
         toolbarcommands=['toSketchCommand','toSPlaneCommand', \
-                         'toScaleCommand','toTransformCommand']
+                   'toScaleCommand','toTransformCommand','toShapeInfoCommand']
 
         self.appendToolbar(QT_TRANSLATE_NOOP('Workbench','toS_Tools'),toolbarcommands)
         self.appendMenu('toSketch',commands)

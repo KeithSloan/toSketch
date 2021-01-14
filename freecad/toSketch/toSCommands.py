@@ -148,7 +148,6 @@ class toScaleFeature :
           print(sel.TypeId)
           print(dir(sel))
           print(dir(sel.Shape))
-          sel.Shape.scale(2.0)
           #obj = FreeCAD.ActiveDocument.addObject('App::Link', \
           #         'Scale')
           #obj.LinkedObject = sel
@@ -197,7 +196,40 @@ class toTransformFeature :
                 QtCore.QT_TRANSLATE_NOOP('toTransformFeature',\
                 'To Transform')}
 
+class toShapeInfoFeature :
+
+    def Activated(self):
+      #from .toSObjects import toTransform, ViewProvider
+
+      for sel in FreeCADGui.Selection.getSelection() :
+          print('Selected')
+          print(sel.Label)
+          print(sel.TypeId)
+          print(sel.Content)
+          print('Number of Faces    : '+str(len(sel.Shape.Faces)))
+          print('Number of Edges    : '+str(len(sel.Shape.Edges)))
+          print('Number of Vertexes : '+str(len(sel.Shape.Vertexes)))
+          print('Number of Wires    : '+str(len(sel.Shape.Wires)))
+          print('InList  : '+str(sel.InList))
+          print('OutList : '+str(sel.OutList))
+          #print(dir(sel))
+          print(dir(sel.Shape))
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'toShapeInfo', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toShapeInfo',\
+                'To Transform'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toShapeInfo',\
+                'To Transform')}
+
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
 FreeCADGui.addCommand('toScaleCommand',toScaleFeature())
 FreeCADGui.addCommand('toTransformCommand',toTransformFeature())
+FreeCADGui.addCommand('toShapeInfoCommand',toShapeInfoFeature())

@@ -151,27 +151,29 @@ class toSPlane :
 class toScale() :
    def __init__(self, obj, sel) :
        obj.Proxy = self
-       obj.addProperty("App::PropertyFloat","Scale","Base", \
-              "Scale").Scale = 1.0
+       obj.addProperty("App::PropertyVector","Scale","Base", \
+              "Scale").Scale = FreeCAD.Vector(1.0,1.0,1.0)
        obj.addProperty("App::PropertyVector","Centre","Base", \
               "Centre Vector").Centre = FreeCAD.Vector(0.0,0.0,0.0)
        obj.addProperty("App::PropertyBool","Replace","Base", \
               "Replace").Replace = False
-       self.Sel = sel
+       self.OrgObj = Draft.clone(sel)
+       self.WrkObj = Draft.scale(self.OrgObj,obj.Scale,obj.Centre,copy = True) 
+       self.Shape = self.WrkObj.Shape
 
    def onChanged(self, fp, prop) :
        print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
+       if 'Scale' in prop or 'Centre' in prop:
+          self.updateGeometry(fp)
 
-   def createGeometry(self, fp) :
-       print('create Geometry')
-       clone = Draft.clone(self.Sel)
-       #fp.Shape = Part.makebox()
-       clone.Shape.scale(fp.Scale, fp.Centre)
-       fp.Shape = clone.Shape
+   def updateGeometry(self, fp) :
+       print('Update Geometry')
+       self.WrkObj = Draft.scale(self.OrgObj,fp.Scale,fp.Centre,copy = False) 
+       self.Shape = self.WrkObj.Shape
 
    def execute(self,fp):
        print('execute')
-       self.createGeometry(fp)
+       self.updateGeometry(fp)
 
    def __getstate__(self):
         '''When saving the document this object gets stored using Python's json module.\
