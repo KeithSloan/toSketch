@@ -131,11 +131,11 @@ class toSPlaneFeature :
            return True
 
     def GetResources(self):
-        return {'Pixmap'  : 'toSPlane', 'MenuText': \
+        return {'Pixmap'  : 'toPlane', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
-                'to SPlane'), 'ToolTip': \
+                'to Plane'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
-                'to SPlane')}
+                'to Plane')}
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
