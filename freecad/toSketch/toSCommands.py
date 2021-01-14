@@ -156,7 +156,7 @@ class toScaleFeature :
           #obj.addProperty("App::PropertyVector","Scale","Link", \
           #         "Scale Vector").Scale = scale
           obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
-          toScale(obj, sel)
+          toScale(obj, sel.Shape)
           ViewProvider(obj.ViewObject)
           FreeCAD.ActiveDocument.recompute()
 
@@ -214,6 +214,7 @@ class toShapeInfoFeature :
           print('OutList : '+str(sel.OutList))
           #print(dir(sel))
           print(dir(sel.Shape))
+          print(dir(sel.Shape.Faces[0]))
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -224,9 +225,9 @@ class toShapeInfoFeature :
     def GetResources(self):
         return {'Pixmap'  : 'toShapeInfo', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('toShapeInfo',\
-                'To Transform'), 'ToolTip': \
+                'Shape Info'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toShapeInfo',\
-                'To Transform')}
+                'Shape Info')}
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())

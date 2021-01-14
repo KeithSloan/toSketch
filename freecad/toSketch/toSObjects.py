@@ -149,27 +149,51 @@ class toSPlane :
         return None
 
 class toScale() :
-   def __init__(self, obj, sel) :
+   def __init__(self, obj, shape) :
+       print('Scale Init')
        obj.Proxy = self
-       obj.addProperty("App::PropertyVector","Scale","Base", \
-              "Scale").Scale = FreeCAD.Vector(1.0,1.0,1.0)
+       obj.addProperty("App::PropertyFloat","Scale","Base", \
+              "Scale").Scale = 2.0
        obj.addProperty("App::PropertyVector","Centre","Base", \
               "Centre Vector").Centre = FreeCAD.Vector(0.0,0.0,0.0)
+       obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
+       #obj.addProperty("PartShape","saveShape","Base", \
+              "Saved Shape").saveShape = shape
        obj.addProperty("App::PropertyBool","Replace","Base", \
               "Replace").Replace = False
-       self.OrgObj = Draft.clone(sel)
-       self.WrkObj = Draft.scale(self.OrgObj,obj.Scale,obj.Centre,copy = True) 
-       self.Shape = self.WrkObj.Shape
+       #self.OrgObj = Draft.clone(sel)
+       #self.WrkObj = Draft.scale(self.OrgObj,obj.Scale,obj.Centre,copy = True) 
+       #self.Shape = self.WrkObj.Shape
+       self.Shape = obj.saveShape
+       #self.Shape.scale(obj.Scale,obj.Centre)
 
    def onChanged(self, fp, prop) :
        print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
-       if 'Scale' in prop or 'Centre' in prop:
-          self.updateGeometry(fp)
+       #if 'Scale' in prop or 'Centre' in prop:
+       #   self.updateGeometry(fp)
 
    def updateGeometry(self, fp) :
        print('Update Geometry')
-       self.WrkObj = Draft.scale(self.OrgObj,fp.Scale,fp.Centre,copy = False) 
-       self.Shape = self.WrkObj.Shape
+       s = fp.saveShape.copy()
+       print(s.Placement)
+       print(s.BoundBox)
+       print(dir(s))
+       m = FreeCAD.Matrix()
+       #m.move(fp.Centre.negative())
+       #m.move(FreeCAD.Vector(32,-44,-8))
+       #m.move(FreeCAD.Vector(0,-44,-8))
+       m.move(FreeCAD.Vector(13,-44,-8))
+       #m.move(FreeCAD.Vector(26,-44,-8))
+       #m.move(FreeCAD.Vector(7,-44,-8))
+       #m.move(FreeCAD.Vector(96,-132,-24))
+       m.scale(3.0,3.0,3.0)
+       #m.move(fp.Centre)
+       print(fp.Scale)
+       print(fp.Centre)
+       #s = s.scale(fp.Scale,fp.Centre)
+       s = s.transformGeometry(m)
+       fp.Shape = s
+       #fp.Shape = Part.makeBox(10,10,10)
 
    def execute(self,fp):
        print('execute')
