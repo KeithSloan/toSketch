@@ -204,22 +204,33 @@ class toScale() :
         return None
 
 class toTransform() :
-   def __init__(self, obj) :
+   def __init__(self, obj, shape) :
        obj.Proxy = self
-       obj.addProperty("App::PropertyMatrix","Matrix","Base", \
-              "Transform Matrix")
-       obj.addProperty("App::PropertyBool","Replace","Base", \
-              "Replace").Replace = False
+       obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
+              "Saved Shape").saveShape = shape
+       self.Shape = obj.saveShape
 
    def onChanged(self, fp, prop) :
        print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
 
-   def createGeometry(self, fp) :
-        print('create Geometry')
+   def updateGeometry(self, fp) :
+          print('Update Geometry')
+          #if hasattr(fp,'saveShape') :
+          #s = fp.saveShape.copy()
+          s = fp.Shape
+          print(s.BoundBox)
+          print(dir(s))
+          m = FreeCAD.Matrix()
+          print(s.BoundBox.XMin)
+          print(s.BoundBox.XMax)
+          m.move(FreeCAD.Vector(0,0,0))
+          m.scale(1,1,1)
+          s = s.transformGeometry(m)
+          fp.Shape = s
 
    def execute(self,fp):
         print('execute')
-        self.createGeometry(fp)
+        self.updateGeometry(fp)
 
    def __getstate__(self):
         '''When saving the document this object gets stored using Python's json module.\

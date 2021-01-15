@@ -195,6 +195,35 @@ class toTransformFeature :
           print('Selected')
           print(sel.Label)
           print(sel.TypeId)
+          print(dir(sel.Shape))
+          s = sel.Shape
+          t = sel.Shape.copy()
+          m = FreeCAD.Matrix()
+          print(s.BoundBox.XMin)
+          print(s.BoundBox.XMax)
+          print(s.CenterOfMass)
+          print(s.CenterOfMass.x)
+          print(s.CenterOfMass.y)
+          print(s.CenterOfMass.z)
+          print(dir(s.CenterOfMass))
+          print(dir(sel))
+          print(dir(sel.Placement))
+          sel.Placement.Base = s.CenterOfMass
+          print(sel.Placement)
+          v = s.CenterOfMass
+          vt = v.negative()
+          print(vt)
+          #com = s.CenterOfMass
+          #m.move(com.x,com.y,com.z)
+          m.move(-s.CenterOfMass.x+5, -s.CenterOfMass.y+5, -s.CenterOfMass.z)
+          #m.move(com[0],com[1],com[2])
+          m.scale(1,1,1)
+          #s = s.transformGeometry(m)
+          #t.transformShape(m)
+          #t.translate(s.CenterOfMass.negative)
+          t.translate(vt)
+          sel.Shape = t
+          FreeCADGui.updateGui()
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
