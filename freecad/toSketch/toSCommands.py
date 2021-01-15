@@ -148,16 +148,27 @@ class toScaleFeature :
           print(sel.TypeId)
           print(dir(sel))
           print(dir(sel.Shape))
-          #obj = FreeCAD.ActiveDocument.addObject('App::Link', \
-          #         'Scale')
-          #obj.LinkedObject = sel
-          #scale = FreeCAD.Vector(1.0,1.0,1.0)
-          #obj.ScaleVector = scale
-          #obj.addProperty("App::PropertyVector","Scale","Link", \
-          #         "Scale Vector").Scale = scale
-          obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
-          toScale(obj, sel.Shape)
-          ViewProvider(obj.ViewObject)
+          print(sel.InList)
+          print(sel.OutList)
+          #obj.OutList = sel.OutList
+          if len(sel.InList) > 0 :
+             parent = sel.InList[0]
+             print('parent : '+parent.Label)
+             print(parent.OutList)
+             obj = parent.newObject('Part::FeaturePython',sel.Label+'_Scale')
+             toScale(obj, sel.Shape)
+             ViewProvider(obj.ViewObject)
+ 
+             #for i in range(len(parent.OutList)) :
+             #    if parent.OutList[i] == sel :
+             #       parent.OutList[i] = obj
+             #       obj.Label = sel.Label + '_Scale'
+          else :
+             obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
+             toScale(obj, sel.Shape)
+             ViewProvider(obj.ViewObject)
+          FreeCAD.ActiveDocument.removeObject(sel.Name)
+          #FreeCADGui.updateGui()            
           FreeCAD.ActiveDocument.recompute()
 
     def IsActive(self):
