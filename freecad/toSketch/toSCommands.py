@@ -167,6 +167,8 @@ class toScaleFeature :
              obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
              toScale(obj, sel.Shape)
              ViewProvider(obj.ViewObject)
+          for i in sel.OutList :
+              obj.addObject(i) 
           FreeCAD.ActiveDocument.removeObject(sel.Name)
           #FreeCADGui.updateGui()            
           FreeCAD.ActiveDocument.recompute()
