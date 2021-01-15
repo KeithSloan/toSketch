@@ -26,7 +26,7 @@ __title__="FreeCAD toSketch Workbench - Objects"
 __author__ = "Keith Sloan"
 __url__ = ["http://www.freecadweb.org"]
 
-import FreeCAD, Part
+import FreeCAD, Part, Draft
 
 class toSPlane :
 
@@ -147,6 +147,91 @@ class toSPlane :
         '''When restoring the serialized object from document we have the chance to set some internals here.\
                 Since no data were serialized nothing needs to be done here.'''
         return None
+
+class toScale() :
+   def __init__(self, obj, shape) :
+       print('Scale Init')
+       obj.Proxy = self
+       obj.addProperty("App::PropertyFloat","ScaleX","Base", \
+              "Scale").ScaleX = 1.0
+       obj.addProperty("App::PropertyFloat","ScaleY","Base", \
+              "Scale").ScaleY = 1.0
+       obj.addProperty("App::PropertyFloat","ScaleZ","Base", \
+              "Scale").ScaleZ = 1.0
+       obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
+              "Saved Shape").saveShape = shape
+       self.Shape = obj.saveShape
+
+   def onChanged(self, fp, prop) :
+       print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
+       if 'ScaleX' in prop or 'ScaleY' in prop or 'ScaleZ' in prop :
+           self.updateGeometry(fp)
+
+   def updateGeometry(self, fp) :
+       print('Update Geometry')
+       if hasattr(fp,'saveShape') :
+          s = fp.saveShape.copy()
+          print(s.BoundBox)
+          #print(dir(s))
+          m = FreeCAD.Matrix()
+          print(s.BoundBox.XMin)
+          print(s.BoundBox.XMax)
+          print(fp.ScaleX)
+          cx = (s.BoundBox.XMin+s.BoundBox.XMax)*(1.0-fp.ScaleX)/(2.0*fp.ScaleX)
+          print('cx : '+str(cx))
+          cy = (s.BoundBox.YMin+s.BoundBox.YMax)*(1.0-fp.ScaleY)/(2.0*fp.ScaleY)
+          print('cy : '+str(cy))
+          cz = (s.BoundBox.ZMin+s.BoundBox.ZMax)*(1.0-fp.ScaleZ)/(2.0*fp.ScaleZ)
+          print('cz : '+str(cz))
+          m.move(FreeCAD.Vector(cx,cy,cz))
+          m.scale(fp.ScaleX,fp.ScaleY,fp.ScaleZ)
+          s = s.transformGeometry(m)
+          fp.Shape = s
+
+   def execute(self,fp):
+       print('execute')
+       self.updateGeometry(fp)
+
+   def __getstate__(self):
+        '''When saving the document this object gets stored using Python's json module.\
+                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+                to return a tuple of all serializable objects or None.'''
+        return None
+
+   def __setstate__(self,state):
+        '''When restoring the serialized object from document we have the chance to set some internals here.\
+                Since no data were serialized nothing needs to be done here.'''
+        return None
+
+class toTransform() :
+   def __init__(self, obj) :
+       obj.Proxy = self
+       obj.addProperty("App::PropertyMatrix","Matrix","Base", \
+              "Transform Matrix")
+       obj.addProperty("App::PropertyBool","Replace","Base", \
+              "Replace").Replace = False
+
+   def onChanged(self, fp, prop) :
+       print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
+
+   def createGeometry(self, fp) :
+        print('create Geometry')
+
+   def execute(self,fp):
+        print('execute')
+        self.createGeometry(fp)
+
+   def __getstate__(self):
+        '''When saving the document this object gets stored using Python's json module.\
+                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+                to return a tuple of all serializable objects or None.'''
+        return None
+
+   def __setstate__(self,state):
+        '''When restoring the serialized object from document we have the chance to set some internals here.\
+                Since no data were serialized nothing needs to be done here.'''
+        return None
+
 
 class ViewProvider():
    def __init__(self, obj):
