@@ -203,30 +203,40 @@ class toScale() :
                 Since no data were serialized nothing needs to be done here.'''
         return None
 
-class toTransform() :
+class toResetOrigin() :
+   
    def __init__(self, obj, shape) :
        obj.Proxy = self
+       self.TypeList = ['Min x/y/z','Center of Mass']
+       obj.addProperty("App::PropertyEnumeration","Type","Base", \
+           "Reset Origin To").Type = self.TypeList
        obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
               "Saved Shape").saveShape = shape
        self.Shape = obj.saveShape
 
    def onChanged(self, fp, prop) :
        print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
-
+       if 'Type' in prop :
+          self.updateGeometry(fp)
+          
    def updateGeometry(self, fp) :
-          print('Update Geometry')
-          #if hasattr(fp,'saveShape') :
-          #s = fp.saveShape.copy()
-          s = fp.Shape
-          print(s.BoundBox)
-          print(dir(s))
+       print('Update Geometry')
+       if hasattr(fp,'saveShape') :
+          s = fp.saveShape.copy()
+          t = self.TypeList.index(fp.Type)
+          if t == 0 :
+             v = FreeCAD.Vector(s.BoundBox.XMin, \
+                    s.BoundBox.YMin, s.BoundBox.ZMin)
+          else :
+             v = s.CenterOfMass
+          vt = v.negative()
           m = FreeCAD.Matrix()
-          print(s.BoundBox.XMin)
-          print(s.BoundBox.XMax)
-          m.move(FreeCAD.Vector(0,0,0))
+          m.move(vt)
           m.scale(1,1,1)
           s = s.transformGeometry(m)
+          #s.translate(vt)
           fp.Shape = s
+          fp.Placement.Base = v 
 
    def execute(self,fp):
         print('execute')
@@ -254,7 +264,7 @@ class ViewProvider():
  
    def updateData(self, fp, prop):
        '''If a property of the handled feature has changed we have the chance to handle this here'''
-       print('updateData')
+       print('updateData ViewProvider')
        #pass
        return
 
@@ -277,7 +287,7 @@ class ViewProvider():
 
    def onChanged(self, vp, prop):
        '''Here we can do something when a single property got changed'''
-       print('onChanged')
+       print('onChanged Viewprovider')
 
    def getIcon(self):
        '''Return the icon in XPM format which will appear in the tree view. This method is\

@@ -144,25 +144,11 @@ class toScaleFeature :
 
       for sel in FreeCADGui.Selection.getSelection() :
           print('Selected')
-          print(sel.Label)
-          print(sel.TypeId)
-          print(dir(sel))
-          print(dir(sel.Shape))
-          print(sel.InList)
-          print(sel.OutList)
-          #obj.OutList = sel.OutList
           if len(sel.InList) > 0 :
              parent = sel.InList[0]
-             print('parent : '+parent.Label)
-             print(parent.OutList)
              obj = parent.newObject('Part::FeaturePython',sel.Label+'_Scale')
              toScale(obj, sel.Shape)
              ViewProvider(obj.ViewObject)
- 
-             #for i in range(len(parent.OutList)) :
-             #    if parent.OutList[i] == sel :
-             #       parent.OutList[i] = obj
-             #       obj.Label = sel.Label + '_Scale'
           else :
              obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
              toScale(obj, sel.Shape)
@@ -170,7 +156,6 @@ class toScaleFeature :
           for i in sel.OutList :
               obj.addObject(i) 
           FreeCAD.ActiveDocument.removeObject(sel.Name)
-          #FreeCADGui.updateGui()            
           FreeCAD.ActiveDocument.recompute()
 
     def IsActive(self):
@@ -186,44 +171,28 @@ class toScaleFeature :
                 QtCore.QT_TRANSLATE_NOOP('toScalesFeature',\
                 'To Scale')}
 
-class toTransformFeature :
+class toResetOriginFeature :
 
     def Activated(self):
-      from .toSObjects import toTransform, ViewProvider
+      from .toSObjects import toResetOrigin, ViewProvider
 
       for sel in FreeCADGui.Selection.getSelection() :
           print('Selected')
-          print(sel.Label)
-          print(sel.TypeId)
-          print(dir(sel.Shape))
-          s = sel.Shape
-          t = sel.Shape.copy()
-          m = FreeCAD.Matrix()
-          print(s.BoundBox.XMin)
-          print(s.BoundBox.XMax)
-          print(s.CenterOfMass)
-          print(s.CenterOfMass.x)
-          print(s.CenterOfMass.y)
-          print(s.CenterOfMass.z)
-          print(dir(s.CenterOfMass))
-          print(dir(sel))
-          print(dir(sel.Placement))
-          sel.Placement.Base = s.CenterOfMass
-          print(sel.Placement)
-          v = s.CenterOfMass
-          vt = v.negative()
-          print(vt)
-          #com = s.CenterOfMass
-          #m.move(com.x,com.y,com.z)
-          m.move(-s.CenterOfMass.x+5, -s.CenterOfMass.y+5, -s.CenterOfMass.z)
-          #m.move(com[0],com[1],com[2])
-          m.scale(1,1,1)
-          #s = s.transformGeometry(m)
-          #t.transformShape(m)
-          #t.translate(s.CenterOfMass.negative)
-          t.translate(vt)
-          sel.Shape = t
-          FreeCADGui.updateGui()
+          if len(sel.InList) > 0 :
+             parent = sel.InList[0]
+             obj = parent.newObject('Part::FeaturePython', \
+                    sel.Label+'_Reset_Origin')
+             toResetOrigin(obj, sel.Shape)
+             ViewProvider(obj.ViewObject)
+          else :
+             obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
+                   'Reset_Origin')
+             toResetOrigin(obj, sel.Shape)
+             ViewProvider(obj.ViewObject)
+          for i in sel.OutList :
+              obj.addObject(i) 
+          FreeCAD.ActiveDocument.removeObject(sel.Name)
+          FreeCAD.ActiveDocument.recompute()
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -274,5 +243,5 @@ class toShapeInfoFeature :
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
 FreeCADGui.addCommand('toScaleCommand',toScaleFeature())
-FreeCADGui.addCommand('toTransformCommand',toTransformFeature())
+FreeCADGui.addCommand('toResetOriginCommand',toResetOriginFeature())
 FreeCADGui.addCommand('toShapeInfoCommand',toShapeInfoFeature())
