@@ -68,6 +68,7 @@ Selecting an Object and clicking on the Reset Origin icon results in the followi
             * Original ( as created by STEP import )
            
         * The parameter window shows readonly Bounding box info
-        * Apart from when the Rotation Type is set to Original the Object should now rotate corretly if the
-          Rotation value of the Object is changed via the Parameter Placement setting
+        * The Origin type can be changed via the Objects Parameter Placement setting.
+        * Apart from when the Origin Type is set to Original the Object should now rotate corretly
+          
 
