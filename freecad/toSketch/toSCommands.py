@@ -147,11 +147,11 @@ class toScaleFeature :
           if len(sel.InList) > 0 :
              parent = sel.InList[0]
              obj = parent.newObject('Part::FeaturePython',sel.Label+'_Scale')
-             toScale(obj, sel.Shape)
+             toScale(obj, sel.Shape, sel.Shape.BoundBox)
              ViewProvider(obj.ViewObject)
           else :
              obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
-             toScale(obj, sel.Shape)
+             toScale(obj, sel.Shape, sle.Shape.BoundBox)
              ViewProvider(obj.ViewObject)
           for i in sel.OutList :
               obj.addObject(i) 
@@ -182,12 +182,12 @@ class toResetOriginFeature :
              parent = sel.InList[0]
              obj = parent.newObject('Part::FeaturePython', \
                     sel.Label+'_Reset_Origin')
-             toResetOrigin(obj, sel.Shape)
+             toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
              ViewProvider(obj.ViewObject)
           else :
              obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
                    'Reset_Origin')
-             toResetOrigin(obj, sel.Shape)
+             toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
              ViewProvider(obj.ViewObject)
           for i in sel.OutList :
               obj.addObject(i) 
