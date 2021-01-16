@@ -56,11 +56,11 @@ This means if you try and Rotate an object that has been imported into FreeCAD i
 
 Selecting an Object and clicking on the Reset Origin icon results in the following
 
-* A new PartFeaturePython object is created and stores a copy of the selected objects Shape.
-* The Objects Placement is set based on the Shapes Bounding box and drawn at the same position.
-* The Selected Object is removed
+ * A new PartFeaturePython object is created and stores a copy of the selected objects Shape.
+ * The Objects Placement is set based on the Shapes Bounding box and drawn at the same position.
+ * The Selected Object is removed
      
-  For the new object
+ For the new object
       
  * The Origin can be changed via the Object Type Parameter using the Parameter window between
      
