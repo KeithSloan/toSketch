@@ -72,12 +72,12 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
     def Activated(self):
         "This function is executed when the workbench is activated"
         print ("Activated")
-        actDoc = FreeCAD.ActiveDocument
-        if actDoc is not None :
-           objs = actDoc.Objects
-           if objs is not None :
-              for obj in objs :
-                  obj.ViewObject.Visibility = True
+        #actDoc = FreeCAD.ActiveDocument
+        #if actDoc is not None :
+        #   objs = actDoc.Objects
+        #   if objs is not None :
+        #      for obj in objs :
+        #          obj.ViewObject.Visibility = True
         return
 
     def Deactivated(self):

@@ -55,8 +55,8 @@ class toSketchFeature:
                self.actionSection(sel.Shape)
             if sel.TypeId == 'Part::Plane' :
                self.actionSection(sel)
-            print(sel.ViewObject.Visibility)
-            sel.ViewObject.Visibility = False
+            #print(sel.ViewObject.Visibility)
+            #sel.ViewObject.Visibility = False
 
         try :
             FreeCADGui.ActiveDocument.setEdit('Sketch',0)
