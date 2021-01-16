@@ -51,16 +51,22 @@ Aimed at scaling objects imported from a STEP file, provides the ability to scal
 ### Reset Origin
 
 When STEP files are imported into FreeCAD their Placements are all set to zero and the Shapes are all created accordingly,
-this means if you try and Rotate an object that hase been imported into FreeCAD it does not rotate correctly.
+this means if you try and Rotate an object that has been imported into FreeCAD it does not rotate correctly.
 Selecting an Object and clicking on the Reset Origin icon results in the following.
 
      * A new PartFeaturePython object is created and stores a copy of the objects Shape.
      * The Objects Placement is set based on the Shapes Bounding box and drawn at the same position.
-     * The Origin can be changed from between via the Object Parameter using the Parameter window
+     * The Selected Object is removed
      
-           * min x/y/z 
-           * Center of Mass
-           * Original ( as created by STEP import )
+     For the new object
+      
+        * The Origin can be changed via the Object Parameter using the Parameter window between
+     
+            * min x/y/z 
+            * Center of Mass
+            * Original ( as created by STEP import )
            
-     * The parameter window shows readonly Boanding box info      
+        * The parameter window shows readonly Bounding box info
+        * Apart from when the Rotation Type is set to Original the Object should now rotate corretly if the
+          Rotation value of the Object is changed via the Parameter Placement setting
 
