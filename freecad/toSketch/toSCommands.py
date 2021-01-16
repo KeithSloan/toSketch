@@ -201,11 +201,11 @@ class toResetOriginFeature :
            return True
 
     def GetResources(self):
-        return {'Pixmap'  : 'toTransform', 'MenuText': \
-                QtCore.QT_TRANSLATE_NOOP('toTransformFeature',\
-                'To Transform'), 'ToolTip': \
-                QtCore.QT_TRANSLATE_NOOP('toTransformFeature',\
-                'To Transform')}
+        return {'Pixmap'  : 'toResetOrigin', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toResetOriginFeature',\
+                'To Reset Origin'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toResetOriginFeature',\
+                'To Reset Orgin')}
 
 class toShapeInfoFeature :
 
