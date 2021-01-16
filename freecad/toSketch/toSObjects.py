@@ -149,7 +149,7 @@ class toSPlane :
         return None
 
 class toScale() :
-   def __init__(self, obj, shape) :
+   def __init__(self, obj, shape, bbox) :
        print('Scale Init')
        obj.Proxy = self
        obj.addProperty("App::PropertyFloat","ScaleX","Base", \
@@ -158,6 +158,7 @@ class toScale() :
               "Scale").ScaleY = 1.0
        obj.addProperty("App::PropertyFloat","ScaleZ","Base", \
               "Scale").ScaleZ = 1.0
+       
        obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
               "Saved Shape").saveShape = shape
        self.Shape = obj.saveShape
@@ -171,18 +172,15 @@ class toScale() :
        print('Update Geometry')
        if hasattr(fp,'saveShape') :
           s = fp.saveShape.copy()
-          print(s.BoundBox)
+          #print(s.BoundBox)
           #print(dir(s))
           m = FreeCAD.Matrix()
-          print(s.BoundBox.XMin)
-          print(s.BoundBox.XMax)
-          print(fp.ScaleX)
           cx = (s.BoundBox.XMin+s.BoundBox.XMax)*(1.0-fp.ScaleX)/(2.0*fp.ScaleX)
-          print('cx : '+str(cx))
+          #print('cx : '+str(cx))
           cy = (s.BoundBox.YMin+s.BoundBox.YMax)*(1.0-fp.ScaleY)/(2.0*fp.ScaleY)
-          print('cy : '+str(cy))
+          #print('cy : '+str(cy))
           cz = (s.BoundBox.ZMin+s.BoundBox.ZMax)*(1.0-fp.ScaleZ)/(2.0*fp.ScaleZ)
-          print('cz : '+str(cz))
+          #print('cz : '+str(cz))
           m.move(FreeCAD.Vector(cx,cy,cz))
           m.scale(fp.ScaleX,fp.ScaleY,fp.ScaleZ)
           s = s.transformGeometry(m)
@@ -203,23 +201,77 @@ class toScale() :
                 Since no data were serialized nothing needs to be done here.'''
         return None
 
-class toTransform() :
-   def __init__(self, obj) :
+class toResetOrigin() :
+   
+   def __init__(self, obj, shape, bbox) :
        obj.Proxy = self
-       obj.addProperty("App::PropertyMatrix","Matrix","Base", \
-              "Transform Matrix")
-       obj.addProperty("App::PropertyBool","Replace","Base", \
-              "Replace").Replace = False
+       self.TypeList = ['Min x/y/z','Center of Mass']
+       obj.addProperty("App::PropertyEnumeration","Type","Base", \
+           "Reset Origin To").Type = self.TypeList
+       obj.addProperty("App::PropertyFloat","MinX","Bounding Box", \
+              "Bounding Box Min X")
+       obj.setEditorMode('MinX',1)
+       obj.addProperty("App::PropertyFloat","MaxX","Bounding Box", \
+              "Bounding Box Max X")
+       obj.setEditorMode('MaxX',1)
+       obj.addProperty("App::PropertyFloat","LengthX","Bounding Box", \
+              "Bounding Box X Length").LengthX = bbox.XLength
+       obj.setEditorMode('LengthX',1)
+       obj.addProperty("App::PropertyFloat","MinY","Bounding Box", \
+              "Bounding Box Min Y")
+       obj.setEditorMode('MinY',1)
+       obj.addProperty("App::PropertyFloat","MaxY","Bounding Box", \
+              "Bounding Box Max Y")
+       obj.setEditorMode('MaxY',1)
+       obj.addProperty("App::PropertyFloat","LengthY","Bounding Box", \
+              "Bounding Box Y Length").LengthY = bbox.YLength
+       obj.setEditorMode('LengthY',1)
+       obj.addProperty("App::PropertyFloat","MinZ","Bounding Box", \
+              "Bounding Box Min Z")
+       obj.setEditorMode('MinZ',1)
+       obj.addProperty("App::PropertyFloat","MaxZ","Bounding Box", \
+              "Bounding Box Max Z")
+       obj.setEditorMode('MaxZ',1)
+       obj.addProperty("App::PropertyFloat","LengthZ","Bounding Box", \
+              "Bounding Box Z Length").LengthZ = bbox.ZLength
+       obj.setEditorMode('LengthZ',1)
+       obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
+              "Saved Shape").saveShape = shape
+       self.Shape = obj.saveShape
 
    def onChanged(self, fp, prop) :
        print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
-
-   def createGeometry(self, fp) :
-        print('create Geometry')
+       if 'Type' in prop :
+          self.updateGeometry(fp)
+          
+   def updateGeometry(self, fp) :
+       print('Update Geometry')
+       if hasattr(fp,'saveShape') :
+          s = fp.saveShape.copy()
+          t = self.TypeList.index(fp.Type)
+          if t == 0 :
+             v = FreeCAD.Vector(s.BoundBox.XMin, \
+                    s.BoundBox.YMin, s.BoundBox.ZMin)
+          else :
+             v = s.CenterOfMass
+          vt = v.negative()
+          m = FreeCAD.Matrix()
+          m.move(vt)
+          m.scale(1,1,1)
+          s = s.transformGeometry(m)
+          #s.translate(vt)
+          fp.Shape = s
+          fp.Placement.Base = v
+          fp.MinX = s.BoundBox.XMin
+          fp.MinY = s.BoundBox.YMin
+          fp.MinZ = s.BoundBox.ZMin
+          fp.MaxX = s.BoundBox.XMax
+          fp.MaxY = s.BoundBox.YMax
+          fp.MaxZ = s.BoundBox.ZMax
 
    def execute(self,fp):
         print('execute')
-        self.createGeometry(fp)
+        self.updateGeometry(fp)
 
    def __getstate__(self):
         '''When saving the document this object gets stored using Python's json module.\
@@ -243,7 +295,7 @@ class ViewProvider():
  
    def updateData(self, fp, prop):
        '''If a property of the handled feature has changed we have the chance to handle this here'''
-       print('updateData')
+       #print('updateData ViewProvider')
        #pass
        return
 
@@ -266,7 +318,7 @@ class ViewProvider():
 
    def onChanged(self, vp, prop):
        '''Here we can do something when a single property got changed'''
-       print('onChanged')
+       #print('onChanged Viewprovider')
 
    def getIcon(self):
        '''Return the icon in XPM format which will appear in the tree view. This method is\
