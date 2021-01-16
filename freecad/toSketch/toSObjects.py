@@ -205,7 +205,7 @@ class toResetOrigin() :
    
    def __init__(self, obj, shape, bbox) :
        obj.Proxy = self
-       self.TypeList = ['Min x/y/z','Center of Mass']
+       self.TypeList = ['Min x/y/z','Center of Mass','Original']
        obj.addProperty("App::PropertyEnumeration","Type","Base", \
            "Reset Origin To").Type = self.TypeList
        obj.addProperty("App::PropertyFloat","MinX","Bounding Box", \
@@ -252,8 +252,10 @@ class toResetOrigin() :
           if t == 0 :
              v = FreeCAD.Vector(s.BoundBox.XMin, \
                     s.BoundBox.YMin, s.BoundBox.ZMin)
-          else :
+          if t == 1 :
              v = s.CenterOfMass
+          if t == 2 :
+             v = FreeCAD.Vector(0,0,0)          
           vt = v.negative()
           m = FreeCAD.Matrix()
           m.move(vt)
