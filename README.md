@@ -47,7 +47,7 @@ selected Object as follows
 * Click on the to Scale icon
 * A new object is created where the Shape from the selected Object is stored.
 * The original selected object is then deleted
-* By changing the Objects Properties from the inital values of ONE the Shape of the object is reScaled
+* By changing the Objects Properties from the inital values of ONE the Shape of the object can be reScaled
 
      
 ### Reset Origin
@@ -60,6 +60,8 @@ Selecting an Object and clicking on the Reset Origin icon results in the followi
  * A new PartFeaturePython object is created and stores a copy of the selected objects Shape.
  * The Objects Placement is set based on the Shapes Bounding box and drawn at the same position.
  * The Selected Object is removed
+ 
+ The display of the Object will not change, but the Placement will be updated and it can be correctly rotated.
      
  For the new object
       
