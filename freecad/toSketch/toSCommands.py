@@ -47,7 +47,18 @@ class toSketchFeature:
                   shape = sel.SubObjects[0]
                   #shape.exportStep('/tmp/exported.step')
                   #shape.exportBrep('/tmp/exported.brep')
-                  self.shapes2Sketch(shape,'Sketch')
+                  print(dir(shape))
+                  print(shape.TypeId)
+                  print(shape.BoundBox)
+                  print('Edges '+str(len(shape.Edges)))
+                  print('Faces '+str(len(shape.Faces)))
+                  print('Vertexes '+str(len(shape.Vertexes)))
+                  print(dir(shape.OuterWire))
+                  print(shape.OuterWire)
+                  print(dir(shape.OuterWire.OrderedVertexes))
+                  print(shape.OuterWire.OrderedVertexes)
+                  sketch = self.shapes2Sketch(shape,'Sketch')
+                  self.addConstraints(sketch)
         
         for sel in FreeCADGui.Selection.getSelection() :
             if sel.TypeId == 'Part::FeaturePython' and \
@@ -84,29 +95,55 @@ class toSketchFeature:
                print(obj.Label)
                sect = obj.Shape.section(plane)
                #print(sect)
-               #print(sect.ShapeType)
-               #print(sect.Wires)
-               print(sect.SubShapes)
+               print(sect.ShapeType)
                if len(sect.SubShapes) > 0 :
                   print('Intesect : '+obj.Label)
                   for e in sect.SubShapes :
                       edges.append(e)
                obj.ViewObject.Visibility = False
                #print(dir(sect))
-        self.shapes2Sketch(edges,'Sketch')
-        #Draft.makeSketch(edges,autoconstraints=False, addTo= None, \
-        #       delete=False, name='Sketch', radiusPrecision=-1)
+        sketch = self.shapes2Sketch(edges,'Sketch')
+        self.addConstraints(sketch)
+
+
+    def addConstraints(self, sketch) :
+        print('Add Constraints')
+        geoList = sketch.Geometry
+        Lines = []
+        Arcs  = []
+        Circles = []
+        for i in range(sketch.GeometryCount):
+            if geoList[i].TypeId == 'Part::GeomLineSegment':
+               Lines.append([i,geoList[i]])
+            elif geoList[i].TypeId == 'Part::GeomArcOfCircle':
+               Arcs .append([i,geoList[i]])
+            elif geoList[i].TypeId == 'Part::GeomCircle':
+               Circles.append([i,geoList[i]])
+        print('Sketch has ',len(Lines)+len(Arcs)+len(Circles), \
+                ' entities of which:')
+        print(len(Lines),'--> LineSegment')
+        print(len(Circles),'--> Circle')
+        print(len(Arcs),'--> ArcOfCircle')
+        for i in range(len(Circles)):
+            print(Circles[i])
+            print('Circle radius: ',Circles[i][1].Radius)
+            sketch.addConstraint(Sketcher.Constraint('Radius', \
+                 Circles[i][0],Circles[i][1].Radius))
+        #sketch.addConstraint(Sketcher.Constraint('Point',10,10,10))
 
     def shapes2Sketch(self, shapes, name) :
         Draft.draftify(shapes, makeblock=False, delete=True)
         try :
-            Draft.makeSketch(shapes, autoconstraints=True, \
+            sketch = Draft.makeSketch(shapes, autoconstraints=True, \
                  addTo=None, delete=False, name=name,  \
                        radiusPrecision=-1)
+            return sketch
         except :
-            Draft.makeSketch(shapes, autoconstraints=False, \
+            sketch = Draft.makeSketch(shapes, autoconstraints=False, \
                  addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1)
+            return sketch
+        
         
 class toSPlaneFeature :    
 
