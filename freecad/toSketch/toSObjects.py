@@ -235,6 +235,12 @@ class toResetOrigin() :
        obj.addProperty("App::PropertyFloat","LengthZ","Bounding Box", \
               "Bounding Box Z Length").LengthZ = bbox.ZLength
        obj.setEditorMode('LengthZ',1)
+       obj.addProperty("App::PropertyBool","SavedFlag","Base", \
+           " Saved Flag ").SavedFlag = False
+       obj.setEditorMode('SavedFlag',2)
+       obj.addProperty("App::PropertyVector","SavedBase","Base", \
+           " Saved Base ").SavedBase = FreeCAD.Vector(0,0,0)
+       obj.setEditorMode('SavedBase',2)
        obj.addProperty("Part::PropertyPartShape","saveShape","Base", \
               "Saved Shape").saveShape = shape
        self.Shape = obj.saveShape
@@ -242,9 +248,16 @@ class toResetOrigin() :
    def onChanged(self, fp, prop) :
        print(fp.Label+" State : "+str(fp.State)+" prop : "+prop)
        if 'Type' in prop :
-          self.updateGeometry(fp)
+          #fp.SavedBase = fp.Placement 
+          #fp.SavedFlag = False
+          self.updateGeometry(fp, True)
+
+       if 'Placement' in prop :
+          print(fp.Placement.Base)
+          fp.SavedBase = fp.Placement.Base
+          fp.SavedFlag = True
           
-   def updateGeometry(self, fp) :
+   def updateGeometry(self, fp, flag) :
        print('Update Geometry')
        if hasattr(fp,'saveShape') :
           s = fp.saveShape.copy()
@@ -263,7 +276,11 @@ class toResetOrigin() :
           s = s.transformGeometry(m)
           #s.translate(vt)
           fp.Shape = s
-          fp.Placement.Base = v
+          if fp.SavedFlag  == False or flag == True :
+             fp.Placement.Base = v
+             fp.SavedFlag = True
+          #else : 
+          #   fp.Placement.Base = fp.SavedBase
           fp.MinX = s.BoundBox.XMin
           fp.MinY = s.BoundBox.YMin
           fp.MinZ = s.BoundBox.ZMin
@@ -273,7 +290,7 @@ class toResetOrigin() :
 
    def execute(self,fp):
         print('execute')
-        self.updateGeometry(fp)
+        self.updateGeometry(fp, False)
 
    def __getstate__(self):
         '''When saving the document this object gets stored using Python's json module.\

@@ -194,7 +194,7 @@ class toResetOriginFeature :
                 ViewProvider(obj.ViewObject)
                 for i in sel.OutList :
                    obj.addObject(i) 
-                FreeCAD.ActiveDocument.removeObject(sel.Name)
+             FreeCAD.ActiveDocument.removeObject(sel.Name)
              FreeCAD.ActiveDocument.recompute()
 
     def IsActive(self):
