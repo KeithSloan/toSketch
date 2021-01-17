@@ -47,16 +47,6 @@ class toSketchFeature:
                   shape = sel.SubObjects[0]
                   #shape.exportStep('/tmp/exported.step')
                   #shape.exportBrep('/tmp/exported.brep')
-                  print(dir(shape))
-                  print(shape.TypeId)
-                  print(shape.BoundBox)
-                  print('Edges '+str(len(shape.Edges)))
-                  print('Faces '+str(len(shape.Faces)))
-                  print('Vertexes '+str(len(shape.Vertexes)))
-                  print(dir(shape.OuterWire))
-                  print(shape.OuterWire)
-                  print(dir(shape.OuterWire.OrderedVertexes))
-                  print(shape.OuterWire.OrderedVertexes)
                   sketch = self.shapes2Sketch(shape,'Sketch')
                   self.addConstraints(sketch)
         
@@ -143,7 +133,6 @@ class toSketchFeature:
                  addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1)
             return sketch
-        
         
 class toSPlaneFeature :    
 
