@@ -178,21 +178,24 @@ class toResetOriginFeature :
 
       for sel in FreeCADGui.Selection.getSelection() :
           print('Selected')
-          if len(sel.InList) > 0 :
-             parent = sel.InList[0]
-             obj = parent.newObject('Part::FeaturePython', \
-                    sel.Label+'_Reset_Origin')
-             toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
-             ViewProvider(obj.ViewObject)
-          else :
-             obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
-                   'Reset_Origin')
-             toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
-             ViewProvider(obj.ViewObject)
-          for i in sel.OutList :
-              obj.addObject(i) 
-          FreeCAD.ActiveDocument.removeObject(sel.Name)
-          FreeCAD.ActiveDocument.recompute()
+          print(sel.TypeId)
+          Ignore = ['App::Part']
+          if hasattr(sel,'Shape') and sel.TypeId not in Ignore :
+             if len(sel.InList) > 0 :
+                parent = sel.InList[0]
+                obj = parent.newObject('Part::FeaturePython', \
+                      sel.Label+'_Reset_Origin')
+                toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
+                ViewProvider(obj.ViewObject)
+             else :
+                obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
+                     'Reset_Origin')
+                toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
+                ViewProvider(obj.ViewObject)
+                for i in sel.OutList :
+                   obj.addObject(i) 
+                FreeCAD.ActiveDocument.removeObject(sel.Name)
+             FreeCAD.ActiveDocument.recompute()
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
