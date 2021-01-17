@@ -46,8 +46,9 @@ selected Object as follows
 * Select the object to be Scaled.
 * Click on the to Scale icon
 * A new object is created where the Shape from the selected Object is stored.
-* By changing the Objects Properties from the inital values of ONE the Shape of the object is reScaled
 * The original selected object is then deleted
+* By changing the Objects Properties from the inital values of ONE the Shape of the object is reScaled
+
      
 ### Reset Origin
 
