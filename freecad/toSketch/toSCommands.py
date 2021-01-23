@@ -44,23 +44,26 @@ class toSketchFeature:
             if sel.HasSubObjects == True :
                if str(sel.SubObjects[0].Surface) == '<Plane object>' :
                   print('Planar')
-                  shape = sel.SubObjects[0]
-                  #shape.exportStep('/tmp/exported.step')
-                  #shape.exportBrep('/tmp/exported.brep')
-                  sketch = self.shapes2Sketch(shape,'Sketch')
+                  face = sel.SubObjects[0]
+                  #face.exportStep('/tmp/exported.step')
+                  #face.exportBrep('/tmp/exported.brep')
+                  sketch = self.shapes2Sketch(face,'Sketch')
+                  #sketch.Placement = FreeCAD.Placement(face.CenterOfMass, \
+                  #       FreeCAD.Rotation(FreeCAD.Vector(0,0,1), \
+                  #       face.normalAt(0,0)))
                   self.addConstraints(sketch)
         
         for sel in FreeCADGui.Selection.getSelection() :
             if sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' : 
-               self.actionSection(sel.Shape)
+               sketch = self.actionSection(sel.Shape)
             if sel.TypeId == 'Part::Plane' :
                self.actionSection(sel)
             #print(sel.ViewObject.Visibility)
             #sel.ViewObject.Visibility = False
 
         try :
-            FreeCADGui.ActiveDocument.setEdit('Sketch',0)
+            FreeCADGui.ActiveDocument.setEdit(sketch,0)
         except :
             pass
 
@@ -94,6 +97,7 @@ class toSketchFeature:
                #print(dir(sect))
         sketch = self.shapes2Sketch(edges,'Sketch')
         self.addConstraints(sketch)
+        return sketch
 
 
     def addConstraints(self, sketch) :

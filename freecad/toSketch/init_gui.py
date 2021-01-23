@@ -58,12 +58,19 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
         
         #import 2SCommands
         commands=['toSketchCommand','toSPlaneCommand', \
-                   'toScaleCommand','toResetOriginCommand','toShapeInfoCommand']
+                   'toScaleCommand','toResetOriginCommand']
+                   #'toScaleCommand','toResetOriginCommand','toShapeInfoCommand']
 
         toolbarcommands=['toSketchCommand','toSPlaneCommand', \
-                   'toScaleCommand','toResetOriginCommand','toShapeInfoCommand']
+                   'toScaleCommand','toResetOriginCommand']
+                   #'toScaleCommand','toResetOriginCommand','toShapeInfoCommand']
 
-        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench','toS_Tools'),toolbarcommands)
+        import PartGui
+        parttoolbarcommands =['Part_Loft']
+        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench', \
+                           'toSketch_Tools'),toolbarcommands)
+        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench', \
+                           'toSketch_Tools Part Tools'),parttoolbarcommands)
         self.appendMenu('toSketch',commands)
         FreeCADGui.addIconPath(joinDir("Resources/icons"))
         FreeCADGui.addLanguagePath(joinDir("Resources/translations"))
