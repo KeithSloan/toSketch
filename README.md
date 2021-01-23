@@ -2,6 +2,10 @@
 
 ## ( FreeCAD workbench to add toSketch Facility )
 
+The main emphasis of the facilities in this workbench are to help with remodelling of
+existing models. When a STEP model is imported into FreeCAD you have a a viewable model
+but no details about how it was created or Parametric properties that you can change.
+
 ## Installation
 
 * Using Addon Manager
