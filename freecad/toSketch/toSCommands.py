@@ -41,18 +41,27 @@ class toSketchFeature:
         #   for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
             print("Selected")
+            print(sel.TypeId)
+            #print(dir(sel))
             if sel.HasSubObjects == True :
-               if str(sel.SubObjects[0].Surface) == '<Plane object>' :
-                  print('Planar')
-                  face = sel.SubObjects[0]
-                  #face.exportStep('/tmp/exported.step')
-                  #face.exportBrep('/tmp/exported.brep')
-                  sketch = self.shapes2Sketch(face,'Sketch')
-                  #sketch.Placement = FreeCAD.Placement(face.CenterOfMass, \
-                  #       FreeCAD.Rotation(FreeCAD.Vector(0,0,1), \
-                  #       face.normalAt(0,0)))
-                  self.addConstraints(sketch)
-        
+               print('SubObjects')
+               if hasattr(sel.SubObjects[0],'Surface') :
+                  if str(sel.SubObjects[0].Surface) == '<Plane object>' :
+                     print('Planar')
+                     face = sel.SubObjects[0]
+                     #face.exportStep('/tmp/exported.step')
+                     #face.exportBrep('/tmp/exported.brep')
+                     #print(dir(face))
+                     #print(dir(face.Surface))
+                     #print(face.Placement)
+                     # move face to origin
+                     face.translate(face.Placement.Base.negative())
+                     sketch = self.shapes2Sketch(face,'Sketch')
+                     self.addConstraints(sketch)
+                     #print(dir(sketch))
+                     sketch.MapMode ='ObjectXY'
+                     sketch.Support = sel.Object
+  
         for sel in FreeCADGui.Selection.getSelection() :
             if sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' : 
