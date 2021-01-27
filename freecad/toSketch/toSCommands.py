@@ -51,25 +51,12 @@ class toSketchFeature:
                      face = sel.SubObjects[0]
                      #face.exportStep('/tmp/exported.step')
                      #face.exportBrep('/tmp/exported.brep')
-                     #print(dir(face))
-                     print(dir(face.Surface))
-                     print('Surface Position')
-                     print(face.Surface.Position)
-                     print('Surface Rotation')
-                     print(face.Surface.Rotation)
-                     print('Face Placement')
-                     print(face.Placement)
                      # move face to origin
                      face.translate(face.Placement.Base.negative())
-                     #face.translate(face.Surface.Position.negative())
                      sketch = self.shapes2Sketch(face,'Sketch')
-                     print('Sketch Placement')
-                     print(sketch.Placement)
                      self.addConstraints(sketch)
                      sketch.MapMode ='ObjectXY'
                      sketch.Support = sel.Object
-                     print(dir(sketch))
-                     print(dir(sketch.AttachmentOffset))
                      sketch.AttachmentOffset.Base = face.Surface.Position
   
         for sel in FreeCADGui.Selection.getSelection() :
