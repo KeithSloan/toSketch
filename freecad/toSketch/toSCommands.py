@@ -143,7 +143,63 @@ class toSketchFeature:
                  addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1)
             return sketch
-        
+
+class toCurveFitFeature :
+
+    def Activated(self) :
+        for sel in FreeCADGui.Selection.getSelection() :
+            print('toCurveFit')
+            print(sel.TypeId)
+            if sel.TypeId == 'Sketcher::SketchObject' :
+               print(dir(sel))
+               geoList = sel.Geometry
+               Lines = []
+               Arcs  = []
+               Circles = []
+               Beziers = []
+               print('Geometry Count : '+str(sel.GeometryCount))
+               for i in range(sel.GeometryCount):
+                   print('TypeId : '+geoList[i].TypeId) 
+                   if geoList[i].TypeId == 'Part::GeomLineSegment':
+                      Lines.append([i,geoList[i]])
+                   elif geoList[i].TypeId == 'Part::GeomArcOfCircle':
+                      Arcs .append([i,geoList[i]])
+                   elif geoList[i].TypeId == 'Part::GeomCircle':
+                      Circles.append([i,geoList[i]])
+                   elif geoList[i].TypeId == 'Part::GeomBSplineCurve':
+                      Beziers.append([i,geoList[i]])
+               print('Sketch has ',len(Lines)+len(Arcs)+len(Circles), \
+                ' entities of which:')
+               print(len(Lines),'--> LineSegment')
+               print(len(Circles),'--> Circle')
+               print(len(Arcs),'--> ArcOfCircle')
+               print(len(Beziers),'--> Beziers')
+               for i in range(len(Circles)):
+                   print(Circles[i])
+                   print('Circle radius: ',Circles[i][1].Radius)
+
+               for i in range(len(Lines)):
+                   print(Lines[i])
+                   #print('Circle radius: ',Circles[i][1].Radius)
+
+               for i in range(len(Beziers)):
+                   print(Beziers[i])
+                   print(dir(Beziers[i][1]))
+                   #print('Circle radius: ',Circles[i][1].Radius)
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'toCurveFit', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
+                'to CurveFit'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
+                'to CurveFit')}
+
 class toSPlaneFeature :    
 
     def Activated(self) :
@@ -280,6 +336,7 @@ class toShapeInfoFeature :
                 'Shape Info')}
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
+FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
 FreeCADGui.addCommand('toScaleCommand',toScaleFeature())
 FreeCADGui.addCommand('toResetOriginCommand',toResetOriginFeature())
