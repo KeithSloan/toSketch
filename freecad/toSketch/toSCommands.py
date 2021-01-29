@@ -40,7 +40,7 @@ class toSketchFeature:
     def Activated(self):
         #   for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
-            print("Selected")
+            print("Selected-Ex")
             print(sel.TypeId)
             #print(dir(sel))
             if sel.HasSubObjects == True :
@@ -60,11 +60,16 @@ class toSketchFeature:
                      sketch.AttachmentOffset.Base = face.Surface.Position
   
         for sel in FreeCADGui.Selection.getSelection() :
+            print("Selected")
+            print(sel.TypeId)
+            #print(dir(sel))
             if sel.TypeId == 'Part::FeaturePython' and \
-               sel.Label[:5] == 'Plane' : 
+               sel.Label[:5] == 'Plane' :
                sketch = self.actionSection(sel.Shape)
             if sel.TypeId == 'Part::Plane' :
                self.actionSection(sel)
+            if sel.TypeId == 'Part::Feature' :
+               sketch = self.shapes2Sketch(sel.Shape,'Sketch')
             #print(sel.ViewObject.Visibility)
             #sel.ViewObject.Visibility = False
 
@@ -90,8 +95,14 @@ class toSketchFeature:
         print('Action Section')
         edges = []
         for obj in FreeCAD.ActiveDocument.Objects :
+            print(obj.Label)
+            print(obj.TypeId)
+            if hasattr(obj,'Mesh') :
+               print(dir(obj))
+               print(dir(obj.Mesh))
+               print(dir(obj.Mesh.Content))
             if hasattr(obj,'Shape') :
-               print(obj.Label)
+               print('Has shape')
                sect = obj.Shape.section(plane)
                #print(sect)
                print(sect.ShapeType)
@@ -151,41 +162,35 @@ class toCurveFitFeature :
             print('toCurveFit')
             print(sel.TypeId)
             if sel.TypeId == 'Sketcher::SketchObject' :
-               print(dir(sel))
-               geoList = sel.Geometry
-               Lines = []
-               Arcs  = []
-               Circles = []
-               Beziers = []
+               #print(dir(sel))
+               gL = sel.Geometry
+               newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject")
+               dL = []
+               start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
                for i in range(sel.GeometryCount):
-                   print('TypeId : '+geoList[i].TypeId) 
-                   if geoList[i].TypeId == 'Part::GeomLineSegment':
-                      Lines.append([i,geoList[i]])
-                   elif geoList[i].TypeId == 'Part::GeomArcOfCircle':
-                      Arcs .append([i,geoList[i]])
-                   elif geoList[i].TypeId == 'Part::GeomCircle':
-                      Circles.append([i,geoList[i]])
-                   elif geoList[i].TypeId == 'Part::GeomBSplineCurve':
-                      Beziers.append([i,geoList[i]])
-               print('Sketch has ',len(Lines)+len(Arcs)+len(Circles), \
-                ' entities of which:')
-               print(len(Lines),'--> LineSegment')
-               print(len(Circles),'--> Circle')
-               print(len(Arcs),'--> ArcOfCircle')
-               print(len(Beziers),'--> Beziers')
-               for i in range(len(Circles)):
-                   print(Circles[i])
-                   print('Circle radius: ',Circles[i][1].Radius)
-
-               for i in range(len(Lines)):
-                   print(Lines[i])
-                   #print('Circle radius: ',Circles[i][1].Radius)
-
-               for i in range(len(Beziers)):
-                   print(Beziers[i])
-                   print(dir(Beziers[i][1]))
-                   #print('Circle radius: ',Circles[i][1].Radius)
+                   #print('TypeId : '+gL[i].TypeId) 
+                   if gL[i].TypeId == 'Part::GeomLineSegment':
+                      #print(str(i)+' ' +str(gL[i]))
+                      #print(dir(gL[i]))
+                      #print(gL[i].StartPoint)
+                      #print(gL[i].EndPoint)
+                      ab = gL[i].StartPoint.sub(gL[i].EndPoint)
+                      dL.append(ab.Length)
+                   else :
+                      # Add non Line Geometry 
+                      newsketch.addGeometry(gL[i], False)
+                      print('Break - need to process Lines')
+                      if len(dL) > 0 :
+                         self.processLines(newSketch,start,i,gL,dL)
+                         dL = []
+                         start = i
+                      # append to new geometry
+               # Catch tail end
+               if len(dL) > 0 :
+                  self.processLines(newSketch,start,i,gL,dL)
+               #print(dir(sel.Geometry))
+               #print(newSketch.Geometry)
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -199,6 +204,35 @@ class toCurveFitFeature :
                 'to CurveFit'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
                 'to CurveFit')}
+
+    def curveFit(self, sketch, gL) :
+        print('Curve Fit : points : '+str(len(gL)))
+        if len(gL) < 2 :
+           for i in gL :
+               sketch.addGeometry(i, False)
+        else :
+           print('Curve Fit : '+str(gL))
+           #print(dir(gL[0]))
+           print(gL[0].StartPoint)
+           print(gL[0].EndPoint)
+           sketch.addGeometry(Part.LineSegment(gL[0].StartPoint,gL[-1].EndPoint))
+
+    def processLines(self, sketch, start, end, gL, dL) :
+        import numpy
+
+        threshold = 3 * numpy.median(dL)
+        print('Processing series of Lines : '+str(start)+' : '+str(end))
+        print('Threshold : '+str(threshold))
+        print('Average : '+str(numpy.average(dL)))
+        for i in range(start,end) :
+            if dL[i] > threshold :
+               print('Adding long line : '+str(i))
+               sketch.addGeometry(gL[i], False)
+               print('Curve Fit ? : '+str(start)+' upto '+str(i))
+               self.curveFit(sketch, gL[start:i])
+               start = i + 1
+        # Process Tail
+        self.curveFit(sketch, gL[start:i])
 
 class toSPlaneFeature :    
 
