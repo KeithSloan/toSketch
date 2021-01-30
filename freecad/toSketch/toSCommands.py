@@ -213,7 +213,7 @@ class toCurveFitFeature :
            for i in gL :
                sketch.addGeometry(i, False)
         else :
-           #print('Curve Fit : '+str(gL))
+           print('Curve Fit : '+str(len(gL)))
            #print(dir(gL[0]))
            #print(gL[0].StartPoint)
            #print(gL[0].EndPoint)
@@ -227,14 +227,19 @@ class toCurveFitFeature :
            points.append([i.EndPoint.x, i.EndPoint.y])
            points = tuple(points)
            degree = 3
-           curve = fitting.interpolate_curve(points, degree)
+           #curveI = fitting.interpolate_curve(points, degree)
+           curve = fitting.approximate_curve(points, degree, \
+                   centripetal=True, ctrlpts_size = 4)
            #print(dir(curve))
            #print(curve._control_points)
            fcCp = []
            for cp in curve._control_points :
                fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
-           #print(curve.degree)
-           #print(curve._geometry_type)
+           print(curve.degree)
+           print(curve._geometry_type)
+           print('Number of Control points : '+str(len(curve._control_points)))
+           #print('Number of Control points : '+str(len(curveI._control_points)))
+           print('Knot Vector : '+str(curve.knotvector))
            sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
                              curve.degree,None,False))
 
