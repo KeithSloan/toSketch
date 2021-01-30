@@ -47,27 +47,27 @@ Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
 * To Install
    
     * From FreeCAD python console
-    * import os
-    * print(os.environ)
+    * **import os**
+    * **print(os.environ)**
     * Note one of the library paths [path]
-    * pip3 install geomdl -t [path]
+    * **pip3 install geomdl -t [path]**
 
 * To Use
 
     * Load/Create a Mesh
     * Use Mesh Design workbench to create a section 
        
-        * Toolbar - Meshes | Cutting | Cross-Sections
+        Toobar - **Meshes | Cutting | Cross-Sections**
 
-          Creates a Mesh Cross-Section
+        Creates a Mesh Cross-Section
         
     * Select Cross-Section in Tree View, click on 'To Sketch' icon
 
-          Creates a Raw Sketch
+        Creates a Raw Sketch
       
     * Select Created Sketch, click on 'To CurveFit' icon
 
-          Creates a Sketch with some line and Curve Fitting
+        Creates a Sketch with some line and Curve Fitting
  
                            
 ## The following are intended to help with Objects created via import of STEP files                           
