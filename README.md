@@ -116,5 +116,7 @@ Selecting an Object and clicking on the Reset Origin icon results in the followi
      * suzanne.soy
      * wmayer
      
+ Icons thanks to jmaustpc    
+     
           
 
