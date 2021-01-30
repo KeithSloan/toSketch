@@ -40,6 +40,36 @@ Clone into FreeCAD's Mod directory
 * Click on toSketch Icon - Should create a section of the Plane and other objects
                            that is then opened as a new sketch
                            
+### Section a Mesh Cross Section : to CurveFit ( Alpha - Under Development )
+
+Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
+
+* To Install
+   
+    * From FreeCAD python console
+    * **import os**
+    * **print(os.environ)**
+    * Note one of the library paths [path]
+    * **pip3 install geomdl -t [path]**
+
+* To Use
+
+    * Load/Create a Mesh
+    * Use Mesh Design workbench to create a section 
+       
+        Toobar - **Meshes | Cutting | Cross-Sections**
+
+        Creates a Mesh Cross-Section
+        
+    * Select Cross-Section in Tree View, click on 'To Sketch' icon
+
+        Creates a Raw Sketch
+      
+    * Select Created Sketch, click on 'To CurveFit' icon
+
+        Creates a Sketch with some line and Curve Fitting
+ 
+                           
 ## The following are intended to help with Objects created via import of STEP files                           
                            
 ### Create Scale Object : to Scale
@@ -78,5 +108,15 @@ Selecting an Object and clicking on the Reset Origin icon results in the followi
  * The parameter window shows readonly Bounding box info
  * The Origin type can be changed via the Objects Parameter Placement setting.
  * Apart from when the Origin Type is set to Original the Object should now rotate correctly
+ 
+ ## Acknowledgments
+ 
+ Thanks to the following FreeCAD forum members
+ 
+     * suzanne.soy
+     * wmayer
+     
+ Icons thanks to jmaustpc    
+     
           
 
