@@ -164,7 +164,8 @@ class toCurveFitFeature :
             if sel.TypeId == 'Sketcher::SketchObject' :
                #print(dir(sel))
                gL = sel.Geometry
-               newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject")
+               newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
+                           "Fitted Sketch")
                dL = []
                start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
@@ -191,6 +192,7 @@ class toCurveFitFeature :
                   self.processLines(newSketch,start,i,gL,dL)
                #print(dir(sel.Geometry))
                #print(newSketch.Geometry)
+               newSketch.recompute()
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -206,16 +208,38 @@ class toCurveFitFeature :
                 'to CurveFit')}
 
     def curveFit(self, sketch, gL) :
-        print('Curve Fit : points : '+str(len(gL)))
+        #print('Curve Fit : points : '+str(len(gL)))
         if len(gL) < 2 :
            for i in gL :
                sketch.addGeometry(i, False)
         else :
-           print('Curve Fit : '+str(gL))
+           #print('Curve Fit : '+str(gL))
            #print(dir(gL[0]))
-           print(gL[0].StartPoint)
-           print(gL[0].EndPoint)
-           sketch.addGeometry(Part.LineSegment(gL[0].StartPoint,gL[-1].EndPoint))
+           #print(gL[0].StartPoint)
+           #print(gL[0].EndPoint)
+           #sketch.addGeometry(Part.LineSegment(gL[0].StartPoint,gL[-1].EndPoint))
+           #try :
+           from geomdl import fitting
+              
+           points = []
+           for i in gL :
+               points.append([i.StartPoint.x, i.StartPoint.y])
+           points.append([i.EndPoint.x, i.EndPoint.y])
+           points = tuple(points)
+           degree = 3
+           curve = fitting.interpolate_curve(points, degree)
+           #print(dir(curve))
+           #print(curve._control_points)
+           fcCp = []
+           for cp in curve._control_points :
+               fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
+           #print(curve.degree)
+           #print(curve._geometry_type)
+           sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
+                             curve.degree,None,False))
+
+           #except :
+           #   print('You need to install NURBS-Python : geomdl')
 
     def processLines(self, sketch, start, end, gL, dL) :
         import numpy
@@ -226,9 +250,9 @@ class toCurveFitFeature :
         print('Average : '+str(numpy.average(dL)))
         for i in range(start,end) :
             if dL[i] > threshold :
-               print('Adding long line : '+str(i))
+               #print('Adding long line : '+str(i))
                sketch.addGeometry(gL[i], False)
-               print('Curve Fit ? : '+str(start)+' upto '+str(i))
+               #print('Curve Fit ? : '+str(start)+' upto '+str(i))
                self.curveFit(sketch, gL[start:i])
                start = i + 1
         # Process Tail
