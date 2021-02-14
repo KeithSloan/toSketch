@@ -55,9 +55,16 @@ class toSketchFeature:
                      face.translate(face.Placement.Base.negative())
                      sketch = self.shapes2Sketch(face,'Sketch')
                      self.addConstraints(sketch)
-                     sketch.MapMode ='ObjectXY'
+                     #sketch.MapMode ='ObjectXY'
+                     print(dir(sketch))
+                     print(sketch.MapReversed)
+                     sketch.MapMode ='FlatFace'
+                     sketch.MapReversed = True    # ????
+                     print(sketch.MapReversed)
                      sketch.Support = sel.Object
+                     print('Support set')
                      sketch.AttachmentOffset.Base = face.Surface.Position
+                     print('Attachment Offset set')
   
         for sel in FreeCADGui.Selection.getSelection() :
             print("Selected")
