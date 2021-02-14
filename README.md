@@ -45,12 +45,13 @@ Clone into FreeCAD's Mod directory
 * Select a sketch
 * Click on ToMacro
 
-- Creates a macro name (sketch.FCMacro) in the user Macro directory
-- Currently supports ( More to follow )
+   Creates a macro name (sketch.FCMacro) in the user Macro directory
+   
+Currently supports ( More to follow )
     
-    * Points
-    * Lines
-    * Circles
+      * Points
+      * Lines
+      * Circles
     
                            
 ### Section a Mesh Cross Section : to CurveFit ( Alpha - Under Development )
