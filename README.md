@@ -40,6 +40,19 @@ Clone into FreeCAD's Mod directory
 * Click on toSketch Icon - Should create a section of the Plane and other objects
                            that is then opened as a new sketch
                            
+### Sketch to Macro ( Alpha - Under Development )
+
+* Select a sketch
+* Click on ToMacro
+
+- Creates a macro name (sketch.FCMacro) in the user Macro directory
+- Currently supports ( More to follow )
+    
+    * Points
+    * Lines
+    * Circles
+    
+                           
 ### Section a Mesh Cross Section : to CurveFit ( Alpha - Under Development )
 
 Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
