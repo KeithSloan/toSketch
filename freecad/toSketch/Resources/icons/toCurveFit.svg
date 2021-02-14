@@ -15,10 +15,10 @@
    id="svg2772"
    sodipodi:version="0.32"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="toCurve_Sketch.svg"
+   sodipodi:docname="toCurve_Sketch_bets.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.1"
-   inkscape:export-filename="/home/you/Desktop/freecaddev/freecadandsource/icons_for_keith/face_to_sketch/toCurve_Sketch.png"
+   inkscape:export-filename="/home/you/Desktop/freecaddev/freecadandsource/icons_for_keith/face_to_sketch/toCurve_Sketch_beta.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
   <defs
@@ -239,7 +239,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="10.28125"
-     inkscape:cx="15.12462"
+     inkscape:cx="32"
      inkscape:cy="32"
      inkscape:current-layer="g3244"
      showgrid="true"
@@ -273,7 +273,7 @@
             <dc:title>[wmayer]</dc:title>
           </cc:Agent>
         </dc:creator>
-        <dc:title />
+        <dc:title></dc:title>
         <dc:date>2011-10-10</dc:date>
         <dc:relation>http://www.freecadweb.org/wiki/index.php?title=Artwork</dc:relation>
         <dc:publisher>
@@ -303,6 +303,13 @@
     <g
        id="g3244"
        transform="matrix(0.9205539,0,0,0.9205539,1.1497621,0.9652214)">
+      <rect
+         style="opacity:1;fill:#f7c01f;fill-opacity:1;stroke:#f6060a;stroke-width:3.25890749;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect908"
+         width="67.350754"
+         height="67.350754"
+         x="-0.16268694"
+         y="0.03778008" />
       <g
          id="g915"
          transform="matrix(0.92178964,0,0,0.90337457,-0.03129766,6.5473473)">

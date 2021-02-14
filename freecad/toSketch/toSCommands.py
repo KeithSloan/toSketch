@@ -268,7 +268,7 @@ class toMacroFeature:
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
 
     def Activated(self):
-  
+        print('ToMacro') 
         for sel in FreeCADGui.Selection.getSelection() :
             print("Selected")
             print(sel.TypeId)
@@ -298,19 +298,24 @@ class toMacroFeature:
                        +str(v[2])+')')
 
     def actionToMacro(self,sketch):
-        print(dir(sketch))
         print('Action To Macro : '+sketch.Label)
-        print(sketch.GeometryCount)
+        print('Geometry Count : '+str(sketch.GeometryCount))
         geo = sketch.Geometry
-        fp = open('/tmp/'+sketch.Label,'w+')
+        # macro path
+        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Macro")
+        path = param.GetString("MacroPath","") + "/"
+        path = path.replace("\\","/")
+        print("Path for Macros : " , path)
+        fp = open(path+sketch.Label+'.FCMacro','w+')
+        #fp = open('/tmp/'+sketch.Label,'w+')
         fp.write('# Create an empty sketch:\n')
         fp.write('sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject","'+sketch.Label+'")\n')
         for i in range(sketch.GeometryCount):
             print(geo[i].TypeId)
-            print(dir(geo[i]))
+            #print(dir(geo[i]))
             if geo[i].TypeId == 'Part::GeomLineSegment':
                print('Line Segment')
-               fp.write('sketch.addGeometry(Part.Line(')
+               fp.write('sketch.addGeometry(Part.LineSegment(')
                self.wrtVector(fp, geo[i].StartPoint, True) 
                self.wrtVector(fp, geo[i].EndPoint, False)
                fp.write('),False)\n')
@@ -318,15 +323,19 @@ class toMacroFeature:
             elif geo[i].TypeId == 'Part::GeomArcOfCircle':
                print('Arc of circle')
                fp.write('Arc of circle')
+            
             elif geo[i].TypeId == 'Part::GeomCircle':
-               fp.write('Circle')
+               print('GeomCircle')
                fp.write('sketch.addGeometry(Part.Circle(')
-               self.wrtVector(fp, geo[i].StartPoint, True) 
-               self.wrtVector(fp, geo[i].EndPoint, False)
-               fp.write('),False)\n')
+               self.wrtVector(fp, geo[i].Center, True)
+               fp.write('FreeCAD.Vector(0,0,1),'+str(geo[i].Radius)+'), False)\n')
             elif geo[i].TypeId == 'Part::GeomPoint':
                print('GeomPoint')
-               fp.write('sketch.addGeometry(Part.Point(FreeCAD.Vector('+str(geo[i].X) +','+str(geo[i].Y)+','+str(geo[i].Z)+'),False)\n')
+               fp.write('sketch.addGeometry(Part.Point(FreeCAD.Vector('+str(geo[i].X) +','+str(geo[i].Y)+','+str(geo[i].Z)+')),False)\n')
+            
+            elif geo[i].TypeId == 'Part::GeomEllipse' :
+               print('GeomEllipse')
+         
         fp.close()
 
 class toSPlaneFeature :    
