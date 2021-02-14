@@ -263,6 +263,72 @@ class toCurveFitFeature :
         # Process Tail
         self.curveFit(sketch, gL[start:i])
 
+class toMacroFeature:
+    #    def IsActive(self):
+    #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
+
+    def Activated(self):
+  
+        for sel in FreeCADGui.Selection.getSelection() :
+            print("Selected")
+            print(sel.TypeId)
+            #print(dir(sel))
+            if sel.TypeId == 'Sketcher::SketchObject' :
+               self.actionToMacro(sel)
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'toMacro', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toMacroFeature',\
+                'To Macro'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toMacroFeature',\
+                'To Macro')}
+
+    def wrtVector(self, fp, v, comma) :
+        if comma :
+           fp.write('FreeCAD.Vector('+str(v[0])+','+str(v[1])+',' \
+                       +str(v[2])+'), ')
+        else :
+           fp.write('FreeCAD.Vector('+str(v[0])+','+str(v[1])+',' \
+                       +str(v[2])+')')
+
+    def actionToMacro(self,sketch):
+        print(dir(sketch))
+        print('Action To Macro : '+sketch.Label)
+        print(sketch.GeometryCount)
+        geo = sketch.Geometry
+        fp = open('/tmp/'+sketch.Label,'w+')
+        fp.write('# Create an empty sketch:\n')
+        fp.write('sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject","'+sketch.Label+'")\n')
+        for i in range(sketch.GeometryCount):
+            print(geo[i].TypeId)
+            print(dir(geo[i]))
+            if geo[i].TypeId == 'Part::GeomLineSegment':
+               print('Line Segment')
+               fp.write('sketch.addGeometry(Part.Line(')
+               self.wrtVector(fp, geo[i].StartPoint, True) 
+               self.wrtVector(fp, geo[i].EndPoint, False)
+               fp.write('),False)\n')
+
+            elif geo[i].TypeId == 'Part::GeomArcOfCircle':
+               print('Arc of circle')
+               fp.write('Arc of circle')
+            elif geo[i].TypeId == 'Part::GeomCircle':
+               fp.write('Circle')
+               fp.write('sketch.addGeometry(Part.Circle(')
+               self.wrtVector(fp, geo[i].StartPoint, True) 
+               self.wrtVector(fp, geo[i].EndPoint, False)
+               fp.write('),False)\n')
+            elif geo[i].TypeId == 'Part::GeomPoint':
+               print('GeomPoint')
+               fp.write('sketch.addGeometry(Part.Point(FreeCAD.Vector('+str(geo[i].X) +','+str(geo[i].Y)+','+str(geo[i].Z)+'),False)\n')
+        fp.close()
+
 class toSPlaneFeature :    
 
     def Activated(self) :
@@ -400,6 +466,7 @@ class toShapeInfoFeature :
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
+FreeCADGui.addCommand('toMacroCommand',toMacroFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
 FreeCADGui.addCommand('toScaleCommand',toScaleFeature())
 FreeCADGui.addCommand('toResetOriginCommand',toResetOriginFeature())
