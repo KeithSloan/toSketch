@@ -89,6 +89,11 @@ Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
     * Select Created Sketch, click on 'To CurveFit' icon
 
         Creates a Sketch with some line and Curve Fitting
+        
+## Constraints
+
+Note: Ideally constraints should ideally be geometric, however there is always the option to fix all points
+      with the installable Macro SketcherFixAllPoints.FCMacro see Addon Manager for installation. 
  
                            
 ## The following are intended to help with Objects created via import of STEP files                           
