@@ -52,8 +52,14 @@ Currently supports ( More to follow )
       * Points
       * Lines
       * Circles
-    
-                           
+      * ArcOfCircle
+      * BSpline ( Initial Attempt )
+      
+When executing the macro
+
+     if there is a an ActiveSketch, the geometry is added, otherwise a new sketch is created.
+      
+                              
 ### Section a Mesh Cross Section : to CurveFit ( Alpha - Under Development )
 
 Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
