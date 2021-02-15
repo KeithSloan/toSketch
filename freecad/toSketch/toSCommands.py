@@ -297,6 +297,18 @@ class toMacroFeature:
            fp.write('FreeCAD.Vector('+str(v[0])+','+str(v[1])+',' \
                        +str(v[2])+')')
 
+    def wrtVectorList(iself, fp, list) :
+        print(list)
+        fp.write('[')
+        for i in range(len(list)-1) :
+           print(i)
+           fp.write('FreeCAD.Vector('+str(list[i][0])+','+str(list[i][1])+',' \
+                       +str(list[i][2])+'), ')
+        i += 1
+        fp.write('FreeCAD.Vector('+str(list[i][0])+','+str(list[i][1])+',' \
+                       +str(list[i][2])+')]')
+          
+
     def actionToMacro(self,sketch):
         print('Action To Macro : '+sketch.Label)
         print('Geometry Count : '+str(sketch.GeometryCount))
@@ -339,7 +351,22 @@ class toMacroFeature:
             elif geo[i].TypeId == 'Part::GeomEllipse' :
                print('GeomEllipse')
          
+            elif geo[i].TypeId == 'Part::GeomBSplineCurve' :
+               print('GeomBSpline')
+               print(dir(geo[i]))
+               print(geo[i].StartPoint)
+               print(geo[i].EndPoint)
+               print(geo[i].Degree)
+               print(geo[i].KnotSequence)
+               print(geo[i].NbKnots)
+               print(geo[i].NbPoles)
+               print(geo[i].getPoles())
+               fp.write('sketch.addGeometry(Part.BSplineCurve(')
+               self.wrtVectorList(fp, geo[i].getPoles())
+               fp.write(',None,None,False,'+str(geo[i].NbPoles)+',None,False),False)\n')
+         
         fp.close()
+        print('Macro : '+sketch.Label+' Written')
 
 class toSPlaneFeature :    
 
