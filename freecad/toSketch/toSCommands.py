@@ -308,6 +308,15 @@ class toMacroFeature:
         fp.write('FreeCAD.Vector('+str(list[i][0])+','+str(list[i][1])+',' \
                        +str(list[i][2])+')]')
           
+    def wrtRotation(self, fp, r) :
+        fp.write('FreeCAD.Rotation('+str(r[0])+','+str(r[1])+',' \
+                       +str(r[2])+','+str(r[3]))
+
+    def wrtIdentity(self, fp, comma) :
+        if comma :
+           fp.write('FreeCAD.Vector(0,0,1),')
+        else  :
+           fp.write('FreeCAD.Vector(0,0,1)')
 
     def actionToMacro(self,sketch):
         print('Action To Macro : '+sketch.Label)
@@ -358,13 +367,33 @@ class toMacroFeature:
                print('GeomCircle')
                fp.write('sketch.addGeometry(Part.Circle(')
                self.wrtVector(fp, geo[i].Center, True)
-               fp.write('FreeCAD.Vector(0,0,1),'+str(geo[i].Radius)+'), False)\n')
+               self.wrtIdentity(fp,True)
+               fp.write(str(geo[i].Radius)+'), False)\n')
             elif geo[i].TypeId == 'Part::GeomPoint':
                print('GeomPoint')
                fp.write('sketch.addGeometry(Part.Point(FreeCAD.Vector('+str(geo[i].X) +','+str(geo[i].Y)+','+str(geo[i].Z)+')),False)\n')
             
             elif geo[i].TypeId == 'Part::GeomEllipse' :
                print('GeomEllipse')
+               #print(dir(geo[i]))
+               #print('Angle XU : '+str(geo[i].AngleXU))
+               #print('Axis : '+str(geo[i].Axis))
+               #print('XAxis : '+str(geo[i].XAxis))
+               #print('YAxis : '+str(geo[i].YAxis))
+               #print('Location : '+str(geo[i].Location))
+               #print('Rotation : '+str(geo[i].Rotation))
+               #print(geo[i].Rotation.Q)
+               #print('Minor: '+str(geo[i].MinorRadius))
+               #print('Major: '+str(geo[i].MajorRadius))
+               fp.write('ellipse = Part.Ellipse(')
+               self.wrtVector(fp, geo[i].Center, True)
+               fp.write(str(geo[i].MajorRadius)+','+str(geo[i].MinorRadius)+')\n')
+               fp.write('ellipse.rotate(FreeCAD.Placement(')
+               self.wrtVector(fp,geo[i].Location,True)
+               self.wrtRotation(fp,geo[i].Rotation.Q)
+               fp.write(')))\n')
+               fp.write('sketch.addGeometry(ellipse,False)\n')
+             
          
             elif geo[i].TypeId == 'Part::GeomBSplineCurve' :
                print('GeomBSpline')
