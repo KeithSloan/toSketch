@@ -308,8 +308,11 @@ class toMacroFeature:
         print("Path for Macros : " , path)
         fp = open(path+sketch.Label+'.FCMacro','w+')
         #fp = open('/tmp/'+sketch.Label,'w+')
-        fp.write('# Create an empty sketch:\n')
-        fp.write('sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject","'+sketch.Label+'")\n')
+        fp.write('# This Macro was created using toSketch Macro facility - (c) Keith Sloan\n')
+        fp.write('try : \n')
+        fp.write('    sketch = ActiveSketch\n')
+        fp.write('except :\n')
+        fp.write('    sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject","'+sketch.Label+'")\n')
         for i in range(sketch.GeometryCount):
             print(geo[i].TypeId)
             #print(dir(geo[i]))
