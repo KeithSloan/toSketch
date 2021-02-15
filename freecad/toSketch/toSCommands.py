@@ -338,6 +338,12 @@ class toMacroFeature:
             
             elif geo[i].TypeId == 'Part::GeomEllipse' :
                print('GeomEllipse')
+               print(dir(geo[i]))
+               fp.write('sketch.addGeometry(Part.Ellipse(')
+               self.wrtVector(fp, geo[i].Center, True)
+               self.wrtVector(fp, geo[i].Focus1, True)
+               self.wrtVector(fp, geo[i].Focus2, False)
+               fp.write('),False)\n')
          
         fp.close()
 
