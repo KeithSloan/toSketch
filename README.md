@@ -54,6 +54,7 @@ Currently supports ( More to follow )
       * Circles
       * ArcOfCircle
       * BSpline ( Initial Attempt )
+      * Ellipse
       
 When executing the macro
 
