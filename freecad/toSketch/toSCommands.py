@@ -337,7 +337,22 @@ class toMacroFeature:
 
             elif geo[i].TypeId == 'Part::GeomArcOfCircle':
                print('Arc of circle')
-               fp.write('Arc of circle')
+               #print(dir(geo[i]))
+               startX = geo[i].StartPoint[0] - geo[i].Center[0]
+               startY = geo[i].StartPoint[1] - geo[i].Center[1]
+               endX = geo[i].EndPoint[0] - geo[i].Center[0]
+               endY = geo[i].EndPoint[1] - geo[i].Center[1]
+               #from math import atan
+               import math
+               startRad = math.atan2(startY,startX)
+               #print(startRad)
+               endRad = math.atan2(endY,endX)
+               #print(endRad)
+               fp.write('sketch.addGeometry(Part.ArcOfCircle(Part.Circle(')
+               self.wrtVector(fp, geo[i].Center, True)
+               fp.write('FreeCAD.Vector(0,0,1),'+str(geo[i].Radius)+'),')
+               fp.write(str(startRad)+','+str(endRad))
+               fp.write('), False)\n')
             
             elif geo[i].TypeId == 'Part::GeomCircle':
                print('GeomCircle')
@@ -353,14 +368,14 @@ class toMacroFeature:
          
             elif geo[i].TypeId == 'Part::GeomBSplineCurve' :
                print('GeomBSpline')
-               print(dir(geo[i]))
-               print(geo[i].StartPoint)
-               print(geo[i].EndPoint)
-               print(geo[i].Degree)
-               print(geo[i].KnotSequence)
-               print(geo[i].NbKnots)
-               print(geo[i].NbPoles)
-               print(geo[i].getPoles())
+               #print(dir(geo[i]))
+               #print(geo[i].StartPoint)
+               #print(geo[i].EndPoint)
+               #print(geo[i].Degree)
+               #print(geo[i].KnotSequence)
+               #print(geo[i].NbKnots)
+               #print(geo[i].NbPoles)
+               #print(geo[i].getPoles())
                fp.write('sketch.addGeometry(Part.BSplineCurve(')
                self.wrtVectorList(fp, geo[i].getPoles())
                fp.write(',None,None,False,'+str(geo[i].NbPoles)+',None,False),False)\n')
