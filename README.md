@@ -92,8 +92,9 @@ Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
         
 ## Constraints
 
-Note: Ideally constraints should ideally be geometric, however there is always the option to fix all points
-      with the installable Macro SketcherFixAllPoints.FCMacro see Addon Manager for installation. 
+Note: Ideally constraints should be set on a geometric basis, however there is always
+      the option to fix all points with the installable Macro SketcherFixAllPoints.FCMacro
+      see Addon Manager for installation. 
  
                            
 ## The following are intended to help with Objects created via import of STEP files                           
