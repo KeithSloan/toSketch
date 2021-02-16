@@ -409,7 +409,7 @@ class toMacroFeature:
                fp.write('sketch.addGeometry(Part.BSplineCurve(')
                self.wrtVectorList(fp, geo[i].getPoles())
                fp.write(',None,None,False,'+str(geo[i].NbPoles)+',None,False),False)\n')
-         
+        fp.write("print('Geometry added to Sketch : '+sketch.Label)\n")
         fp.close()
         print('Macro : '+sketch.Label+' Written')
 
