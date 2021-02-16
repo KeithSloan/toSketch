@@ -334,6 +334,7 @@ class toMacroFeature:
         fp.write('    sketch = ActiveSketch\n')
         fp.write('except :\n')
         fp.write('    sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject","'+sketch.Label+'")\n')
+        fp.write("print('Active Sketch is : '+sketch.Label)\n")
         for i in range(sketch.GeometryCount):
             print(geo[i].TypeId)
             #print(dir(geo[i]))
