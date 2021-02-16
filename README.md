@@ -54,6 +54,7 @@ Currently supports ( More to follow )
       * Circles
       * ArcOfCircle
       * BSpline ( Initial Attempt )
+      * Ellipse
       
 When executing the macro
 
@@ -88,6 +89,12 @@ Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
     * Select Created Sketch, click on 'To CurveFit' icon
 
         Creates a Sketch with some line and Curve Fitting
+        
+## Constraints
+
+Note: Ideally constraints should be set on a geometric basis, however there is always
+      the option to fix all points with the installable Macro SketcherFixAllPoints.FCMacro
+      see Addon Manager for installation. 
  
                            
 ## The following are intended to help with Objects created via import of STEP files                           
