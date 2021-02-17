@@ -57,13 +57,13 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
             return text
         
         #import 2SCommands
-        commands=['toSketchCommand','toSPlaneCommand', \
-                   'toScaleCommand','toResetOriginCommand','toCurveFitCommand',\
-                   'toMacroCommand']
+        commands=['toSPlaneCommand','toSketchCommand','toMacroCommand', \
+                  'toCurveFitCommand', \
+                  'toScaleCommand','toResetOriginCommand']
 
-        toolbarcommands=['toSketchCommand','toSPlaneCommand', \
-                   'toScaleCommand','toResetOriginCommand','toCurveFitCommand',\
-                   'toMacroCommand']
+        toolbarcommands=['toSPlaneCommand','toSketchCommand','toMacroCommand', \
+                  'toCurveFitCommand', \
+                  'toScaleCommand','toResetOriginCommand']
 
         import PartGui
         parttoolbarcommands =['Part_Loft']

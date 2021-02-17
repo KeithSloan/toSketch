@@ -318,7 +318,16 @@ class toMacroFeature:
         else  :
            fp.write('FreeCAD.Vector(0,0,1)')
 
+    def getRadians(self, A, B) :
+        import math
+
+        delX = A[0] - B[0]
+        delY = A[1] - B[1]
+        return(math.atan2(delY,delX))
+
     def actionToMacro(self,sketch):
+        import math
+
         print('Action To Macro : '+sketch.Label)
         print('Geometry Count : '+str(sketch.GeometryCount))
         geo = sketch.Geometry
@@ -370,6 +379,7 @@ class toMacroFeature:
                self.wrtVector(fp, geo[i].Center, True)
                self.wrtIdentity(fp,True)
                fp.write(str(geo[i].Radius)+'), False)\n')
+            
             elif geo[i].TypeId == 'Part::GeomPoint':
                print('GeomPoint')
                fp.write('sketch.addGeometry(Part.Point(FreeCAD.Vector('+str(geo[i].X) +','+str(geo[i].Y)+','+str(geo[i].Z)+')),False)\n')
@@ -394,8 +404,35 @@ class toMacroFeature:
                self.wrtRotation(fp,geo[i].Rotation.Q)
                fp.write(')))\n')
                fp.write('sketch.addGeometry(ellipse,False)\n')
+            
+            elif geo[i].TypeId == 'Part::GeomArcOfEllipse' :
+               print('Arc of Ellipse')
+               print(dir(geo[i])) 
+               print(dir(geo[i].Ellipse)) 
+               print(geo[i].Ellipse.Rotation) 
+               fp.write('ellipse = Part.Ellipse(')
+               self.wrtVector(fp, geo[i].Center, True)
+               fp.write(str(geo[i].MajorRadius)+','+str(geo[i].MinorRadius)+')\n')
+               fp.write('print(dir(ellipse))\n')
+               fp.write('print(dir(ellipse.Rotation))\n')
+               fp.write('print(ellipse.Rotation)\n')
+               fp.write('print(ellipse.Rotation.Q)\n')
+               fp.write('print(ellipse.AngleXU)\n')
+               fp.write('ellipse.rotate(FreeCAD.Placement(')
+               self.wrtVector(fp,geo[i].Location,True)
+               print(fp,geo[i].Rotation)
+               self.wrtRotation(fp,geo[i].Ellipse.Rotation.Q)
+               #fp.write('FreeCAD.Rotation(0,0,0,1)')
+               fp.write(')))\n')
+               print(geo[i].Ellipse.Rotation.Angle)
+               #rotRa   = geo[i].Ellipse.Rotation.Angle * math.pi / 180
+               rotRa   = geo[i].Ellipse.Rotation.Angle
+               startRa = self.getRadians(geo[i].StartPoint, geo[i].Center)-rotRa
+               #startRa = self.getRadians(geo[i].StartPoint, geo[i].Center)
+               endRa   = self.getRadians(geo[i].EndPoint, geo[i].Center)-rotRa
+               #endRa   = self.getRadians(geo[i].EndPoint, geo[i].Center)
+               fp.write('sketch.addGeometry(Part.ArcOfEllipse(ellipse,'+str(startRa)+','+str(endRa)+'),False)\n')
              
-         
             elif geo[i].TypeId == 'Part::GeomBSplineCurve' :
                print('GeomBSpline')
                #print(dir(geo[i]))
