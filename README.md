@@ -58,8 +58,16 @@ Currently supports ( More to follow )
       
 When executing the macro
 
-     if there is a an ActiveSketch, the geometry is added, otherwise a new sketch is created.
-      
+     If there is a an ActiveSketch, the geometry is added, otherwise a new sketch is created.
+     
+Constraints
+
+     The following types of constraints are exported if present in the selected sketch.
+     
+         * Coincident
+         * Vertical
+         * Horizontal
+ 
                               
 ### Section a Mesh Cross Section : to CurveFit ( Alpha - Under Development )
 
