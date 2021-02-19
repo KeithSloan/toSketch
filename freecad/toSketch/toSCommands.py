@@ -450,6 +450,21 @@ class toMacroFeature:
                self.wrtVectorList(fp, geo[i].getPoles())
                fp.write(',None,None,False,'+str(geo[i].NbPoles)+',None,False),False)\n')
         fp.write("print('Geometry added to Sketch : '+sketch.Label)\n")
+        for i in sketch.Constraints :
+           #print(dir(i))
+           #print(i.Type)
+           #print(i.Content)
+           if i.Type == 'Coincident' :
+             fp.write('sketch.addConstraint(Sketcher.Constraint("Coincident",')
+             fp.write(str(i.First)+','+str(i.FirstPos)+',')
+             fp.write(str(i.Second)+','+str(i.SecondPos)+'))\n')
+           if i.Type == 'Horizontal' :
+             fp.write('sketch.addConstraint(Sketcher.Constraint("Horizontal",')
+             fp.write(str(i.First)+'))\n')
+           if i.Type == 'Vertical' :
+             fp.write('sketch.addConstraint(Sketcher.Constraint("Vertical",')
+             fp.write(str(i.First)+'))\n')
+        fp.write("print('Constraints added to Sketch : '+sketch.Label)\n")
         fp.close()
         print('Macro : '+sketch.Label+' Written')
 
