@@ -458,12 +458,20 @@ class toMacroFeature:
              fp.write('sketch.addConstraint(Sketcher.Constraint("Coincident",')
              fp.write(str(i.First)+','+str(i.FirstPos)+',')
              fp.write(str(i.Second)+','+str(i.SecondPos)+'))\n')
-           if i.Type == 'Horizontal' :
+           elif i.Type == 'Horizontal' :
              fp.write('sketch.addConstraint(Sketcher.Constraint("Horizontal",')
              fp.write(str(i.First)+'))\n')
-           if i.Type == 'Vertical' :
+           elif i.Type == 'Vertical' :
              fp.write('sketch.addConstraint(Sketcher.Constraint("Vertical",')
              fp.write(str(i.First)+'))\n')
+           elif i.Type == 'Equal' : 
+             fp.write('sketch.addConstraint(Sketcher.Constraint("Equal",')
+             fp.write(str(i.First)+','+str(i.Second)+'))\n')
+           elif i.Type == 'Angle' :
+             if hasattr(i,'Second') :
+                fp.write('sketch.addConstraint(Sketcher.Constraint("Angle",')
+                fp.write(str(i.First)+','+str(i.FirstPos)+','+str(i.Second))
+                fp.write(','+str(i.SecondPos)+','+str(i.Value)+'))\n')
         fp.write("print('Constraints added to Sketch : '+sketch.Label)\n")
         fp.close()
         print('Macro : '+sketch.Label+' Written')
