@@ -95,23 +95,24 @@ class toSketchFeature:
         print('Action Section')
         edges = []
         for obj in FreeCAD.ActiveDocument.Objects :
-            print(obj.Label)
+            #print(obj.Label)
             print(obj.TypeId)
             if hasattr(obj,'Mesh') :
                print(dir(obj))
                print(dir(obj.Mesh))
                print(dir(obj.Mesh.Content))
-            if hasattr(obj,'Shape') :
-               print('Has shape')
-               sect = obj.Shape.section(plane)
-               #print(sect)
-               print(sect.ShapeType)
-               if len(sect.SubShapes) > 0 :
-                  print('Intesect : '+obj.Label)
-                  for e in sect.SubShapes :
-                      edges.append(e)
-               obj.ViewObject.Visibility = False
-               #print(dir(sect))
+            if hasattr(obj,'Shape') and obj.TypeId != 'Sketcher::SketchObject' :
+               if obj.Shape.Volume > 0 :
+                  print(obj.Label+' : Has shape')
+                  sect = obj.Shape.section(plane)
+                  #print(sect)
+                  print(sect.ShapeType)
+                  if len(sect.SubShapes) > 0 :
+                     print('Intersect : '+obj.Label)
+                     for e in sect.SubShapes :
+                         edges.append(e)
+                  obj.ViewObject.Visibility = False
+                  #print(dir(sect))
         sketch = self.shapes2Sketch(edges,'Sketch')
         self.addConstraints(sketch)
         return sketch
