@@ -58,17 +58,25 @@ class toSketchFeature:
                      sketch.MapMode ='ObjectXY'
                      sketch.Support = sel.Object
                      sketch.AttachmentOffset.Base = face.Surface.Position
-  
+            #if sel.TypeId == 'PartDesign::Plane' :
+            #   sketch = self.actionSection(sel.Shape)
+            #   try :
+            #      FreeCADGui.ActiveDocument.setEdit(sketch,0)
+            #   except :
+            #      pass
+
         for sel in FreeCADGui.Selection.getSelection() :
             print("Selected")
             print(sel.TypeId)
             #print(dir(sel))
-            if sel.TypeId == 'Part::FeaturePython' and \
+            if sel.TypeId == 'PartDesign::Plane' :
+               sketch = self.actionSection(sel.Shape)
+            elif sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' :
                sketch = self.actionSection(sel.Shape)
-            if sel.TypeId == 'Part::Plane' :
+            elif sel.TypeId == 'Part::Plane' :
                self.actionSection(sel)
-            if sel.TypeId == 'Part::Feature' :
+            elif sel.TypeId == 'Part::Feature' :
                sketch = self.shapes2Sketch(sel.Shape,'Sketch')
             #print(sel.ViewObject.Visibility)
             #sel.ViewObject.Visibility = False
