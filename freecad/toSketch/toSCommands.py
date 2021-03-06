@@ -58,12 +58,6 @@ class toSketchFeature:
                      sketch.MapMode ='ObjectXY'
                      sketch.Support = sel.Object
                      sketch.AttachmentOffset.Base = face.Surface.Position
-            #if sel.TypeId == 'PartDesign::Plane' :
-            #   sketch = self.actionSection(sel.Shape)
-            #   try :
-            #      FreeCADGui.ActiveDocument.setEdit(sketch,0)
-            #   except :
-            #      pass
 
         for sel in FreeCADGui.Selection.getSelection() :
             print("Selected")
