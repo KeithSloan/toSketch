@@ -43,6 +43,8 @@ class toSketchFeature:
             print("Selected-Ex")
             print(sel.TypeId)
             #print(dir(sel))
+            #print(sel.ObjectName)
+            #print(sel.FullName)
             if sel.HasSubObjects == True :
                print('SubObjects')
                if hasattr(sel.SubObjects[0],'Surface') :
@@ -52,19 +54,26 @@ class toSketchFeature:
                      #face.exportStep('/tmp/exported.step')
                      #face.exportBrep('/tmp/exported.brep')
                      # move face to origin
+                     savePlacement = face.Placement # Save Face Placement
                      face.translate(face.Placement.Base.negative())
                      sketch = self.shapes2Sketch(face,'Sketch')
                      self.addConstraints(sketch)
                      #sketch.MapMode ='ObjectXY'
-                     print(dir(sketch))
-                     print(sketch.MapReversed)
+                     #print(dir(sketch))
                      sketch.MapMode ='FlatFace'
-                     sketch.MapReversed = True    # ????
+                     sketch.MapReversed = False    # ????
                      print(sketch.MapReversed)
-                     sketch.Support = sel.Object
-                     print('Support set')
-                     sketch.AttachmentOffset.Base = face.Surface.Position
-                     print('Attachment Offset set')
+                     #print('dir face')
+                     #print(dir(face))
+                     #print(face.TypeId)
+                     #print(face.ShapeType)
+                     print(sel.FullName)
+                     sketch.Support = [(sel.FullName[0],sel.FullName[1][0])]
+                     #sketch.Placement = savePlacement 
+                     #pl = FreeCAD.Placement()
+                     #print(dir(sketch.AttachmentOffset))
+                     #sketch.AttachmentOffset.Base = pl.Base
+                     #sketch.AttachmentOffset.Rotation = pl.Rotation
   
         for sel in FreeCADGui.Selection.getSelection() :
             print("Selected")
