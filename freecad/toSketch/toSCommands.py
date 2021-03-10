@@ -54,7 +54,7 @@ class toSketchFeature:
                      #face.exportStep('/tmp/exported.step')
                      #face.exportBrep('/tmp/exported.brep')
                      # move face to origin
-                     savePlacement = face.Placement # Save Face Placement
+                     #savePlacement = face.Placement # Save Face Placement
                      face.translate(face.Placement.Base.negative())
                      sketch = self.shapes2Sketch(face,'Sketch')
                      self.addConstraints(sketch)
@@ -62,14 +62,17 @@ class toSketchFeature:
                      #print(dir(sketch))
                      sketch.MapMode ='FlatFace'
                      sketch.MapReversed = False    # ????
-                     print(sketch.MapReversed)
+                     #print(sketch.MapReversed)
                      #print('dir face')
                      #print(dir(face))
                      #print(face.TypeId)
                      #print(face.ShapeType)
-                     print(sel.FullName)
+                     #print(sel.FullName)
                      sketch.Support = [(sel.FullName[0],sel.FullName[1][0])]
-                     #sketch.Placement = savePlacement 
+                     nVector = face.normalAt(1,1)
+                     pVector = face.findPlane().Position
+                     dVector = nVector.multiply(nVector.dot(pVector))
+                     sketch.Placement.move(dVector) 
                      #pl = FreeCAD.Placement()
                      #print(dir(sketch.AttachmentOffset))
                      #sketch.AttachmentOffset.Base = pl.Base
