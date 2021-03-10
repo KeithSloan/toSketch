@@ -150,6 +150,7 @@ Selecting an Object and clicking on the Reset Origin icon results in the followi
  
      * suzanne.soy
      * wmayer
+     * Ed Williams edwilliams16
      
  Icons thanks to jmaustpc    
      
