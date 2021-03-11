@@ -51,14 +51,10 @@ class toSketchFeature:
                   if str(sel.SubObjects[0].Surface) == '<Plane object>' :
                      print('Planar')
                      face = sel.SubObjects[0]
-                     #face.exportStep('/tmp/exported.step')
-                     #face.exportBrep('/tmp/exported.brep')
                      # move face to origin
-                     #savePlacement = face.Placement # Save Face Placement
                      face.translate(face.Placement.Base.negative())
                      sketch = self.shapes2Sketch(face,'Sketch')
                      self.addConstraints(sketch)
-                     #sketch.MapMode ='ObjectXY'
                      #print(dir(sketch))
                      sketch.MapMode ='FlatFace'
                      sketch.MapReversed = False    # ????
@@ -83,7 +79,13 @@ class toSketchFeature:
             print(sel.TypeId)
             #print(dir(sel))
             if sel.TypeId == 'PartDesign::Plane' :
+               #print(dir(sel))
+               #print(dir(sel.Shape))
                sketch = self.actionSection(sel.Shape)
+               nVector = sel.Shape.Faces[0].normalAt(1,1)
+               pVector = sel.Placement.Base
+               dVector = nVector.multiply(nVector.dot(pVector))
+               sketch.Placement.move(dVector)
             elif sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' :
                sketch = self.actionSection(sel.Shape)
@@ -137,7 +139,6 @@ class toSketchFeature:
         sketch = self.shapes2Sketch(edges,'Sketch')
         self.addConstraints(sketch)
         return sketch
-
 
     def addConstraints(self, sketch) :
         print('Add Constraints')
