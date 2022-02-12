@@ -15,7 +15,7 @@ but no details about how it was created or Parametric properties that you can ch
 
 ## Alternative Installation
 
-Clone into FreeCAD's Mod directory
+Clone into FreeCAD's Mod directory see https://wiki.freecadweb.org/Installing_more_workbenches
 
    * Change to FreeCAD Mod directory
    * **git clone https://github.com/KeithSloan/toSketch.git**
