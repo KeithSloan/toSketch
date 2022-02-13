@@ -22,6 +22,21 @@ Clone into FreeCAD's Mod directory see https://wiki.freecadweb.org/Installing_mo
 
 * Start/Restart FreeCAD
 
+## Installation with FreeCAD 0.20
+
+Use FreeCAD preferences to add the Repro to available 'Custom Repositories'
+
+![Image 13-02-2022 at 12 55](https://user-images.githubusercontent.com/2291247/153757512-fedad170-7d27-4c5f-9618-8b68ca2b6b24.jpeg)
+
+Invoke the Addon Manager - Tools | Addon manager
+
+
+Click on 'Refresh local cache'
+
+Then install
+
+
+
 ## Use
 
 ### Face to Sketch : to Sketch
