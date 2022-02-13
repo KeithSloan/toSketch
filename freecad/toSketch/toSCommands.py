@@ -137,7 +137,7 @@ class toSketchFeature:
                   obj.ViewObject.Visibility = False
                   #print(dir(sect))
         sketch = self.shapes2Sketch(edges,'Sketch')
-        self.addConstraints(sketch)
+        #self.addConstraints(sketch)
         return sketch
 
     def addConstraints(self, sketch) :
@@ -166,13 +166,16 @@ class toSketchFeature:
         #sketch.addConstraint(Sketcher.Constraint('Point',10,10,10))
 
     def shapes2Sketch(self, shapes, name) :
-        Draft.draftify(shapes, makeblock=False, delete=True)
+        print('shapes2sketch')
+        #Draft.draftify(shapes, makeblock=False, delete=True)
         try :
+            print('Auto Constraint')
             sketch = Draft.makeSketch(shapes, autoconstraints=True, \
                  addTo=None, delete=False, name=name,  \
                        radiusPrecision=-1)
             return sketch
         except :
+            print('Non Auto Constraint')
             sketch = Draft.makeSketch(shapes, autoconstraints=False, \
                  addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1)
