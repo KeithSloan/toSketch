@@ -124,7 +124,9 @@ class toSketchFeature:
                print(dir(obj))
                print(dir(obj.Mesh))
                print(dir(obj.Mesh.Content))
-            if hasattr(obj,'Shape') and obj.TypeId != 'Sketcher::SketchObject' :
+            if hasattr(obj,'Shape') and \
+                  obj.TypeId != 'Sketcher::SketchObject' and \
+                  obj.TypeId != 'PartDesign::Body' : # Otherwise Body & Content
                if obj.Shape.Volume > 0 :
                   print(obj.Label+' : Has shape')
                   sect = obj.Shape.section(plane)
@@ -132,6 +134,7 @@ class toSketchFeature:
                   print(sect.ShapeType)
                   if len(sect.SubShapes) > 0 :
                      print('Intersect : '+obj.Label)
+                     print(len(sect.SubShapes))
                      for e in sect.SubShapes :
                          edges.append(e)
                   obj.ViewObject.Visibility = False
@@ -167,6 +170,7 @@ class toSketchFeature:
 
     def shapes2Sketch(self, shapes, name) :
         print('shapes2sketch')
+        print(len(shapes))
         Draft.draftify(shapes, makeblock=False, delete=True)
         try :
             print('Auto Constraint')
