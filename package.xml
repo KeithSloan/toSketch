@@ -10,7 +10,7 @@
 
   <content>
     <workbench>
-      <classname>KEITHSLOANtoSketch</classname>
+      <classname>toSketch_Workbench</classname>
       <subdirectory>./</subdirectory>
       <icon>freecad/toSketch/Resources/icons/toSketch.svg</icon>
       <freecadmin>0.19.0</freecadmin>
