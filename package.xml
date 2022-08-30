@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1">
+  <name>add toSketch Facility for FreeCAD</name>
+  <description>The main emphasis of the facilities in this workbench are to help with remodelling of existing models. When a STEP model is imported into FreeCAD you have a a viewable model but no details about how it was created or Parametric properties that you can change.</description>
+  <version>1.0</version>
+  <maintainer email="keith@sloan-home.co.uk">Keith Sloan</maintainer>
+  <license file="LICENSE">GPL-2.0</license>
+  <url type="repository" branch="master">https://github.com/KeithSloan/toSketch</url>
+  <url type="readme">https://github.com/KeithSloan/toSketch/blob/main/README.md</url>
+
+  <content>
+    <workbench>
+      <classname>toSketch_Workbench</classname>
+      <subdirectory>./</subdirectory>
+      <icon>freecad/toSketch/Resources/icons/toSketch.svg</icon>
+      <freecadmin>0.19.0</freecadmin>
+    </workbench>
+  </content>
+
+</package>
