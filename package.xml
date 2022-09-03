@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <package format="1">
-  <name>add toSketch Facility for FreeCAD</name>
-  <description>The main emphasis of the facilities in this workbench are to help with remodelling of existing models. When a STEP model is imported into FreeCAD you have a a viewable model but no details about how it was created or Parametric properties that you can change.</description>
+  <name>toSketch</name>
+  <description>Add toSketch facility for FreeCAD. This workbench purpose is to help with remodelling of existing models. When a STEP model is imported into FreeCAD you have a a viewable model but no details about how it was created or Parametric properties that you can change.</description>
   <version>1.0</version>
   <maintainer email="keith@sloan-home.co.uk">Keith Sloan</maintainer>
   <license file="LICENSE">GPL-2.0</license>
