@@ -12,6 +12,7 @@
     <workbench>
       <classname>toSketch_Workbench</classname>
       <subdirectory>./</subdirectory>
+      <description>Add toSketch facility for FreeCAD. This WB help with remodelling of existing models.</description>
       <icon>freecad/toSketch/Resources/icons/toSketch.svg</icon>
       <freecadmin>0.19.0</freecadmin>
     </workbench>
