@@ -5,7 +5,7 @@
   <version>1.0.0</version>
   <maintainer email="keith@sloan-home.co.uk">Keith Sloan</maintainer>
   <license file="LICENSE">GPL-2.0</license>
-  <url type="repository" branch="master">https://github.com/KeithSloan/toSketch</url>
+  <url type="repository" branch="main">https://github.com/KeithSloan/toSketch</url>
   <url type="readme">https://github.com/KeithSloan/toSketch/blob/main/README.md</url>
 
   <content>
