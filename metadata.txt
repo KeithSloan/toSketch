@@ -1,1 +1,2 @@
 workbenches=Sketcher
+pylibs=geomdl
