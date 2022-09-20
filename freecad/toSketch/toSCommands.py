@@ -209,7 +209,7 @@ class toCurveFitFeature :
                       dL.append(ab.Length)
                    else :
                       # Add non Line Geometry 
-                      newsketch.addGeometry(gL[i], False)
+                      newSketch.addGeometry(gL[i], False)
                       print('Break - need to process Lines')
                       if len(dL) > 0 :
                          self.processLines(newSketch,start,i,gL,dL)
