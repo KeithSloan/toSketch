@@ -2,7 +2,7 @@
 <package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
   <name>toSketch</name>
   <description>Add toSketch facility for FreeCAD. This WB help with remodelling of existing models.</description>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <maintainer email="keith@sloan-home.co.uk">Keith Sloan</maintainer>
   <license file="LICENSE">GPL-2.0</license>
   <url type="repository" branch="main">https://github.com/KeithSloan/toSketch</url>
