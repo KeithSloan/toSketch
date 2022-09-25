@@ -198,6 +198,10 @@ class toCurveFitFeature :
                dL = []
                start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
+               self.processGeometry(newSketch, gL, sel.GeometryCount)
+               newSketch.recompute()
+
+               return
                for i in range(sel.GeometryCount):
                    #print('TypeId : '+gL[i].TypeId) 
                    if gL[i].TypeId == 'Part::GeomLineSegment':
@@ -222,6 +226,49 @@ class toCurveFitFeature :
                #print(dir(sel.Geometry))
                #print(newSketch.Geometry)
                newSketch.recompute()
+
+    def processGeometry(self, newSketch, gL, gCount):
+        from math import inf, isclose
+        import numpy as np
+        tolerance = 1e-03
+        shortLine = 1.0
+        slope = np.empty(shape=[0, 2])
+        startLine = None
+        curvePoints = []
+        for i in range(gCount):
+            print('TypeId : '+gL[i].TypeId) 
+            if gL[i].TypeId == 'Part::GeomLineSegment':
+                print(dir(gL[i]))
+                sp = gL[i].StartPoint
+                curvePoints.append(sp)
+                print(sp)
+                ep = gL[i].EndPoint
+                print(ep)
+                curvePoints.append(ep)
+                del_y = ep.y - sp.y
+                del_x = ep.x - sp.x
+                if del_x == 0:
+                    slopeVal = inf
+                else:
+                    slopeVal = del_y / del_x
+                print(f'Slope : {slopeVal}')
+                slope = np.append(slope, slopeVal)
+                lineLen = gL[i].length()
+                print(f'Length : {lineLen}')
+                if startLine is None:
+                    startLine = sp
+                    currentSlope = slopeVal
+                #elif not isclose(currentSlope, slopeVal, rel_tol=tolerance):
+                print(f'Current Slope {currentSlope}')
+                if not isclose(currentSlope, slopeVal):
+                    currentSlope = slopeVal
+                    newSketch.addGeometry(Part.LineSegment(startLine, ep))
+                    startLine = None
+                    curvePoints = []
+
+                # print(gL[i].Rotation)
+        print(f'slope Array : {slope}')
+
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
