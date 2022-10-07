@@ -184,37 +184,20 @@ class toSketchFeature:
                          radiusPrecision=-1)
             return sketch
 
-class curveBuffer :
-    def __init__(self, sketch):
-        self.sketch = sketch
-        self.data = False
-        self.buffer = []
-
-    def addPoints(self, sp, ep):
-        if self.data == False:
-            self.data = True
-            self.buffer.append(sp)
-        self.buffer.append(ep)
-
-    def flush(self):
-        if self.data == True:
-            print(f'====> Curve fit {len(self.buffer)}')
-            #self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
-            self.data = False
-            self.buffer = []
 
 class lineBuffer :
     def __init__(self, sketch):
         self.sketch = sketch
-        self.data = False
+        self.shortCount = 0
+        self.buffer = []
+        self.lineCount = 0
         self.sp = None
         self.ep = None
         self.slope = None
 
     def addLine(self, sp, ep, slope):
         from math import inf, isclose
-        if self.data == False:
-            self.data = True
+        if self.lineCount  == 0:
             self.sp = sp
             self.ep = ep
             self.slope = slope
@@ -225,25 +208,42 @@ class lineBuffer :
                 self.sp = sp
                 self.slope = slope
             self.ep = ep
+        self.lineCount += 1     
 
 
-    def checkSlope(self, sp, ep, slope):
+    def addShortLine(self, sp, ep, slope):
         from math import inf, isclose
-        if self.data == True:
-            if isclose(slope, self.slope, abs_tol = 0.1):
+        if self.shortCount  == 0:
+            self.sp = sp
+            self.ep = ep
+            self.slope = slope
+        else:
+            if isclose(slope, self.slope, abs_tol = 0.1): 
                 self.ep = ep
-                return True
-            else:
-                self.flush()    
-        return False        
+        self.shortCount += 1
+        self.buffer.append(sp)
+        self.buffer.append(ep)
 
-
-    def flush(self):
-        if self.data == True:
+    def flushLine(self):
+        if self.lineCount > 0:
             print(f'====> Flush line segment')
             self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
-            self.data = False
+            self.lineCount = 0
 
+    def flushCurve(self):
+            if self.shortCount > 0:
+                if self.shortCount <= 2:
+                    print(f'Short Count {self.shortCount}')
+                    print(self.buffer)
+                    # Buffer is n times sp then ep so increment 2
+                    for i in range(0, self.shortCount, 2):
+                        print(f'{self.buffer[i]} {self.buffer[i+1]}')
+                        self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+                                self.buffer[i+1]))
+                else:
+                    print(f'Curve Fit {len(self.buffer)}')
+            self.shortCount = 0
+            self.buffer = []
 
 class toCurveFitFeature :
 
@@ -303,10 +303,9 @@ class toCurveFitFeature :
 
     def processGeometry(self, newSketch, gL, gCount):
         from math import inf, isclose
-        shortLine = 1.0
+        shortLine = 1.5
         tolerance = 1e-03
         lineBuff = lineBuffer(newSketch)
-        curveBuff = curveBuffer(newSketch)
         for i in range(gCount):
             print('TypeId : '+gL[i].TypeId) 
             if gL[i].TypeId == 'Part::GeomLineSegment':
@@ -339,17 +338,11 @@ class toCurveFitFeature :
                 lineLen = gL[i].length()
                 print(f'Length : {lineLen}')
                 if lineLen < shortLine:
-                    if not lineBuff.checkSlope(sp, ep, slope):
-                        curveBuff.addPoints(sp, ep)
-                    #self.processCurveBuffer(newSketch, curvePoints)
-                    #newSketch.addGeometry(Part.LineSegment(sp, ep))
+                    lineBuff.flushLine()
+                    lineBuff.addShortLine(sp, ep, slope)
                 else:
-                    curveBuff.flush()
+                    lineBuff.flushCurve()
                     lineBuff.addLine(sp, ep, slope)    
-            #else:    
-            #    self.processCurveBuffer(newSketch, curvePoints)
-            #    newSketch.addGeometry(gL[i], False)
-            #    startLine = None
 
 
     def IsActive(self):
