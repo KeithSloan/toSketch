@@ -93,6 +93,10 @@ class toSketchFeature:
                self.actionSection(sel)
             elif sel.TypeId == 'Part::Feature' :
                sketch = self.shapes2Sketch(sel.Shape,'Sketch')
+            elif sel.TypeId == 'Part::Offset2D':
+                print(f'Part::Offset2D')
+                sketch = self.shapes2Sketch(sel.Shape,'Sketch')
+
             #print(sel.ViewObject.Visibility)
             #sel.ViewObject.Visibility = False
 
