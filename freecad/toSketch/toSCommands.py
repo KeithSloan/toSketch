@@ -189,6 +189,7 @@ class lineBuffer :
     def __init__(self, sketch):
         self.sketch = sketch
         self.shortCount = 0
+        self.straightCount = 0 
         self.buffer = []
         self.lineCount = 0
         self.sp = None
@@ -218,30 +219,53 @@ class lineBuffer :
             self.ep = ep
             self.slope = slope
         else:
-            if isclose(slope, self.slope, abs_tol = 0.1): 
-                self.ep = ep
+            if isclose(slope, self.slope, abs_tol = 0.1):
+                if self.shortCount == self.straightCount :
+                    self.straightCount += 1
+                    self.ep = ep
         self.shortCount += 1
         self.buffer.append(sp)
         self.buffer.append(ep)
 
     def flushLine(self):
         if self.lineCount > 0:
-            print(f'====> Flush line segment')
+            print(f'==> Flush line segment')
             self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
             self.lineCount = 0
 
-    def flushCurve(self):
-            if self.shortCount > 0:
-                if self.shortCount <= 2:
-                    print(f'Short Count {self.shortCount}')
-                    print(self.buffer)
-                    # Buffer is n times sp then ep so increment 2
-                    for i in range(0, self.shortCount, 2):
-                        print(f'{self.buffer[i]} {self.buffer[i+1]}')
-                        self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+    def flushStraight(self, cnt):
+        print(f'==> Flush Straight {cnt}')
+        for i in range(0, cnt, 2):
+            print(f'{self.buffer[i]} {self.buffer[i+1]}')
+            self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
                                 self.buffer[i+1]))
+
+    def curveFit(self, curveCnt):
+        # fit points for last curveCnt points in buffer
+        print(f'==> Curve Fit buffer len {len(self.buffer)} curve count {curveCnt}')
+
+    def flushCurve(self):
+        print(f'flush Curve')
+        if self.shortCount > 0:
+            if self.straightCount > 0:
+                if self.straightCount == self.shortCount:
+                    self.flushStraight(self.straightCount)
                 else:
-                    print(f'Curve Fit {len(self.buffer)}')
+                    curveCnt = max(self.shortCount - self.straightCount, 3)
+                    self.flushStraight(self.shortCount - curveCnt)
+                    self.curveFit(curvCnt)
+
+            elif self.shortCount <= 2:
+                 print(f'Short Count {self.shortCount}')
+                 print(self.buffer)
+                 # Buffer is n times sp then ep so increment 2
+                 for i in range(0, self.shortCount, 2):
+                     print(f'{self.buffer[i]} {self.buffer[i+1]}')
+                     self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+                                self.buffer[i+1]))
+            else:
+                 self.curveFit(self.shortCount)
+
             self.shortCount = 0
             self.buffer = []
 
@@ -307,7 +331,7 @@ class toCurveFitFeature :
         tolerance = 1e-03
         lineBuff = lineBuffer(newSketch)
         for i in range(gCount):
-            print('TypeId : '+gL[i].TypeId) 
+            print(f'\t\tTypeId : {gL[i].TypeId}') 
             if gL[i].TypeId == 'Part::GeomLineSegment':
                 #                          Change of Slope
                 #                     Yes                  No
@@ -319,16 +343,16 @@ class toCurveFitFeature :
                 #                   Add Line Bufer
                 #
                 sp = gL[i].StartPoint
-                print(sp)
+                print(f'\t\t {sp}')
                 ep = gL[i].EndPoint
-                print(ep)
+                print(f'\t\t {ep}')
                 del_y = ep.y - sp.y
                 del_x = ep.x - sp.x
                 if del_x == 0:
                     slope = inf
                 else:
                     slope = del_y / del_x
-                print(f'slope : {slope}')
+                print(f'\t\t slope : {slope}')
                 #elif not isclose(currentSlope, slopeVal, rel_tol=tolerance):
                 #elif not isclose(currentSlope, slope):
                 #    print(f'Change of slope adding line {len(curvePoints)}')
@@ -336,13 +360,15 @@ class toCurveFitFeature :
                 #    newSketch.addGeometry(Part.LineSegment(startLine, ep))
                 #    startLine = None
                 lineLen = gL[i].length()
-                print(f'Length : {lineLen}')
+                print(f'\t\t Length : {lineLen}')
                 if lineLen < shortLine:
                     lineBuff.flushLine()
                     lineBuff.addShortLine(sp, ep, slope)
                 else:
                     lineBuff.flushCurve()
                     lineBuff.addLine(sp, ep, slope)    
+                lineBuff.flushLine()
+                lineBuff.flushCurve()
 
 
     def IsActive(self):
