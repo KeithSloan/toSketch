@@ -198,6 +198,18 @@ class lineBuffer :
 
     def addLine(self, sp, ep, slope):
         from math import inf, isclose
+        print(f'addLine shortCount {self.shortCount} lineCount {self.lineCount}')
+        if self.shortCount == 1:
+            if isclose(slope, self.slope, abs_tol = 0.1):
+                print(f'Same Slope - Extend short line')
+                self.ep = ep
+                self.shortCount = 0
+                self.lineCount += 1
+                return
+            else:
+                print(f'====> Add line segment')
+                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+
         if self.lineCount == 0:
             self.sp = sp
             self.ep = ep
@@ -215,21 +227,22 @@ class lineBuffer :
 
     def addShortLine(self, sp, ep, slope):
         from math import inf, isclose
-        # Is this following a normal line
+        # Do we have a short line following a normal line
         if self.lineCount != 0:
             if isclose(slope, self.slope, abs_tol = 0.1):
+                print(f'==> extend line')
                 self.ep = ep
+                return
             else:    
-                print(f'==> Flush Long - Short')
+                print(f'==> Flush Long then Short Line')
                 self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
             self.lineCount = 0
-            self.shortCount = 1
+            self.shortCount = 0
             self.sp = sp
             self.ep = ep
             self.slope = slope
-            return
 
-        if self.shortCount == 0:
+        elif self.shortCount == 0:
             self.sp = sp
             self.ep = ep
             self.slope = slope
@@ -261,7 +274,12 @@ class lineBuffer :
         # fit points for last curveCnt points in buffer
         print(f'==> Curve Fit buffer len {len(self.buffer)} curve count {curveCnt}')
 
-    def flushCurve(self):
+    def flushCurve(self, slope):
+        from math import inf, isclose
+        if self.shortCount == 1:
+            if isclose(slope, self.slope, abs_tol = 0.1):
+                return
+
         if self.shortCount > 0:
             print(f'flush Curve')
             if self.straightCount > 0:
@@ -379,15 +397,15 @@ class toCurveFitFeature :
                 lineLen = gL[i].length()
                 print(f'\t\t Length : {lineLen}')
                 if lineLen < shortLine:
-                    lineBuff.flushLine(slope)
+                    #lineBuff.flushLine(slope)
                     lineBuff.addShortLine(sp, ep, slope)
                 else:
-                    lineBuff.flushCurve()
+                    lineBuff.flushCurve(slope)
                     lineBuff.addLine(sp, ep, slope)
         # Flush tails
         print(f'Flush tails')
         lineBuff.flushLine()
-        lineBuff.flushCurve()
+        lineBuff.flushCurve(None)
 
 
     def IsActive(self):
