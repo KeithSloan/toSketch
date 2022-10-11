@@ -198,7 +198,7 @@ class lineBuffer :
 
     def addLine(self, sp, ep, slope):
         from math import inf, isclose
-        if self.lineCount  == 0:
+        if self.lineCount == 0:
             self.sp = sp
             self.ep = ep
             self.slope = slope
@@ -208,13 +208,28 @@ class lineBuffer :
                 self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
                 self.sp = sp
                 self.slope = slope
+                self.lineCount = 0
             self.ep = ep
         self.lineCount += 1     
 
 
     def addShortLine(self, sp, ep, slope):
         from math import inf, isclose
-        if self.shortCount  == 0:
+        # Is this following a normal line
+        if self.lineCount != 0:
+            if isclose(slope, self.slope, abs_tol = 0.1):
+                self.ep = ep
+            else:    
+                print(f'==> Flush Long - Short')
+                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+            self.lineCount = 0
+            self.shortCount = 1
+            self.sp = sp
+            self.ep = ep
+            self.slope = slope
+            return
+
+        if self.shortCount == 0:
             self.sp = sp
             self.ep = ep
             self.slope = slope
@@ -227,11 +242,13 @@ class lineBuffer :
         self.buffer.append(sp)
         self.buffer.append(ep)
 
-    def flushLine(self):
+    def flushLine(self, slope=None):
+        from math import inf, isclose
         if self.lineCount > 0:
-            print(f'==> Flush line segment')
-            self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
-            self.lineCount = 0
+            if not isclose(slope, self.slope, abs_tol = 0.1):
+                print(f'==> Flush line segment')
+                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+                self.lineCount = 0
 
     def flushStraight(self, cnt):
         print(f'==> Flush Straight {cnt}')
@@ -245,8 +262,8 @@ class lineBuffer :
         print(f'==> Curve Fit buffer len {len(self.buffer)} curve count {curveCnt}')
 
     def flushCurve(self):
-        print(f'flush Curve')
         if self.shortCount > 0:
+            print(f'flush Curve')
             if self.straightCount > 0:
                 if self.straightCount == self.shortCount:
                     self.flushStraight(self.straightCount)
@@ -362,13 +379,15 @@ class toCurveFitFeature :
                 lineLen = gL[i].length()
                 print(f'\t\t Length : {lineLen}')
                 if lineLen < shortLine:
-                    lineBuff.flushLine()
+                    lineBuff.flushLine(slope)
                     lineBuff.addShortLine(sp, ep, slope)
                 else:
                     lineBuff.flushCurve()
-                    lineBuff.addLine(sp, ep, slope)    
-                lineBuff.flushLine()
-                lineBuff.flushCurve()
+                    lineBuff.addLine(sp, ep, slope)
+        # Flush tails
+        print(f'Flush tails')
+        lineBuff.flushLine()
+        lineBuff.flushCurve()
 
 
     def IsActive(self):
