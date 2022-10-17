@@ -287,7 +287,9 @@ class lineBuffer :
         self.sketch.addGeometry(Part.LineSegment(self.buffer[0], self.buffer[idx]))
         self.sp = self.buffer[idx]
         self.shortCount = self.shortCount - cnt - 1
+        self.buffer = self.buffer[idx:]
         print(f'shortCount {self.shortCount}')
+        return self.shortCount
 
 
     def curveFit(self, curveCnt):
@@ -302,13 +304,8 @@ class lineBuffer :
         if self.shortCount > 0:
             print(f'Flush Curve shortCount {self.shortCount} straightCount {self.straightCount}')
             if self.straightCount > 1:
-                if self.shortCount == self.straightCount + 1:
-                    self.flushStraight(self.straightCount)
-                else:
-                    curveCnt = max(self.shortCount - self.straightCount, 3)
-                    #self.flushStraight(self.shortCount - curveCnt)
-                    self.flushStraight(self.straightCount)
-                    self.curveFit(curveCnt)
+                if self.flushStraight(self.straightCount) > 0:
+                    self.curveFit(self.shortCount)
                 self.straightCount = 0
 
             elif self.shortCount <= 2:
