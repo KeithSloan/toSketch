@@ -196,13 +196,18 @@ class lineBuffer :
         self.ep = None
         self.slope = None
 
-    def addLine(self, sp, ep, slope):
+
+    def eqSlope(self, slope):    
         from math import inf, isclose
+        return isclose(slope, self.slope, abs_tol = 0.1)
+
+
+    def addLine(self, sp, ep, slope):
         print(f'add-LINE shortCount {self.shortCount} lineCount {self.lineCount} straightCount {self.straightCount}')
         if self.shortCount == 1:
             self.shortCount = 0
             self.lineCount += 1
-            if isclose(slope, self.slope, abs_tol = 0.1):
+            if self.eqSlope(slope):
                 print(f'Same Slope - Extend short line')
                 self.ep = ep
             else:
@@ -216,7 +221,7 @@ class lineBuffer :
             self.sp = sp
             self.ep = ep
         else:
-            if not isclose(slope, self.slope, abs_tol = 0.1): 
+            if not self.eqSlope(slope): 
                 print(f'====> Add line segment')
                 self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
                 self.sp = self.ep
@@ -228,11 +233,10 @@ class lineBuffer :
 
 
     def addShortLine(self, sp, ep, slope):
-        from math import inf, isclose
         # Do we have a short line following a normal line
         print(f'   add-SHORT shortCount {self.shortCount} lineCount {self.lineCount} straightCount {self.straightCount}')
         if self.lineCount != 0:
-            if isclose(slope, self.slope, abs_tol = 0.1):
+            if self.eqSlope(slope):
                 print(f'==> Extend line {ep}')
                 self.ep = ep
                 return
@@ -250,7 +254,7 @@ class lineBuffer :
         #    self.ep = ep
         #else:
             print(f'test slope {self.slope} {slope}')
-            if isclose(slope, self.slope, abs_tol = 0.1):
+            if self.eqSlope(slope):
                 print(f'====> Short Line Same Slope : shortCount {self.shortCount} straightCount {self.straightCount}\n')
                 if self.shortCount - self.straightCount == 1:
                     self.straightCount += 1
@@ -263,6 +267,7 @@ class lineBuffer :
         self.slope = slope
         self.buffer.append(sp)
         self.buffer.append(ep)
+
 
     def flushLine(self):
         if self.lineCount > 0:
@@ -284,14 +289,14 @@ class lineBuffer :
         self.shortCount = self.shortCount - cnt - 1
         print(f'shortCount {self.shortCount}')
 
+
     def curveFit(self, curveCnt):
         # fit points for last curveCnt points in buffer
         print(f'==> Curve Fit buffer len {len(self.buffer)} start {self.straightCount} curveCount {curveCnt}')
 
     def flushCurve(self, slope):
-        from math import inf, isclose
         if self.shortCount == 1:
-            if isclose(slope, self.slope, abs_tol = 0.2):
+            if self.eqSlope(slope):
                 return
 
         if self.shortCount > 0:
@@ -350,6 +355,7 @@ class toCurveFitFeature :
         else:
             self.curveFit(newSketch, lenPB, pointBuffer)
 
+
     def insertLines(self, newSketch, lenPb, pointBuffer):
         print(pointBuffer)
         
@@ -379,7 +385,7 @@ class toCurveFitFeature :
 
 
     def processGeometry(self, newSketch, gL, gCount):
-        from math import inf, isclose
+        from math import inf
         shortLine = 1.5
         tolerance = 1e-03
         lineBuff = lineBuffer(newSketch)
@@ -406,12 +412,6 @@ class toCurveFitFeature :
                 else:
                     slope = del_y / del_x
                 print(f'\t\t slope : {slope}')
-                #elif not isclose(currentSlope, slopeVal, rel_tol=tolerance):
-                #elif not isclose(currentSlope, slope):
-                #    print(f'Change of slope adding line {len(curvePoints)}')
-                #    currentSlope = slope
-                #    newSketch.addGeometry(Part.LineSegment(startLine, ep))
-                #    startLine = None
                 lineLen = gL[i].length()
                 print(f'\t\t Length : {lineLen}')
                 if lineLen < shortLine:
