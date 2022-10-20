@@ -422,9 +422,11 @@ class toCurveFitFeature :
         shortLine = 1.5
         tolerance = 1e-03
         lineBuff = lineBuffer(newSketch)
-        for i in range(gCount):
-            print(f'\t\tTypeId : {gL[i].TypeId}') 
-            if gL[i].TypeId == 'Part::GeomLineSegment':
+        for g in gL:
+            #print(dir(i))
+            print(f'\t\tTypeId : {g.TypeId}') 
+            if g.TypeId == 'Part::GeomLineSegment':
+            #if g.TypeId == 'Part::GeomLineSegment':
                 #                          Change of Slope
                 #                     Yes                  No
                 #
@@ -434,9 +436,9 @@ class toCurveFitFeature :
                 #             No    Flush Curve         Add Line Buffer
                 #                   Add Line Bufer
                 #
-                sp = gL[i].StartPoint
+                sp = g.StartPoint
                 print(f'\t\t {sp}')
-                ep = gL[i].EndPoint
+                ep = g.EndPoint
                 print(f'\t\t {ep}')
                 del_y = ep.y - sp.y
                 del_x = ep.x - sp.x
@@ -445,7 +447,7 @@ class toCurveFitFeature :
                 else:
                     slope = del_y / del_x
                 print(f'\t\t slope : {slope}')
-                lineLen = gL[i].length()
+                lineLen = g.length()
                 print(f'\t\t Length : {lineLen}')
                 if lineLen < shortLine:
                     #lineBuff.flushLine()
