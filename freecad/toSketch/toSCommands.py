@@ -199,7 +199,7 @@ class lineBuffer :
 
     def eqSlope(self, slope):    
         from math import inf, isclose
-        return isclose(slope, self.slope, abs_tol = 0.1)
+        return isclose(slope, self.slope, abs_tol = 0.01)
 
 
     def addLine(self, sp, ep, slope):
@@ -293,8 +293,44 @@ class lineBuffer :
 
 
     def curveFit(self, curveCnt):
+        from geomdl import fitting
         # fit points for last curveCnt points in buffer
         print(f'==> Curve Fit buffer len {len(self.buffer)} start {self.straightCount} curveCount {curveCnt}')
+        # Is there enought points to curveFit#
+        if self.shortCount < 3:
+            # No just output short lines
+            print(f'Short Count {self.shortCount}')
+            print(self.buffer)
+            # Buffer is n times sp then ep so increment 2
+            for i in range(0, self.shortCount, 2):
+                print(f'{self.buffer[i]} {self.buffer[i+1]}')
+                self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+                                self.buffer[i+1]))
+        else:
+            print(f'Fit Curve {self.shortCount}') 
+            #    points = tuple(pointBuffer)
+            
+            print(self.buffer[0])
+            print(self.buffer[1:self.shortCount*2:2])
+            pointBuff = [self.buffer[0]]+self.buffer[1:self.shortCount*2:2]
+            degree = 3
+            #    #curveI = fitting.interpolate_curve(points, degree)
+            curve = fitting.approximate_curve(pointBuff, degree, \
+                    centripetal=True, ctrlpts_size = 4)
+            # print(dir(curve))
+            print(f'Control Points {curve._control_points}')
+            fcCp = []
+            for cp in curve._control_points :
+                print(f'cp {cp}')
+                fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
+            print(curve.degree)
+            print(curve._geometry_type)
+            print('Number of Control points : '+str(len(curve._control_points)))
+            print('Knot Vector : '+str(curve.knotvector))
+            self.sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False,\
+                    curve.degree,None,False))
+
+
 
     def flushCurve(self, slope):
         if self.shortCount == 1:
@@ -321,8 +357,8 @@ class lineBuffer :
                  self.straightCount = 0
                  self.curveFit(self.shortCount)
 
-            #self.shortCount = 0
-            #self.buffer = []
+            self.shortCount = 0
+            self.buffer = []
 
 class toCurveFitFeature :
 
