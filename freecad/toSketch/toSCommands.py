@@ -202,6 +202,21 @@ class lineBuffer :
         return isclose(slope, self.slope, abs_tol = 0.01)
 
 
+    def checkCont(self, sp):
+        # Check if still a continous line if not flush
+        print(f'checkCont {self.ep} {sp}')
+        if self.ep == sp:
+            return
+        else:
+            print(f'Not continous')
+            if self.straightCount > 0:
+                self.flushStraight(self.straight)
+            if self.lineCount > 0:
+                self.flushLine()
+            if self.shortCount > 0:
+                self.flushCurve(self.shortCount)    
+
+
     def addLine(self, sp, ep, slope):
         print(f'add-LINE shortCount {self.shortCount} lineCount {self.lineCount} straightCount {self.straightCount}')
         if self.shortCount == 1:
@@ -449,6 +464,8 @@ class toCurveFitFeature :
                 print(f'\t\t slope : {slope}')
                 lineLen = g.length()
                 print(f'\t\t Length : {lineLen}')
+                lineBuff.checkCont(sp)
+
                 if lineLen < shortLine:
                     #lineBuff.flushLine()
                     lineBuff.addShortLine(sp, ep, slope)
