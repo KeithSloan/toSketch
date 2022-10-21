@@ -209,8 +209,8 @@ class lineBuffer :
             return
         else:
             print(f'Not continous')
-            if self.straightCount > 0:
-                self.flushStraight(self.straight)
+            if self.straightCount > 1:
+                self.flushStraight(self.straightCount)
             if self.lineCount > 0:
                 self.flushLine()
             if self.shortCount > 0:
@@ -274,8 +274,13 @@ class lineBuffer :
                 if self.shortCount - self.straightCount == 1:
                     self.straightCount += 1
                     self.ep = ep
-                else:
-                    self.flushCurve(self.shortCount)    
+                    # Could be same slope in a number of short lines
+                    # making a curve so do not flush
+                    # Test file Throttle-Lock-short-Curve-Test
+                    #    self.flushCurve(self.shortCount)
+            else:        
+                if self.straightCount > 1:
+                    self.flushStraight(self.straightCount)
         self.shortCount += 1
         self.sp = sp
         self.ep = ep
@@ -303,6 +308,7 @@ class lineBuffer :
         self.sp = self.buffer[idx]
         self.shortCount = self.shortCount - cnt - 1
         self.buffer = self.buffer[idx:]
+        self.straightCount = 0
         print(f'shortCount {self.shortCount}')
         return self.shortCount
 
