@@ -335,9 +335,9 @@ class lineBuffer :
             print(self.buffer[1:self.shortCount*2:2])
             pointBuff = [self.buffer[0]]+self.buffer[1:self.shortCount*2:2]
             degree = 3
-            #    #curveI = fitting.interpolate_curve(points, degree)
-            curve = fitting.approximate_curve(pointBuff, degree, \
-                    centripetal=True, ctrlpts_size = 4)
+            curve = fitting.interpolate_curve(pointBuff, degree)
+            #curve = fitting.approximate_curve(pointBuff, degree, \
+            #        centripetal=True, ctrlpts_size = 4)
             # print(dir(curve))
             print(f'Control Points {curve._control_points}')
             fcCp = []
@@ -346,8 +346,9 @@ class lineBuffer :
                 fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
             print(curve.degree)
             print(curve._geometry_type)
-            print('Number of Control points : '+str(len(curve._control_points)))
-            print('Knot Vector : '+str(curve.knotvector))
+            print(f"Number of Control points : {len(curve._control_points)}")
+            print(f"Knot Vector : {curve.knotvector}")
+            print(f"Weights : {curve.weights}")
             self.sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False,\
                     curve.degree,None,False))
 
