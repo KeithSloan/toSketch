@@ -188,6 +188,204 @@ class toSketchFeature:
                          radiusPrecision=-1)
             return sketch
 
+
+class lineBuffer :
+    def __init__(self, sketch):
+        self.sketch = sketch
+        self.shortCount = 0
+        self.straightCount = 0 
+        self.buffer = []
+        self.lineCount = 0
+        self.sp = None
+        self.ep = None
+        self.slope = None
+
+
+    def eqSlope(self, slope):    
+        from math import inf, isclose
+        return isclose(slope, self.slope, abs_tol = 0.01)
+
+
+    def checkCont(self, sp):
+        # Check if still a continous line if not flush
+        print(f'checkCont {self.ep} {sp}')
+        if self.ep == sp:
+            return
+        else:
+            print(f'Not continous')
+            if self.straightCount > 1:
+                self.flushStraight(self.straightCount)
+            if self.lineCount > 0:
+                self.flushLine()
+            if self.shortCount > 0:
+                self.flushCurve(self.shortCount)    
+
+
+    def addLine(self, sp, ep, slope):
+        print(f'add-LINE shortCount {self.shortCount} lineCount {self.lineCount} straightCount {self.straightCount}')
+        if self.shortCount == 1:
+            self.shortCount = 0
+            self.lineCount += 1
+            if self.eqSlope(slope):
+                print(f'Same Slope - Extend short line')
+                self.ep = ep
+            else:
+                print(f'====> Add short line segment')
+                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+                # Start point is now previous short line end point
+                self.sp = self.ep
+            return
+
+        if self.lineCount == 0:
+            self.sp = sp
+            self.ep = ep
+        else:
+            if not self.eqSlope(slope): 
+                print(f'====> Add line segment')
+                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+                self.sp = self.ep
+                self.lineCount = 0
+            self.ep = ep
+        print(f'End Point {self.ep}')    
+        self.slope = slope
+        self.lineCount += 1     
+
+
+    def addShortLine(self, sp, ep, slope):
+        # Do we have a short line following a normal line
+        print(f'   add-SHORT shortCount {self.shortCount} lineCount {self.lineCount} straightCount {self.straightCount}')
+        if self.lineCount != 0:
+            if self.eqSlope(slope):
+                print(f'==> Extend line {ep}')
+                self.ep = ep
+                return
+            else:    
+                print(f'==> Flush Long {self.ep} then add Short Line')
+                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+            self.lineCount = 0
+            self.shortCount = 0
+            self.buffer = []
+            #self.sp = sp
+            #self.ep = ep
+
+        elif self.shortCount != 0:
+        #    self.sp = sp
+        #    self.ep = ep
+        #else:
+            print(f'test slope {self.slope} {slope}')
+            if self.eqSlope(slope):
+                print(f'====> Short Line Same Slope : shortCount {self.shortCount} straightCount {self.straightCount}\n')
+                if self.shortCount - self.straightCount == 1:
+                    self.straightCount += 1
+                    self.ep = ep
+                    # Could be same slope in a number of short lines
+                    # making a curve so do not flush
+                    # Test file Throttle-Lock-short-Curve-Test
+                    #    self.flushCurve(self.shortCount)
+            else:        
+                if self.straightCount > 1:
+                    self.flushStraight(self.straightCount)
+        self.shortCount += 1
+        self.sp = sp
+        self.ep = ep
+        self.slope = slope
+        self.buffer.append(sp)
+        self.buffer.append(ep)
+
+
+    def flushLine(self):
+        if self.lineCount > 0:
+           print(f'==> Flush line segment')
+           self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+           self.lineCount = 0
+           self.sp = self.ep
+
+
+    def flushStraight(self, cnt):
+        print(f'==> Flush Straight {cnt}')
+        idx = 1 + 2 * cnt
+        #print(self.buffer)
+        print(f'{self.buffer[0]} {self.buffer[idx]}')
+        print(f'sp {self.sp}')
+        print(f'ep {self.ep}')
+        self.sketch.addGeometry(Part.LineSegment(self.buffer[0], self.buffer[idx]))
+        self.sp = self.buffer[idx]
+        self.shortCount = self.shortCount - cnt - 1
+        self.buffer = self.buffer[idx:]
+        self.straightCount = 0
+        print(f'shortCount {self.shortCount}')
+        return self.shortCount
+
+
+    def curveFit(self, curveCnt):
+        from geomdl import fitting
+        # fit points for last curveCnt points in buffer
+        print(f'==> Curve Fit buffer len {len(self.buffer)} start {self.straightCount} curveCount {curveCnt}')
+        # Is there enought points to curveFit#
+        if self.shortCount < 3:
+            # No just output short lines
+            print(f'Short Count {self.shortCount}')
+            print(self.buffer)
+            # Buffer is n times sp then ep so increment 2
+            for i in range(0, self.shortCount, 2):
+                print(f'{self.buffer[i]} {self.buffer[i+1]}')
+                self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+                                self.buffer[i+1]))
+        else:
+            print(f'Fit Curve {self.shortCount}') 
+            #    points = tuple(pointBuffer)
+            
+            print(self.buffer[0])
+            print(self.buffer[1:self.shortCount*2:2])
+            pointBuff = [self.buffer[0]]+self.buffer[1:self.shortCount*2:2]
+            degree = 3
+            curve = fitting.interpolate_curve(pointBuff, degree)
+            #curve = fitting.approximate_curve(pointBuff, degree, \
+            #        centripetal=True, ctrlpts_size = 4)
+            # print(dir(curve))
+            print(f'Control Points {curve._control_points}')
+            fcCp = []
+            for cp in curve._control_points :
+                print(f'cp {cp}')
+                fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
+            print(curve.degree)
+            print(curve._geometry_type)
+            print(f"Number of Control points : {len(curve._control_points)}")
+            print(f"Knot Vector : {curve.knotvector}")
+            print(f"Weights : {curve.weights}")
+            self.sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False,\
+                    curve.degree,None,False))
+
+
+
+    def flushCurve(self, slope):
+        if self.shortCount == 1:
+            if self.eqSlope(slope):
+                return
+
+        if self.shortCount > 0:
+            print(f'Flush Curve shortCount {self.shortCount} straightCount {self.straightCount}')
+            if self.straightCount > 1:
+                if self.flushStraight(self.straightCount) > 0:
+                    self.curveFit(self.shortCount)
+                self.straightCount = 0
+
+            elif self.shortCount <= 2:
+                 print(f'Short Count {self.shortCount}')
+                 print(self.buffer)
+                 # Buffer is n times sp then ep so increment 2
+                 for i in range(0, self.shortCount, 2):
+                     print(f'{self.buffer[i]} {self.buffer[i+1]}')
+                     self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+                                self.buffer[i+1]))
+            else:
+                 # straightCount is one or less so ignore
+                 self.straightCount = 0
+                 self.curveFit(self.shortCount)
+
+            self.shortCount = 0
+            self.buffer = []
+
 class toCurveFitFeature :
 
     def Activated(self) :
@@ -202,30 +400,94 @@ class toCurveFitFeature :
                dL = []
                start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
-               for i in range(sel.GeometryCount):
-                   #print('TypeId : '+gL[i].TypeId) 
-                   if gL[i].TypeId == 'Part::GeomLineSegment':
-                      #print(str(i)+' ' +str(gL[i]))
-                      #print(dir(gL[i]))
-                      #print(gL[i].StartPoint)
-                      #print(gL[i].EndPoint)
-                      ab = gL[i].StartPoint.sub(gL[i].EndPoint)
-                      dL.append(ab.Length)
-                   else :
-                      # Add non Line Geometry 
-                      newSketch.addGeometry(gL[i], False)
-                      print('Break - need to process Lines')
-                      if len(dL) > 0 :
-                         self.processLines(newSketch,start,i,gL,dL)
-                         dL = []
-                         start = i
-                      # append to new geometry
-               # Catch tail end
-               if len(dL) > 0 :
-                  self.processLines(newSketch,start,i,gL,dL)
-               #print(dir(sel.Geometry))
-               #print(newSketch.Geometry)
+               self.processGeometry(newSketch, gL, sel.GeometryCount)
                newSketch.recompute()
+
+
+    def processCurveBuffer(self, newSketch, pointBuffer):
+        from geomdl import fitting
+        lenPB = len(pointBuffer)
+        print(f'Process Curve Buffer {lenPB}')
+        # Buffer may not contain enough points for curve
+        if lenPB < 3:
+            self.insertLines(newSketch, lenPB, pointBuffer)
+        else:
+            self.curveFit(newSketch, lenPB, pointBuffer)
+
+
+    def insertLines(self, newSketch, lenPb, pointBuffer):
+        print(pointBuffer)
+        
+        print(f'Insert Lines {lenPb}')
+        for i in pointBuffer:
+             newSketch.addGeometry(Part.LineSegment(i))
+
+    #def curveFit(self, newSketch, lenPb, pointBuffer):
+    #    print(f'Curve Fit {lenPb}') 
+    #    points = tuple(pointBuffer)
+    #    degree = 3
+    #    #curveI = fitting.interpolate_curve(points, degree)
+    #    curve = fitting.approximate_curve(points, degree, \
+    #            centripetal=True, ctrlpts_size = 4)
+    #    #print(dir(curve))
+    #    #print(curve._control_points)
+    #    fcCp = []
+    #    for cp in curve._control_points :
+    #        fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
+    #    print(curve.degree)
+    #    print(curve._geometry_type)
+    #    print('Number of Control points : '+str(len(curve._control_points)))
+    #    #print('Number of Control points : '+str(len(curveI._control_points)))
+    #    print('Knot Vector : '+str(curve.knotvector))
+    #    newSketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
+    #                         curve.degree,None,False))
+
+
+    def processGeometry(self, newSketch, gL, gCount):
+        from math import inf
+        shortLine = 1.5
+        tolerance = 1e-03
+        lineBuff = lineBuffer(newSketch)
+        for g in gL:
+            #print(dir(i))
+            print(f'\t\tTypeId : {g.TypeId}') 
+            if g.TypeId == 'Part::GeomLineSegment':
+            #if g.TypeId == 'Part::GeomLineSegment':
+                #                          Change of Slope
+                #                     Yes                  No
+                #
+                #             Yes   Flush Line          Flush Curve
+                #                   Add Curve Buffer    Add Line Buffer
+                # Short Line  
+                #             No    Flush Curve         Add Line Buffer
+                #                   Add Line Bufer
+                #
+                sp = g.StartPoint
+                print(f'\t\t {sp}')
+                ep = g.EndPoint
+                print(f'\t\t {ep}')
+                del_y = ep.y - sp.y
+                del_x = ep.x - sp.x
+                if del_x == 0:
+                    slope = inf
+                else:
+                    slope = del_y / del_x
+                print(f'\t\t slope : {slope}')
+                lineLen = g.length()
+                print(f'\t\t Length : {lineLen}')
+                lineBuff.checkCont(sp)
+
+                if lineLen < shortLine:
+                    #lineBuff.flushLine()
+                    lineBuff.addShortLine(sp, ep, slope)
+                else:
+                    lineBuff.flushCurve(slope)
+                    lineBuff.addLine(sp, ep, slope)
+        # Flush tails
+        print(f'Flush tails')
+        lineBuff.flushLine()
+        lineBuff.flushCurve(None)
+
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -240,44 +502,44 @@ class toCurveFitFeature :
                 QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
                 'to CurveFit')}
 
-    def curveFit(self, sketch, gL) :
-        #print('Curve Fit : points : '+str(len(gL)))
-        if len(gL) < 2 :
-           for i in gL :
-               sketch.addGeometry(i, False)
-        else :
-           print('Curve Fit : '+str(len(gL)))
-           #print(dir(gL[0]))
-           #print(gL[0].StartPoint)
-           #print(gL[0].EndPoint)
-           #sketch.addGeometry(Part.LineSegment(gL[0].StartPoint,gL[-1].EndPoint))
-           #try :
-           from geomdl import fitting
+    #def curveFit(self, sketch, gL) :
+    #    #print('Curve Fit : points : '+str(len(gL)))
+    #    if len(gL) < 2 :
+    #       for i in gL :
+    #           sketch.addGeometry(i, False)
+    #    else :
+    #       print('Curve Fit : '+str(len(gL)))
+    #       #print(dir(gL[0]))
+    #       #print(gL[0].StartPoint)
+    #       #print(gL[0].EndPoint)
+    #       #sketch.addGeometry(Part.LineSegment(gL[0].StartPoint,gL[-1].EndPoint))
+    #       #try :
+    #       from geomdl import fitting
               
-           points = []
-           for i in gL :
-               points.append([i.StartPoint.x, i.StartPoint.y])
-           points.append([i.EndPoint.x, i.EndPoint.y])
-           points = tuple(points)
-           degree = 3
-           #curveI = fitting.interpolate_curve(points, degree)
-           curve = fitting.approximate_curve(points, degree, \
-                   centripetal=True, ctrlpts_size = 4)
-           #print(dir(curve))
-           #print(curve._control_points)
-           fcCp = []
-           for cp in curve._control_points :
-               fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
-           print(curve.degree)
-           print(curve._geometry_type)
-           print('Number of Control points : '+str(len(curve._control_points)))
-           #print('Number of Control points : '+str(len(curveI._control_points)))
-           print('Knot Vector : '+str(curve.knotvector))
-           sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
-                             curve.degree,None,False))
-
-           #except :
-           #   print('You need to install NURBS-Python : geomdl')
+    #       points = []
+    #       for i in gL :
+    #           points.append([i.StartPoint.x, i.StartPoint.y])
+    #       points.append([i.EndPoint.x, i.EndPoint.y])
+    #       points = tuple(points)
+    #       degree = 3
+    #       #curveI = fitting.interpolate_curve(points, degree)
+    #       curve = fitting.approximate_curve(points, degree, \
+    #               centripetal=True, ctrlpts_size = 4)
+    #       #print(dir(curve))
+    #       #print(curve._control_points)
+    #       fcCp = []
+    #       for cp in curve._control_points :
+    #           fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
+    #       print(curve.degree)
+    #       print(curve._geometry_type)
+    #       print('Number of Control points : '+str(len(curve._control_points)))
+    #       #print('Number of Control points : '+str(len(curveI._control_points)))
+    #       print('Knot Vector : '+str(curve.knotvector))
+    #       sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
+    #                         curve.degree,None,False))
+    #
+    #       #except :
+    #       #   print('You need to install NURBS-Python : geomdl')
 
     def processLines(self, sketch, start, end, gL, dL) :
         import numpy
