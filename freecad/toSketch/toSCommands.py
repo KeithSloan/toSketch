@@ -316,9 +316,22 @@ class lineBuffer :
         print(f'shortCount {self.shortCount}')
         return self.shortCount
 
+    def calcHausdorff(self, npPointBuffer, curve):
+        print(f"Calc Hausdorff")
+        return 9
+
+    def fitCurve(self, npPointBuff, numControlPoints):
+        from geomdl import fitting
+        print(f"evaluate Curve number of control points {numControlPoints}")
+        degree = 3
+        #curve = fitting.approximate_curve(pointBuff, degree, \
+        curve = fitting.approximate_curve(npPointBuff, degree, \
+                centripetal=True, ctrlpts_size = numControlPoints)
+        return curve
+
+
 
     def curveFit(self, curveCnt):
-        from geomdl import fitting
         # fit points for last curveCnt points in buffer
         print(f'==> Curve Fit buffer len {len(self.buffer)} start {self.straightCount} curveCount {curveCnt}')
         # Is there enought points to curveFit#
@@ -338,12 +351,16 @@ class lineBuffer :
             print(self.buffer[0])
             print(self.buffer[1:self.shortCount*2:2])
             pointBuff = [self.buffer[0]]+self.buffer[1:self.shortCount*2:2]
-            degree = 3
-            curve = fitting.interpolate_curve(pointBuff, degree)
-            #curve = fitting.approximate_curve(pointBuff, degree, \
-            #        centripetal=True, ctrlpts_size = 4)
-            # print(dir(curve))
-            print(f'Control Points {curve._control_points}')
+            hausValue = 10
+            numControlPoints = 4
+            npPointBuff = pointBuff
+            # get acceptabale fit#
+            curve = self.fitCurve(npPointBuff, numControlPoints)
+            while self.calcHausdorff(npPointBuff, curve) > hausValue:
+                numControlPoints += 1
+                curve = self.fitCurve(npPointBuff, numControlPoints)
+
+            print(f'Control Points {numControlPoints}')
             fcCp = []
             for cp in curve._control_points :
                 print(f'cp {cp}')
@@ -355,7 +372,6 @@ class lineBuffer :
             print(f"Weights : {curve.weights}")
             self.sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False,\
                     curve.degree,None,False))
-
 
 
     def flushCurve(self, slope):
