@@ -1,2 +1,2 @@
 workbenches=Sketcher
-pylibs=geomdl, hausdorff
+pylibs=geomdl, hausdorff, numba
