@@ -316,9 +316,18 @@ class lineBuffer :
         print(f'shortCount {self.shortCount}')
         return self.shortCount
 
-    def calcHausdorff(self, npPointBuffer, curve):
+    def calcHausdorff(self, npPointBuff, curve):
         print(f"Calc Hausdorff")
-        return 9
+        import numpy as np
+        import hausdorff
+
+        #print(dir(hausdorff))
+        # Create evaluated points
+        curve.evaluate()
+        curvePoints = curve.evalpts
+        dist = hausdorff.hausdorff_distance(npPointBuff,np.asarray(curvePoints))
+        print(f"Hausdorf dist {dist}")
+        return dist
 
     def fitCurve(self, npPointBuff, numControlPoints):
         from geomdl import fitting
@@ -330,8 +339,9 @@ class lineBuffer :
         return curve
 
 
-
     def curveFit(self, curveCnt):
+
+        import numpy as np
         # fit points for last curveCnt points in buffer
         print(f'==> Curve Fit buffer len {len(self.buffer)} start {self.straightCount} curveCount {curveCnt}')
         # Is there enought points to curveFit#
@@ -351,14 +361,20 @@ class lineBuffer :
             print(self.buffer[0])
             print(self.buffer[1:self.shortCount*2:2])
             pointBuff = [self.buffer[0]]+self.buffer[1:self.shortCount*2:2]
-            hausValue = 10
+            #hausValue = 0.1
             numControlPoints = 4
-            npPointBuff = pointBuff
+            npPointBuff =np.asarray(pointBuff)
             # get acceptabale fit#
-            curve = self.fitCurve(npPointBuff, numControlPoints)
-            while self.calcHausdorff(npPointBuff, curve) > hausValue:
+            curve = self.fitCurve(pointBuff, numControlPoints)
+            hausValue = self.calcHausdorff(npPointBuff, curve)
+            tstCurve = self.fitCurve(pointBuff, numControlPoints+1)
+            tstHause = self.calcHausdorff(npPointBuff, tstCurve)
+            while (tstHause < hausValue):
+                curve = tstCurve
+                hausValue = tstHause
                 numControlPoints += 1
-                curve = self.fitCurve(npPointBuff, numControlPoints)
+                tstCurve = self.fitCurve(pointBuff, numControlPoints+1)
+                tstHause = self.calcHausdorff(npPointBuff, tstCurve)
 
             print(f'Control Points {numControlPoints}')
             fcCp = []
