@@ -40,8 +40,7 @@ class toSketchFeature:
     def Activated(self):
         #   for obj in FreeCADGui.Selection.getSelection():
         for sel in FreeCADGui.Selection.getSelectionEx() :
-            print("Selected-Ex")
-            print(sel.TypeId)
+            print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
             #print(dir(sel))
             #print(sel.ObjectName)
             #print(sel.FullName)
@@ -54,6 +53,7 @@ class toSketchFeature:
                      # move face to origin
                      face.translate(face.Placement.Base.negative())
                      sketch = self.shapes2Sketch(face,'Sketch')
+                     # Pop the Plane parts of sketch
                      self.addConstraints(sketch)
                      #print(dir(sketch))
                      sketch.MapMode ='FlatFace'
@@ -75,8 +75,7 @@ class toSketchFeature:
                      #sketch.AttachmentOffset.Rotation = pl.Rotation
   
         for sel in FreeCADGui.Selection.getSelection() :
-            print("Selected")
-            print(sel.TypeId)
+            print(f"Selected {sel.Name} {sel.TypeId}")
             #print(dir(sel))
             if sel.TypeId == 'PartDesign::Plane' :
                #print(dir(sel))
@@ -88,11 +87,14 @@ class toSketchFeature:
                sketch.Placement.move(dVector)
             elif sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' :
+               print(f"Part FeaturePython Plane")
                sketch = self.actionSection(sel.Shape)
             elif sel.TypeId == 'Part::Plane' :
-               self.actionSection(sel)
-            elif sel.TypeId == 'Part::Feature' :
-               sketch = self.shapes2Sketch(sel.Shape,'Sketch')
+                printf("Part Plane")
+                self.actionSection(sel)
+            #elif sel.TypeId == 'Part::Feature' :
+            #   sketch = self.shapes2Sketch(sel.Shape,'Sketch')
+
             elif sel.TypeId == 'Part::Offset2D':
                 print(f'Part::Offset2D')
                 sketch = self.shapes2Sketch(sel.Shape,'Sketch')
@@ -104,6 +106,7 @@ class toSketchFeature:
             FreeCADGui.ActiveDocument.setEdit(sketch,0)
         except :
             pass
+
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -123,7 +126,7 @@ class toSketchFeature:
         edges = []
         for obj in FreeCAD.ActiveDocument.Objects :
             #print(obj.Label)
-            print(obj.TypeId)
+            #print(obj.TypeId)
             if hasattr(obj,'Mesh') :
                print(dir(obj))
                print(dir(obj.Mesh))
@@ -173,7 +176,7 @@ class toSketchFeature:
         #sketch.addConstraint(Sketcher.Constraint('Point',10,10,10))
 
     def shapes2Sketch(self, shapes, name) :
-        print('shapes2sketch')
+        print(f'shapes2sketch {name}')
         Draft.draftify(shapes, makeblock=False, delete=True)
         try :
             print('Auto Constraint')
@@ -187,6 +190,70 @@ class toSketchFeature:
                  addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1)
             return sketch
+
+class removeOuterBoxFeature:
+    #    def IsActive(self):
+    #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
+
+    def Activated(self):
+        for sel in FreeCADGui.Selection.getSelection():
+            print(f"Selected {sel.Name} {sel.TypeId}")
+            #print(dir(sel))
+            print(sel.TypeId)
+            if sel.TypeId == "Sketcher::SketchObject":
+                self.removeOuterBox(sel)
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+          
+    def removeOuterBox(self, sketch):      
+        sketch.recompute()
+        print(sketch.GeometryCount)
+        print(f"Remove Outer {sketch.GeometryCount}")
+        print(f"BoundingBox {sketch.Shape.BoundBox}")
+        print(dir(sketch.Shape.BoundBox))
+        xMin = sketch.Shape.BoundBox.XMin
+        xMax = sketch.Shape.BoundBox.XMax
+        yMin = sketch.Shape.BoundBox.YMin
+        yMax = sketch.Shape.BoundBox.YMax
+        boundBox = [(xMin, yMin), (xMin, yMax), (xMax, yMin), (xMax, yMax)]
+        print(f"Boundbox {boundBox}")
+        delList = []
+        for i, g in enumerate(sketch.Geometry):
+            if g.TypeId == "Part::GeomLineSegment":
+                 print(g.StartPoint)
+                 print(g.EndPoint)
+                 start = (g.StartPoint.x, g.StartPoint.y)
+                 end = (g.EndPoint.x, g.EndPoint.y)
+                 print(f"line {start} {end}")
+                 if start in boundBox and end in boundBox :
+                    print(f"Found {i} {g}")
+                    #sketch.delGeometry(i)
+                    delList.append(i)
+        print(delList)
+        if len(delList) > 0:
+            for i in reversed(delList):
+                sketch.delGeometry(i)
+        sketch.recompute()        
+        print(f"After Remove {sketch.GeometryCount}")
+        print(sketch.GeometryCount)
+        FreeCADGui.ActiveDocument.setEdit(sketch,0)
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+            return False
+        else:
+            return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'removeOuterBox', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('removeOuterBoxFeature',\
+                'Remove outer Box of Sketch'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('removeOuterBoxFeature',\
+                'Remove outer Box of Sketch')}
 
 
 class lineBuffer :
@@ -940,6 +1007,7 @@ class toShapeInfoFeature :
                 'Shape Info')}
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
+FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
 FreeCADGui.addCommand('toMacroCommand',toMacroFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
