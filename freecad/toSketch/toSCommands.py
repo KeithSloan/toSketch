@@ -191,6 +191,38 @@ class toSketchFeature:
                          radiusPrecision=-1)
             return sketch
 
+class addConstraintsFeature:
+    #    def IsActive(self):
+    #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
+
+    #from freecad.toSketch import constraints
+    #from .constraints import add
+
+    def Activated(self):
+        from .constraints import add
+        for sel in FreeCADGui.Selection.getSelection():
+            print(f"Selected {sel.Name} {sel.TypeId}")
+            #print(dir(sel))
+            print(sel.TypeId)
+            if sel.TypeId == "Sketcher::SketchObject":
+                add(sel)
+                sel.recompute()
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+          
+
+    def GetResources(self):
+        return {'Pixmap'  : 'addConstraints', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('addConstraints',\
+                'add constraints To Sketch'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('addConstraints',\
+                'add contstraints To Sketch')}
+
+
 class removeOuterBoxFeature:
     #    def IsActive(self):
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
@@ -245,11 +277,6 @@ class removeOuterBoxFeature:
         print(sketch.GeometryCount)
         FreeCADGui.ActiveDocument.setEdit(sketch,0)
 
-    def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
-            return False
-        else:
-            return True
 
     def GetResources(self):
         return {'Pixmap'  : 'removeOuterBox', 'MenuText': \
@@ -1010,6 +1037,7 @@ class toShapeInfoFeature :
                 'Shape Info')}
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
+FreeCADGui.addCommand('addConstraintsCommand',addConstraintsFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
 FreeCADGui.addCommand('toMacroCommand',toMacroFeature())
