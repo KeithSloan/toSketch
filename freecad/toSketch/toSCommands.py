@@ -177,7 +177,7 @@ class toSketchFeature:
 
     def shapes2Sketch(self, shapes, name) :
         print(f'shapes2sketch {name}')
-        Draft.draftify(shapes, makeblock=False, delete=True)
+        #Draft.draftify(shapes, makeblock=False, delete=True)
         try :
             print('Auto Constraint')
             sketch = Draft.makeSketch(shapes, autoconstraints=True, \
