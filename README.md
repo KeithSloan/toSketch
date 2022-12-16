@@ -39,6 +39,10 @@ Clone into FreeCAD's Mod directory see https://wiki.freecadweb.org/Installing_mo
 * Click on toSketch Icon - Should create a section of the Plane and other objects
                            that is then opened as a new sketch
 
+### Remove Outer Box
+
+* Where the resulting sketch has an **Outer Box** this allows it to be removed.
+
 ### Sketch to Macro ( Alpha - Under Development )
 
 * Select a sketch
@@ -152,5 +156,7 @@ Selecting an Object and clicking on the Reset Origin icon results in the followi
      * Ed Williams edwilliams16
 
  Icons thanks to jmaustpc
+ 
+ Remove Outer Box - icon is a modified version of href="https://icons8.com/icon/nerFBdXcYDve/trash">Trash</a> icon by <a target="_blank" href="https://icons8.com">Icons8
  
  
