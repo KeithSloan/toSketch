@@ -209,16 +209,17 @@ class removeOuterBoxFeature:
         else:
            return True
           
-    def removeOuterBox(self, sketch):      
+    def removeOuterBox(self, sketch):
+        decPlace = 4
         sketch.recompute()
         print(sketch.GeometryCount)
         print(f"Remove Outer {sketch.GeometryCount}")
         print(f"BoundingBox {sketch.Shape.BoundBox}")
         print(dir(sketch.Shape.BoundBox))
-        xMin = sketch.Shape.BoundBox.XMin
-        xMax = sketch.Shape.BoundBox.XMax
-        yMin = sketch.Shape.BoundBox.YMin
-        yMax = sketch.Shape.BoundBox.YMax
+        xMin = round(sketch.Shape.BoundBox.XMin, decPlace)
+        xMax = round(sketch.Shape.BoundBox.XMax, decPlace)
+        yMin = round(sketch.Shape.BoundBox.YMin, decPlace)
+        yMax = round(sketch.Shape.BoundBox.YMax, decPlace)
         boundBox = [(xMin, yMin), (xMin, yMax), (xMax, yMin), (xMax, yMax)]
         print(f"Boundbox {boundBox}")
         delList = []
@@ -226,8 +227,10 @@ class removeOuterBoxFeature:
             if g.TypeId == "Part::GeomLineSegment":
                  print(g.StartPoint)
                  print(g.EndPoint)
-                 start = (g.StartPoint.x, g.StartPoint.y)
-                 end = (g.EndPoint.x, g.EndPoint.y)
+                 start = (round(g.StartPoint.x, decPlace), \
+                        round(g.StartPoint.y, decPlace))
+                 end = (round(g.EndPoint.x, decPlace), \
+                        round(g.EndPoint.y, decPlace))
                  print(f"line {start} {end}")
                  if start in boundBox and end in boundBox :
                     print(f"Found {i} {g}")
