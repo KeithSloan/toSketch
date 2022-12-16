@@ -245,11 +245,6 @@ class removeOuterBoxFeature:
         print(sketch.GeometryCount)
         FreeCADGui.ActiveDocument.setEdit(sketch,0)
 
-    def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
-            return False
-        else:
-            return True
 
     def GetResources(self):
         return {'Pixmap'  : 'removeOuterBox', 'MenuText': \
