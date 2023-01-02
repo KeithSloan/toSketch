@@ -125,27 +125,30 @@ class toSketchFeature:
         print('Action Section')
         edges = []
         for obj in FreeCAD.ActiveDocument.Objects :
+            sect = None
             #print(obj.Label)
             #print(obj.TypeId)
-            if hasattr(obj,'Mesh') :
-               print(dir(obj))
-               print(dir(obj.Mesh))
-               print(dir(obj.Mesh.Content))
+            #if hasattr(obj,'Mesh') :
+            #   #print(dir(obj))
+            #   print(dir(obj.Mesh))
+            #   #print(dir(obj.Mesh.Content))
+            #   sect = obj.Mesh.section(plane)
             if hasattr(obj,'Shape') and \
                   obj.TypeId != 'Sketcher::SketchObject' and \
                   obj.TypeId != 'PartDesign::Body' : # Otherwise Body & Content
                if obj.Shape.Volume > 0 :
                   print(obj.Label+' : Has shape')
                   sect = obj.Shape.section(plane)
-                  #print(sect)
-                  print(sect.ShapeType)
-                  if len(sect.SubShapes) > 0 :
-                     print('Intersect : '+obj.Label)
-                     print(len(sect.SubShapes))
-                     for e in sect.SubShapes :
+            if sect is not None:
+               #print(sect)
+               print(sect.ShapeType)
+               if len(sect.SubShapes) > 0 :
+                  print('Intersect : '+obj.Label)
+                  print(len(sect.SubShapes))
+                  for e in sect.SubShapes :
                          edges.append(e)
-                  obj.ViewObject.Visibility = False
-                  #print(dir(sect))
+               obj.ViewObject.Visibility = False
+               #print(dir(sect))
         sketch = self.shapes2Sketch(edges,'Sketch')
         #self.addConstraints(sketch)
         return sketch
@@ -176,20 +179,24 @@ class toSketchFeature:
         #sketch.addConstraint(Sketcher.Constraint('Point',10,10,10))
 
     def shapes2Sketch(self, shapes, name) :
-        print(f'shapes2sketch {name}')
-        #Draft.draftify(shapes, makeblock=False, delete=True)
-        try :
-            print('Auto Constraint')
-            sketch = Draft.makeSketch(shapes, autoconstraints=True, \
-                 addTo=None, delete=False, name=name,  \
+        print(f'shapes2sketch {name}{len(shapes)}')
+        if len(shapes) > 0:
+            #Draft.draftify(shapes, makeblock=False, delete=True)
+            try :
+                print('Auto Constraint')
+                sketch = Draft.makeSketch(shapes, autoconstraints=True, \
+                    addTo=None, delete=False, name=name,  \
                        radiusPrecision=-1)
-            return sketch
-        except :
-            print('Non Auto Constraint')
-            sketch = Draft.makeSketch(shapes, autoconstraints=False, \
-                 addTo=None, delete=False, name=name,  \
+                return sketch
+            except :
+                print('Non Auto Constraint')
+                sketch = Draft.makeSketch(shapes, autoconstraints=False, \
+                    addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1)
-            return sketch
+                return sketch
+        else:
+            print(f"No shapes for sketch")
+
 
 class removeOuterBoxFeature:
     #    def IsActive(self):
