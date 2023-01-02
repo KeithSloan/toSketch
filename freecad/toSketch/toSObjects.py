@@ -307,7 +307,8 @@ class toResetOrigin() :
 class ViewProvider():
    def __init__(self, obj):
        '''Set this object to the proxy object of the actual view provider'''
-       obj.Proxy = self
+       if hasattr(obj, "Proxy"):
+            obj.Proxy = self
 
    def attach(self,obj):
        return

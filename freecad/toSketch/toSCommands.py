@@ -938,25 +938,42 @@ class toResetOriginFeature :
       from .toSObjects import toResetOrigin, ViewProvider
 
       for sel in FreeCADGui.Selection.getSelection() :
-          print('Selected')
-          print(sel.TypeId)
-          Ignore = ['App::Part']
-          if hasattr(sel,'Shape') and sel.TypeId not in Ignore :
-             if len(sel.InList) > 0 :
-                parent = sel.InList[0]
-                obj = parent.newObject('Part::FeaturePython', \
-                      sel.Label+'_Reset_Origin')
-                toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
-                ViewProvider(obj.ViewObject)
-             else :
-                obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
-                     'Reset_Origin')
-                toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
-                ViewProvider(obj.ViewObject)
-                for i in sel.OutList :
-                   obj.addObject(i) 
-             FreeCAD.ActiveDocument.removeObject(sel.Name)
-             FreeCAD.ActiveDocument.recompute()
+        print(f'to ResetOrigin Feature Selected {sel.TypeId}')
+        Ignore = ['App::Part']
+        if hasattr(sel,'Shape') and sel.TypeId not in Ignore :
+           if len(sel.InList) > 0 :
+              parent = sel.InList[0]
+              obj = parent.newObject('Part::FeaturePython', \
+                    sel.Label+'_Reset_Origin')
+              toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
+              ViewProvider(obj.ViewObject)
+           else :
+              obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
+                   sel.Label+'_Reset_Origin')
+              toResetOrigin(obj, sel.Shape, sel.Shape.BoundBox)
+              ViewProvider(obj.ViewObject)
+              for i in sel.OutList :
+                 obj.addObject(i) 
+           FreeCAD.ActiveDocument.removeObject(sel.Name)
+           FreeCAD.ActiveDocument.recompute()
+
+        elif sel.TypeId == "Mesh::Feature":
+           print(f"COG {sel.Mesh.CenterOfGravity}")
+           placement = FreeCAD.Placement()
+           placement.Base = FreeCAD.Vector( \
+                - sel.Mesh.CenterOfGravity.x, \
+                - sel.Mesh.CenterOfGravity.y, \
+                - sel.Mesh.CenterOfGravity.z)
+           # Adjust for Bounding Box  
+           #placement.Base = FreeCAD.Vector( \
+           #     -sel.Mesh.BoundBox.XMin,
+           #     -sel.Mesh.BoundBox.YMin,
+           #     -sel.Mesh.BoundBox.ZMin)
+
+           mshCpy = sel.Mesh.copy()
+           print(f"placement {placement}")
+           mshCpy.transform(placement.toMatrix())
+           sel.Mesh = mshCpy
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
