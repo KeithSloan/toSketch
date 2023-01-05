@@ -75,6 +75,8 @@ class toSketchFeature:
                      #sketch.AttachmentOffset.Rotation = pl.Rotation
   
         for sel in FreeCADGui.Selection.getSelection() :
+            # Look for Plane to pass to ActionSection
+            # which will loop through all Objects to section
             print(f"Selected {sel.Name} {sel.TypeId}")
             #print(dir(sel))
             if sel.TypeId == 'PartDesign::Plane' :
@@ -121,18 +123,25 @@ class toSketchFeature:
                 QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
                 'To Sketch')}
 
-    def actionSection(self,plane):
+    def actionSection(self, plane):
         print('Action Section')
         edges = []
         for obj in FreeCAD.ActiveDocument.Objects :
             sect = None
             #print(obj.Label)
             #print(obj.TypeId)
-            #if hasattr(obj,'Mesh') :
-            #   #print(dir(obj))
-            #   print(dir(obj.Mesh))
-            #   #print(dir(obj.Mesh.Content))
-            #   sect = obj.Mesh.section(plane)
+            if hasattr(obj,'Mesh') :
+                print(f"Meshed Object {obj.Label}")
+                #   #print(dir(obj))
+                #   print(dir(obj.Mesh))
+                import Draft, MeshPart, Part
+                shpPlane= MeshPart.meshFromShape(Shape=plane, \
+                    LinearDeflection=0.1, AngularDeflection=0.523599, \
+                    Relative=False)
+                for edge in obj.Mesh.section(shpPlane):
+                    wire = Part.makePolygon(edge)
+                    edges.append(Part.Shape(wire))
+
             if hasattr(obj,'Shape') and \
                   obj.TypeId != 'Sketcher::SketchObject' and \
                   obj.TypeId != 'PartDesign::Body' : # Otherwise Body & Content
@@ -186,13 +195,13 @@ class toSketchFeature:
                 print('Auto Constraint')
                 sketch = Draft.makeSketch(shapes, autoconstraints=True, \
                     addTo=None, delete=False, name=name,  \
-                       radiusPrecision=-1)
+                       radiusPrecision=-1, tol=1e-3)
                 return sketch
             except :
                 print('Non Auto Constraint')
                 sketch = Draft.makeSketch(shapes, autoconstraints=False, \
                     addTo=None, delete=False, name=name,  \
-                         radiusPrecision=-1)
+                         radiusPrecision=-1, tol=1e-3)
                 return sketch
         else:
             print(f"No shapes for sketch")
