@@ -473,7 +473,12 @@ class lineBuffer :
 
     def flushCurve(self, slope):
         if self.shortCount == 1:
-            if self.eqSlope(slope):
+            if slope is not None :
+                if self.eqSlope(slope):
+                    return
+            else:        
+                print(f"slop {slope}")
+                print(f"self slope {self.slope}")
                 return
 
         if self.shortCount > 0:
