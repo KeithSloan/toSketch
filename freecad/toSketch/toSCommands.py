@@ -52,7 +52,7 @@ class toSketchFeature:
                      face = sel.SubObjects[0]
                      # move face to origin
                      face.translate(face.Placement.Base.negative())
-                     sketch = self.shapes2Sketch(face,'Sketch')
+                     sketch = self.shapes2Sketch([face],'Sketch')
                      # Pop the Plane parts of sketch
                      self.addConstraints(sketch)
                      #print(dir(sketch))
@@ -373,6 +373,20 @@ class lineBuffer :
         self.buffer.append(sp)
         self.buffer.append(ep)
 
+    def addArcOfCircle(self, g):
+        self.sketch.addGeometry(g)
+        self.lineCount = 0
+        self.sp = g.StartPoint 
+        self.ep = g.EndPoint
+
+    def addSegment(self, g):
+        print(f"Untested {g.TypeId}")
+        self.sketch.addGeometry(g)
+        self.lineCount = 0
+        self.sp = g.StartPoint 
+        self.ep = g.EndPoint
+        print(dir(segment))
+
 
     def flushLine(self):
         if self.lineCount > 0:
@@ -601,6 +615,12 @@ class toCurveFitFeature :
                 else:
                     lineBuff.flushCurve(slope)
                     lineBuff.addLine(sp, ep, slope)
+
+            elif g.TypeId == 'Part::GeomArcOfCircle':
+                lineBuff.addArcOfCircle(g)
+            else:
+                lineBuff.addSegment(g)
+
         # Flush tails
         print(f'Flush tails')
         lineBuff.flushLine()
