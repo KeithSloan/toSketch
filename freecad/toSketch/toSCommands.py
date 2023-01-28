@@ -286,11 +286,19 @@ class lineBuffer :
         self.sp = None
         self.ep = None
         self.slope = None
+        self.slopeTolerance = 5
 
 
     def eqSlope(self, slope):    
         from math import inf, isclose
         return isclose(slope, self.slope, abs_tol = 0.01)
+
+
+    def checkSlope(self, slope):
+        if self.slope is not None:
+            if abs(slope - self.slope) < self.slopeTolerance:
+                return True
+        return False
 
 
     def checkCont(self, sp):
@@ -472,14 +480,21 @@ class lineBuffer :
             # get acceptabale fit#
             curve = self.fitCurve(pointBuff, numControlPoints)
             hausValue = self.calcHausdorff(npPointBuff, curve)
-            tstCurve = self.fitCurve(pointBuff, numControlPoints+1)
-            tstHause = self.calcHausdorff(npPointBuff, tstCurve)
-            while (tstHause < hausValue):
-                curve = tstCurve
-                hausValue = tstHause
-                numControlPoints += 1
-                tstCurve = self.fitCurve(pointBuff, numControlPoints+1)
-                tstHause = self.calcHausdorff(npPointBuff, tstCurve)
+            tst = True
+            while (tst):
+                try:
+                    tstCurve = self.fitCurve(pointBuff, numControlPoints+1)
+                    tstHause = self.calcHausdorff(npPointBuff, tstCurve)
+                    if tstHause < hausValue:
+                        tst = True
+                        curve = tstCurve
+                        hausValue = tstHause
+                        numControlPoints += 1
+                    else:
+                        tst = False   
+                except:
+                    tst = False
+                    #pass    
 
             print(f'Control Points {numControlPoints}')
             fcCp = []
@@ -518,7 +533,8 @@ class lineBuffer :
                  # Buffer is n times sp then ep so increment 2
                  for i in range(0, self.shortCount, 2):
                      print(f'{self.buffer[i]} {self.buffer[i+1]}')
-                     self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
+                     if self.buffer[i] != self.buffer[i+1]:
+                        self.sketch.addGeometry(Part.LineSegment(self.buffer[i],
                                 self.buffer[i+1]))
             else:
                  # straightCount is one or less so ignore
@@ -621,7 +637,11 @@ class toCurveFitFeature :
 
                 if lineLen < shortLine:
                     #lineBuff.flushLine()
-                    lineBuff.addShortLine(sp, ep, slope)
+                    if lineBuff.checkSlope(slope):
+                        lineBuff.addShortLine(sp, ep, slope)
+                    else:
+                        lineBuff.flushCurve(slope)
+                        lineBuff.addShortLine(sp, ep, slope)
                 else:
                     lineBuff.flushCurve(slope)
                     lineBuff.addLine(sp, ep, slope)
