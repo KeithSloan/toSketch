@@ -92,7 +92,7 @@ class toSketchFeature:
                print(f"Part FeaturePython Plane")
                sketch = self.actionSection(sel.Shape)
             elif sel.TypeId == 'Part::Plane' :
-                printf("Part Plane")
+                print(f"Part Plane")
                 self.actionSection(sel)
             #elif sel.TypeId == 'Part::Feature' :
             #   sketch = self.shapes2Sketch(sel.Shape,'Sketch')
