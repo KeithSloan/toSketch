@@ -98,8 +98,14 @@ class toSketchFeature:
             #   sketch = self.shapes2Sketch(sel.Shape,'Sketch')
 
             elif sel.TypeId == 'Part::Offset2D':
-                print(f'Part::Offset2D')
+                print(f"Part::Offset2D")
                 sketch = self.shapes2Sketch(sel.Shape,'Sketch')
+
+            #elif sel.TypeId == 'Mesh::Feature':
+            #    print(f"Mesh Feature")
+            #    print(dir(sel.Mesh))
+            #    sketch = self.shapes2Sketch(sel.Mesh.Shape,'Sketch')
+
 
             #print(sel.ViewObject.Visibility)
             #sel.ViewObject.Visibility = False
@@ -342,7 +348,10 @@ class lineBuffer :
                 return
             else:    
                 print(f'==> Flush Long {self.ep} then add Short Line')
-                self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+                if self.sp != self.ep:
+                    self.sketch.addGeometry(Part.LineSegment(self.sp, self.ep))
+                else:
+                    print(f"Both points are equal - ignore")
             self.lineCount = 0
             self.shortCount = 0
             self.buffer = []
@@ -374,6 +383,7 @@ class lineBuffer :
         self.buffer.append(ep)
 
     def addArcOfCircle(self, g):
+        print(f"Add Arc Of Circle")
         self.sketch.addGeometry(g)
         self.lineCount = 0
         self.sp = g.StartPoint 
