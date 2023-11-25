@@ -301,8 +301,11 @@ class addBboxFeature:
         #print(dir(sketch.Shape.BoundBox))
         xMin = round(obj.Shape.BoundBox.XMin, decPlace)
         xMax = round(obj.Shape.BoundBox.XMax, decPlace)
+        xLength = round(obj.Shape.BoundBox.XLength, decPlace)
+        xMax = round(obj.Shape.BoundBox.XMax, decPlace)
         yMin = round(obj.Shape.BoundBox.YMin, decPlace)
         yMax = round(obj.Shape.BoundBox.YMax, decPlace)
+        yLength = round(obj.Shape.BoundBox.YLength, decPlace)
         boundBox = [(xMin, yMin), (xMin, yMax), (xMax, yMin), (xMax, yMax)]
         print(f"Boundbox {boundBox}")
         line = Part.LineSegment()
@@ -325,6 +328,10 @@ class addBboxFeature:
         line.StartPoint = (xMin, yMax, 0)
         line.EndPoint = (xMin, yMin, 0)
         sketch.addGeometry(line)
+        sketch.addConstraint(
+            Sketcher.Constraint("DistanceX", 2,2,1,2, xLength))
+        sketch.addConstraint(
+            Sketcher.Constraint("DistanceY", 0,1,2,2,yLength))
         if hasattr(obj, "ViewObject"):
             obj.ViewObject.hide()
         sketch.recompute()
