@@ -276,6 +276,69 @@ class removeOuterBoxFeature:
                 'Remove outer Box of Sketch')}
 
 
+class addBboxFeature:
+    #    def IsActive(self):
+    #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
+
+    def Activated(self):
+        for sel in FreeCADGui.Selection.getSelection():
+            print(f"Selected {sel.Name} {sel.TypeId}")
+            print(dir(sel))
+            print(sel.TypeId)
+            sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", "BboxSketch")
+            self.createBboxSketch(sketch, sel)
+
+
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def createBboxSketch(self, sketch, obj):
+        decPlace = 4
+        #print(dir(sketch.Shape.BoundBox))
+        xMin = round(obj.Shape.BoundBox.XMin, decPlace)
+        xMax = round(obj.Shape.BoundBox.XMax, decPlace)
+        yMin = round(obj.Shape.BoundBox.YMin, decPlace)
+        yMax = round(obj.Shape.BoundBox.YMax, decPlace)
+        boundBox = [(xMin, yMin), (xMin, yMax), (xMax, yMin), (xMax, yMax)]
+        print(f"Boundbox {boundBox}")
+        line = Part.LineSegment()
+        line.StartPoint = (xMin, yMin, 0)
+        line.EndPoint = (xMax, yMin, 0)
+        sketch.addGeometry(line)
+        line = Part.LineSegment()
+        line.StartPoint = (xMax, yMin, 0)
+        line.EndPoint = (xMax, yMax, 0)
+        sketch.addGeometry(line)
+        #line = Part.LineSegment()
+        #line.StartPoint = (xMax, yMax, 0)
+        #line.EndPoint = (xMax, yMin, 0)
+        #sketch.addGeometry(line)
+        line = Part.LineSegment()
+        line.StartPoint = (xMax, yMax, 0)
+        line.EndPoint = (xMin, yMax, 0)
+        sketch.addGeometry(line)
+        line = Part.LineSegment()
+        line.StartPoint = (xMin, yMax, 0)
+        line.EndPoint = (xMin, yMin, 0)
+        sketch.addGeometry(line)
+        if hasattr(obj, "ViewObject"):
+            obj.ViewObject.hide()
+        sketch.recompute()
+        #FreeCADGui.ActiveDocument.setEdit(sketch,0)
+
+
+    def GetResources(self):
+        return {'Pixmap'  : 'addBboxSketch', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('addBboxSketch',\
+                'Create Sketch from Bbox'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('addBboxSketch',\
+                'Create Sketch from Bbox')}
+
+
 class lineBuffer :
     def __init__(self, sketch):
         self.sketch = sketch
@@ -1094,6 +1157,7 @@ class toShapeInfoFeature :
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
+FreeCADGui.addCommand('addBboxCommand',addBboxFeature())
 FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
 FreeCADGui.addCommand('toMacroCommand',toMacroFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())

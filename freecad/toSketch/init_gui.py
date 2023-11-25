@@ -59,12 +59,14 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
         #import 2SCommands
         commands=['toSPlaneCommand','toSketchCommand', \
                     'removeOuterBoxCommand', \
+                    'addBboxCommand', \
                     'toMacroCommand', \
                     'toCurveFitCommand', \
                     'toScaleCommand','toResetOriginCommand']
 
         toolbarcommands=['toSPlaneCommand','toSketchCommand', \
                     'removeOuterBoxCommand', \
+                    'addBboxCommand', \
                     'toMacroCommand', \
                     'toCurveFitCommand', \
                     'toScaleCommand','toResetOriginCommand']
