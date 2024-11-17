@@ -275,6 +275,29 @@ class removeOuterBoxFeature:
                 QtCore.QT_TRANSLATE_NOOP('removeOuterBoxFeature',\
                 'Remove outer Box of Sketch')}
 
+class offsetValue(QtGui.QLineEdit):
+    def __init__(self, default):
+        super().__init__()
+        self.setText(default)
+
+class offsetPrompt(QtGui.QDialog):
+    def __init__(self, default, *args):
+        super(offsetPrompt, self).__init__()
+        self.default = str(default)
+        self.initUI()
+
+    def initUI(self):
+        #
+        mainLayout = QtGui.QVBoxLayout()
+        mainLayout.addWidget(offsetValue, 0)
+        self.setGeometry(100, 100, 0, 50)
+        self.setWindowTitle("Offset Value")
+        self.offsetValue = QtGui.QLineEdit()
+        self.offsetValue.setText(self.default)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setLayout(mainLayout)
+        self.retStatus = 0
+
 
 class addBboxFeature:
     #    def IsActive(self):
@@ -283,8 +306,8 @@ class addBboxFeature:
     def Activated(self):
         for sel in FreeCADGui.Selection.getSelection():
             print(f"Selected {sel.Name} {sel.TypeId}")
-            print(dir(sel))
-            print(sel.TypeId)
+            #print(dir(sel))
+            dialog = offsetPrompt(0)
             sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", "BboxSketch")
             self.createBboxSketch(sketch, sel)
 
