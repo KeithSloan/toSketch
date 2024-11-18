@@ -37,9 +37,28 @@ class toSketchFeature:
     #    def IsActive(self):
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
 
+    def buildTargetObjects(self, selection):
+        objs = []
+        excludeTypeIds = ['PartDesign::Plane','Part::Offset2D']
+        print(f"buildTargetObjects {selection}")
+        #print(dir(selection))
+        for sel in selection:
+            if hasattr(sel, 'Object'):
+                obj = sel.Object
+                if obj.TypeId not in excludeTypeIds:
+                    if obj.TypeId == 'Part::FeaturePython':
+                        if obj.Label[:5] != 'Plane':
+                            objs.append(obj)
+                    else:
+                       objs.append(obj)
+
+        return objs                        
+
+
     def Activated(self):
         #   for obj in FreeCADGui.Selection.getSelection():
-        for sel in FreeCADGui.Selection.getSelectionEx() :
+        selectEx = FreeCADGui.Selection.getSelectionEx()
+        for sel in selectEx :
             print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
             #print(dir(sel))
             #print(sel.ObjectName)
@@ -73,8 +92,10 @@ class toSketchFeature:
                      #print(dir(sketch.AttachmentOffset))
                      #sketch.AttachmentOffset.Base = pl.Base
                      #sketch.AttachmentOffset.Rotation = pl.Rotation
-  
-        for sel in FreeCADGui.Selection.getSelection() :
+
+        objs = self.buildTargetObjects(selectEx)
+        print(f"Target Objs {objs}")
+        for sel in FreeCADGui.Selection.getSelection():
             # Look for Plane to pass to ActionSection
             # which will loop through all Objects to section
             print(f"Selected {sel.Name} {sel.TypeId}")
@@ -82,7 +103,7 @@ class toSketchFeature:
             if sel.TypeId == 'PartDesign::Plane' :
                #print(dir(sel))
                #print(dir(sel.Shape))
-               sketch = self.actionSection(sel.Shape)
+               sketch = self.actionSection(sel.Shape, objs)
                nVector = sel.Shape.Faces[0].normalAt(1,1)
                pVector = sel.Placement.Base
                dVector = nVector.multiply(nVector.dot(pVector))
@@ -90,10 +111,10 @@ class toSketchFeature:
             elif sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' :
                print(f"Part FeaturePython Plane")
-               sketch = self.actionSection(sel.Shape)
+               sketch = self.actionSection(sel.Shape, objs)
             elif sel.TypeId == 'Part::Plane' :
                 print(f"Part Plane")
-                self.actionSection(sel)
+                self.actionSection(sel, objs)
             #elif sel.TypeId == 'Part::Feature' :
             #   sketch = self.shapes2Sketch(sel.Shape,'Sketch')
 
@@ -105,7 +126,6 @@ class toSketchFeature:
             #    print(f"Mesh Feature")
             #    print(dir(sel.Mesh))
             #    sketch = self.shapes2Sketch(sel.Mesh.Shape,'Sketch')
-
 
             #print(sel.ViewObject.Visibility)
             #sel.ViewObject.Visibility = False
@@ -129,10 +149,14 @@ class toSketchFeature:
                 QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
                 'To Sketch')}
 
-    def actionSection(self, plane):
-        print('Action Section')
+    def actionSection(self, plane, objs):
+        print(f'Action Section {objs}')
         edges = []
-        for obj in FreeCAD.ActiveDocument.Objects :
+        # If no target Objs - Use all Objects
+        if len(objs) == 0:
+            objs = FreeCAD.ActiveDocument.Objects
+
+        for obj in objs :
             sect = None
             #print(obj.Label)
             #print(obj.TypeId)
@@ -145,6 +169,8 @@ class toSketchFeature:
                     LinearDeflection=0.1, AngularDeflection=0.523599, \
                     Relative=False)
                 for edge in obj.Mesh.section(shpPlane):
+                    #print(f"edge {edge}")
+                    #print(dir(edge))
                     wire = Part.makePolygon(edge)
                     edges.append(Part.Shape(wire))
 
@@ -197,13 +223,14 @@ class toSketchFeature:
         print(f'shapes2sketch {name}{len(shapes)}')
         if len(shapes) > 0:
             #Draft.draftify(shapes, makeblock=False, delete=True)
-            try :
-                print('Auto Constraint')
-                sketch = Draft.makeSketch(shapes, autoconstraints=True, \
-                    addTo=None, delete=False, name=name,  \
-                       radiusPrecision=-1, tol=1e-3)
-                return sketch
-            except :
+            # Problems with Auto Constraint code below
+            #try :
+            #    print('Auto Constraint')
+            #    sketch = Draft.makeSketch(shapes, autoconstraints=True, \
+            #        addTo=None, delete=False, name=name,  \
+            #           radiusPrecision=-1, tol=1e-3)
+            #    return sketch
+            #except :
                 print('Non Auto Constraint')
                 sketch = Draft.makeSketch(shapes, autoconstraints=False, \
                     addTo=None, delete=False, name=name,  \
@@ -625,6 +652,7 @@ class toCurveFitFeature :
                gL = sel.Geometry
                newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted Sketch")
+               newSketch.Placement = sel.Placement
                dL = []
                start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
