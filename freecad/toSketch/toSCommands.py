@@ -714,8 +714,8 @@ class toCurveFitFeature :
                 lineBuff.checkCont(sp)
 
                 if lineLen < shortLine:
-                    #lineBuff.flushLine()
-                    if lineBuff.checkSlope(slope):
+                   #lineBuff.flushLine()
+                   if lineBuff.checkSlope(slope):
                         lineBuff.addShortLine(sp, ep, slope)
                    else:
                         lineBuff.flushCurve(slope)
@@ -890,11 +890,11 @@ class toLineCurveFitFeature :
            return True
 
     def GetResources(self):
-        return {'Pixmap'  : 'toCurveFit', 'MenuText': \
+        return {'Pixmap'  : 'toLineCurveFit', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('toLineCurveFitFeature',\
-                'to CurveFit'), 'ToolTip': \
+                'to LineCurveFit'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toLineCurveFitFeature',\
-                'to CurveFit')}
+                'to LineCurveFit')}
 
     #def curveFit(self, sketch, gL) :
     #    #print('Curve Fit : points : '+str(len(gL)))
