@@ -642,10 +642,138 @@ class lineBuffer :
             self.buffer = []
 
 class toCurveFitFeature :
-
     def Activated(self) :
         for sel in FreeCADGui.Selection.getSelection() :
             print('toCurveFit')
+            print(sel.TypeId)
+            if sel.TypeId == 'Sketcher::SketchObject' :
+               #print(dir(sel))
+               gL = sel.Geometry
+               newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
+                           "Fitted Sketch")
+               newSketch.Placement = sel.Placement
+               dL = []
+               start = 0
+               print('Geometry Count : '+str(sel.GeometryCount))
+               self.processGeometry(newSketch, gL, sel.GeometryCount)
+               newSketch.recompute()
+
+
+
+    def processCurveBuffer(self, newSketch, pointBuffer):
+        from geomdl import fitting
+        lenPB = len(pointBuffer)
+        print(f'Process Curve Buffer {lenPB}')
+        # Buffer may not contain enough points for curve
+        if lenPB < 3:
+            self.insertLines(newSketch, lenPB, pointBuffer)
+        else:
+            self.curveFit(newSketch, lenPB, pointBuffer)
+
+
+    def insertLines(self, newSketch, lenPb, pointBuffer):
+        print(pointBuffer)
+
+        print(f'Insert Lines {lenPb}')
+        for i in pointBuffer:
+             newSketch.addGeometry(Part.LineSegment(i))
+
+    def processGeometry(self, newSketch, gL, gCount):
+        # UPDATE FOR CURVE ONLY
+        from math import inf
+        shortLine = 1.5
+        tolerance = 1e-03
+        lineBuff = lineBuffer(newSketch)
+        for g in gL:
+            #print(dir(i))
+            print(f'\t\tTypeId : {g.TypeId}')
+            if g.TypeId == 'Part::GeomLineSegment':
+            #if g.TypeId == 'Part::GeomLineSegment':
+                #                          Change of Slope
+                #                     Yes                  No
+                #
+                #             Yes   Flush Line          Flush Curve
+                #                   Add Curve Buffer    Add Line Buffer
+                # Short Line  
+                #             No    Flush Curve         Add Line Buffer
+                #                   Add Line Bufer
+                #
+                sp = g.StartPoint
+                print(f'\t\t {sp}')
+                ep = g.EndPoint
+                print(f'\t\t {ep}')
+                del_y = ep.y - sp.y
+                del_x = ep.x - sp.x
+                if del_x == 0:
+                    slope = inf
+                else:
+                    slope = del_y / del_x
+                print(f'\t\t slope : {slope}')
+                lineLen = g.length()
+                print(f'\t\t Length : {lineLen}')
+                lineBuff.checkCont(sp)
+
+                if lineLen < shortLine:
+                    #lineBuff.flushLine()
+                    if lineBuff.checkSlope(slope):
+                        lineBuff.addShortLine(sp, ep, slope)
+                   else:
+                        lineBuff.flushCurve(slope)
+                        lineBuff.addShortLine(sp, ep, slope)
+                else:
+                    lineBuff.flushCurve(slope)
+                    lineBuff.addLine(sp, ep, slope)
+
+            elif g.TypeId == 'Part::GeomArcOfCircle':
+                lineBuff.addArcOfCircle(g)
+            else:
+                lineBuff.addSegment(g)
+
+        # Flush tails
+        print(f'Flush tails')
+        lineBuff.flushLine()
+        lineBuff.flushCurve(None)
+
+    def processLines(self, sketch, start, end, gL, dL) :
+        # UPDATE FOR CURVE ONLY
+        import numpy
+
+        threshold = 3 * numpy.median(dL)
+        print('Processing series of Lines : '+str(start)+' : '+str(end))
+        print('Threshold : '+str(threshold))
+        print('Average : '+str(numpy.average(dL)))
+        for i in range(start,end) :
+            if dL[i] > threshold :
+               #print('Adding long line : '+str(i))
+               sketch.addGeometry(gL[i], False)
+               #print('Curve Fit ? : '+str(start)+' upto '+str(i))
+               self.curveFit(sketch, gL[start:i])
+               start = i + 1
+        # Process Tail
+        self.curveFit(sketch, gL[start:i])
+
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'toCurveFit', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
+                'to CurveFit'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
+                'to CurveFit')}
+
+
+
+
+class toLineCurveFitFeature :
+
+    def Activated(self) :
+        for sel in FreeCADGui.Selection.getSelection() :
+            print('toLineCurveFit')
             print(sel.TypeId)
             if sel.TypeId == 'Sketcher::SketchObject' :
                #print(dir(sel))
@@ -763,9 +891,9 @@ class toCurveFitFeature :
 
     def GetResources(self):
         return {'Pixmap'  : 'toCurveFit', 'MenuText': \
-                QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
+                QtCore.QT_TRANSLATE_NOOP('toLineCurveFitFeature',\
                 'to CurveFit'), 'ToolTip': \
-                QtCore.QT_TRANSLATE_NOOP('toCurveFitFeature',\
+                QtCore.QT_TRANSLATE_NOOP('toLineCurveFitFeature',\
                 'to CurveFit')}
 
     #def curveFit(self, sketch, gL) :
@@ -1193,6 +1321,7 @@ class toShapeInfoFeature :
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('addBboxCommand',addBboxFeature())
+FreeCADGui.addCommand('toLineCurveFitCommand',toLineCurveFitFeature())
 FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
 FreeCADGui.addCommand('toMacroCommand',toMacroFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
