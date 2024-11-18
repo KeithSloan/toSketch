@@ -61,6 +61,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
                     'removeOuterBoxCommand', \
                     'addBboxCommand', \
                     'toMacroCommand', \
+                    'toLineCurveFitCommand', \
                     'toCurveFitCommand', \
                     'toScaleCommand','toResetOriginCommand']
 
@@ -68,6 +69,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
                     'removeOuterBoxCommand', \
                     'addBboxCommand', \
                     'toMacroCommand', \
+                    'toLineCurveFitCommand', \
                     'toCurveFitCommand', \
                     'toScaleCommand','toResetOriginCommand']
 
