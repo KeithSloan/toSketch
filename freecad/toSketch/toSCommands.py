@@ -642,6 +642,7 @@ class lineBuffer :
             self.buffer = []
 
 class toCurveFitFeature :
+    
     def Activated(self) :
         for sel in FreeCADGui.Selection.getSelection() :
             print('toCurveFit')
@@ -652,8 +653,6 @@ class toCurveFitFeature :
                newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted Sketch")
                newSketch.Placement = sel.Placement
-               dL = []
-               start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
                self.processGeometry(newSketch, gL, sel.GeometryCount)
                newSketch.recompute()
@@ -680,77 +679,163 @@ class toCurveFitFeature :
 
     def processGeometry(self, newSketch, gL, gCount):
         # UPDATE FOR CURVE ONLY
-        from math import inf
-        shortLine = 1.5
-        tolerance = 1e-03
-        lineBuff = lineBuffer(newSketch)
+        #from math import inf
+        import numpy as np
+        import Draft
+        # Initialize an empty NumPy array
+        self.vectors = []
+        self.lastPoint = None
+        newLine = True
         for g in gL:
-            #print(dir(i))
             print(f'\t\tTypeId : {g.TypeId}')
             if g.TypeId == 'Part::GeomLineSegment':
-            #if g.TypeId == 'Part::GeomLineSegment':
-                #                          Change of Slope
-                #                     Yes                  No
-                #
-                #             Yes   Flush Line          Flush Curve
-                #                   Add Curve Buffer    Add Line Buffer
-                # Short Line  
-                #             No    Flush Curve         Add Line Buffer
-                #                   Add Line Bufer
-                #
-                sp = g.StartPoint
-                print(f'\t\t {sp}')
-                ep = g.EndPoint
-                print(f'\t\t {ep}')
-                del_y = ep.y - sp.y
-                del_x = ep.x - sp.x
-                if del_x == 0:
-                    slope = inf
+                if newLine:
+                    self.vectors.append(g.StartPoint)
+                    newLine = False
                 else:
-                    slope = del_y / del_x
-                print(f'\t\t slope : {slope}')
-                lineLen = g.length()
-                print(f'\t\t Length : {lineLen}')
-                lineBuff.checkCont(sp)
-
-                if lineLen < shortLine:
-                   #lineBuff.flushLine()
-                   if lineBuff.checkSlope(slope):
-                        lineBuff.addShortLine(sp, ep, slope)
-                   else:
-                        lineBuff.flushCurve(slope)
-                        lineBuff.addShortLine(sp, ep, slope)
-                else:
-                    lineBuff.flushCurve(slope)
-                    lineBuff.addLine(sp, ep, slope)
+                    if self.lastPoint != g.StartPoint:
+                        self.processVectorPoints()
+                        self.vectors.append(g.StartPoint)
+                self.lastPoint = g.EndPoint
+                self.vectors.append(g.EndPoint)
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
-                lineBuff.addArcOfCircle(g)
+                self.processVectorPoints()
+                newSketch.addGeometry(g)
+
+    def processVectorPoints(self):
+        points = self.vectors_to_2d_array(self.vectors)
+        bSplines = self.fit_bspline(points)
+
+
+    def vectors_to_2d_array(self, vectors, plane="XY"):
+        """
+        Converts a list of FreeCAD vectors into a NumPy 2D array for a specified plane.
+
+        Parameters:
+            vectors (list of App.Vector): List of FreeCAD vectors.
+            plane (str): The plane of projection ("XY", "XZ", "YZ").
+
+        Returns:
+            np.ndarray: A 2D NumPy array of shape (n, 2), where n is the number of vectors.
+        """
+        import numpy as np
+        # Map plane to corresponding coordinate extraction
+        plane_map = {
+            "XY": lambda v: (v.x, v.y),
+            "XZ": lambda v: (v.x, v.z),
+            "YZ": lambda v: (v.y, v.z)
+        }
+
+        # Ensure the specified plane is valid
+        if plane not in plane_map:
+            raise ValueError(f"Invalid plane '{plane}'. Valid options are 'XY', 'XZ', 'YZ'.")
+
+        # Extract the 2D coordinates based on the plane
+        array = np.array([plane_map[plane](v) for v in vectors])
+
+        return array
+
+
+    def fit_bspline_to_geom(self, points, num_points_per_curve=100, max_error=1e-3):
+        """
+        Fit a set of points to one or more FreeCAD Part::GeomBSplineCurve dynamically.
+
+        Parameters:
+            points (np.ndarray): Array of shape (n, 3) with points to fit.
+            num_points_per_curve (int): Number of points to sample on each B-spline.
+            max_error (float): Maximum allowed error for curve fitting.
+
+        Returns:
+            curves (list): A list of Part::GeomBSplineCurve objects.
+        """
+
+        from scipy.interpolate import splprep, splev
+        curves = []
+        n_points = len(points)
+        current_start = 0
+
+        while current_start < n_points:
+            # Try fitting a curve to all remaining points
+            remaining_points = points[current_start:]
+
+            # Fit a B-spline using FreeCAD's Part.BSplineCurve
+            spline = Part.BSplineCurve()
+            # Could use approximate - pass close to points
+            # interpolate pass through all points
+            spline.interpolate(remaining_points)
+
+            # Evaluate the error
+            errors = []
+            for pt in remaining_points:
+                projected = spline.projectPointOnCurve(pt)[0]  # Project point onto spline
+                errors.append(np.linalg.norm(pt - projected))
+            mean_error = np.mean(errors)
+
+            if mean_error > max_error:
+                # Split and retry if error exceeds max_error
+                split_index = len(remaining_points) // 2
+                segment = remaining_points[:split_index]
+                spline_segment = Part.BSplineCurve()
+                spline_segment.interpolate(segment)
+                curves.append(spline_segment)
+
+                current_start += split_index
             else:
-                lineBuff.addSegment(g)
+                # Acceptable fit, finalize this curve
+                curves.append(spline)
+                break
 
-        # Flush tails
-        print(f'Flush tails')
-        lineBuff.flushLine()
-        lineBuff.flushCurve(None)
+        return curves
 
-    def processLines(self, sketch, start, end, gL, dL) :
-        # UPDATE FOR CURVE ONLY
-        import numpy
 
-        threshold = 3 * numpy.median(dL)
-        print('Processing series of Lines : '+str(start)+' : '+str(end))
-        print('Threshold : '+str(threshold))
-        print('Average : '+str(numpy.average(dL)))
-        for i in range(start,end) :
-            if dL[i] > threshold :
-               #print('Adding long line : '+str(i))
-               sketch.addGeometry(gL[i], False)
-               #print('Curve Fit ? : '+str(start)+' upto '+str(i))
-               self.curveFit(sketch, gL[start:i])
-               start = i + 1
-        # Process Tail
-        self.curveFit(sketch, gL[start:i])
+    def fit_bspline(self, points, num_points_per_curve=100, max_error=1e-3):
+        """
+        Fit a set of points to one or more B-spline curves dynamically.
+    
+        Parameters:
+            points (np.ndarray): Array of shape (n, 2) with points to fit.
+            num_points_per_curve (int): Number of points to sample on each B-spline.
+            max_error (float): Maximum allowed error for curve fitting.
+    
+        Returns:
+            curves (list): A list of fitted curves, each containing sampled points.
+        """
+        from scipy.interpolate import splprep, splev
+        import numpy as np
+        curves = []
+        n_points = len(points)
+        current_start = 0    
+
+        while current_start < n_points:
+            # Try fitting a curve to all remaining points
+            remaining_points = points[current_start:]
+
+            # Fit a B-spline to the remaining points
+            tck, u = splprep(remaining_points.T, s=0)  # s=0 for interpolating the points
+            fitted_points = np.array(splev(u, tck)).T
+
+            # Calculate error
+            error = np.linalg.norm(remaining_points - fitted_points, axis=1).mean()
+
+            if error > max_error:
+                # If error exceeds max_error, split the segment and refit
+                split_index = len(remaining_points) // 2
+                segment = remaining_points[:split_index]
+
+                tck_segment, u_segment = splprep(segment.T, s=0)
+                sampled_points = np.array(splev(np.linspace(0, 1, num_points_per_curve), tck_segment)).T
+                curves.append(sampled_points)
+
+                # Move the start point for next curve
+                current_start += split_index
+            else:
+                # If error is acceptable, finalize the current curve
+                sampled_points = np.array(splev(np.linspace(0, 1, num_points_per_curve), tck)).T
+                curves.append(sampled_points)
+                break
+
+        return curves
 
 
     def IsActive(self):
