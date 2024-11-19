@@ -1,0 +1,15 @@
+Explanation
+plane_map:
+This dictionary maps the plane ("XY", "XZ", "YZ") to a lambda function that extracts the appropriate coordinates (x, y, or z) from a FreeCAD.Vector.
+List Comprehension:
+For each vector, the appropriate coordinates are extracted using the selected lambda function.
+NumPy Array:
+The resulting list of tuples is converted into a NumPy 2D array using np.array().
+Validation:
+If an invalid plane is passed, a ValueError is raised with helpful feedback.
+Performance Optimization
+For very large lists of vectors:
+
+The current implementation is efficient as it directly uses list comprehension.
+If memory or speed becomes a bottleneck, consider chunking the data or leveraging parallel processing.
+This approach ensures a clean and flexible way to work with 2D projections of 3D vectors. Let me know if you need further customization!

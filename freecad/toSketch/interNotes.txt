@@ -1,0 +1,18 @@
+How It Works
+Dynamic Segmentation:
+Points are iteratively divided into segments when the fitting error exceeds a threshold (max_error).
+B-Spline Fitting:
+The splprep function creates a parameterized B-spline representation.
+splev evaluates the spline to generate fitted points.
+Residual Error:
+The residual error is calculated as the mean Euclidean distance between the original and fitted points.
+Curve Sampling:
+The num_points_per_curve parameter determines the density of sampled points for each fitted curve.
+Extending the Approach
+Dynamic Thresholds:
+Adjust max_error dynamically based on local curvature or noise.
+Clustering:
+Use clustering (e.g., K-means) to segment points into regions before fitting.
+Parallelization:
+Use multiprocessing or batch processing for very large datasets.
+
