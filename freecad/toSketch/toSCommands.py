@@ -32,6 +32,7 @@ This Script includes the GUI Commands of the 2S module
 
 import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
 from PySide import QtGui, QtCore
+from PySide2 import QtWidgets
 
 class toSketchFeature:
     #    def IsActive(self):
@@ -71,7 +72,7 @@ class toSketchFeature:
                      face = sel.SubObjects[0]
                      # move face to origin
                      face.translate(face.Placement.Base.negative())
-                     sketch = self.shapes2Sketch([face],'Sketch')
+                     sketch = self.shapes2Sketch([face],'Sketch'+sel.ObjectName)
                      # Pop the Plane parts of sketch
                      self.addConstraints(sketch)
                      #print(dir(sketch))
@@ -190,7 +191,11 @@ class toSketchFeature:
                          edges.append(e)
                obj.ViewObject.Visibility = False
                #print(dir(sect))
-        sketch = self.shapes2Sketch(edges,'Sketch')
+        if len(objs) == 1:
+            name = "Sketch_"+objs[0].Label
+        else:
+            name = 'Sketch'
+        sketch = self.shapes2Sketch(edges,name)
         #self.addConstraints(sketch)
         return sketch
 
@@ -641,71 +646,178 @@ class lineBuffer :
             self.shortCount = 0
             self.buffer = []
 
+
+class BreakAngleDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super(BreakAngleDialog, self).__init__(parent)
+
+        # Set dialog title
+        self.setWindowTitle("Parameters")
+
+        # Create layout
+        layout = QtWidgets.QHBoxLayout()
+
+        # Create label
+        self.label = QtWidgets.QLabel("Break Angle in Degrees")
+        layout.addWidget(self.label)
+
+        # Create text input
+        self.text_edit = QtWidgets.QLineEdit()
+        #self.text_edit.setPlaceholderText("Enter Angle")
+        self.text_edit.setText("15")
+        layout.addWidget(self.text_edit)
+
+        # Add buttons (optional)
+        self.button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+        # Combine layouts
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addWidget(self.button_box)
+
+        self.setLayout(main_layout)
+
+    def get_angle(self):
+        """Retrieve the angle entered by the user."""
+        try:
+            return float(self.text_edit.text())
+        except ValueError:
+            return None
+
+
 class toCurveFitFeature :
     
     def Activated(self) :
+        dialog = BreakAngleDialog()
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            angle = dialog.get_angle()
+            if angle is not None:
+                print(f"Break Angle: {angle} degrees")
+            else:
+                print("Invalid input: Angle set to 15")
+                angle = 15
+        else:
+            print("Dialog canceled.")
+            angle = 15
         for sel in FreeCADGui.Selection.getSelection() :
             print('toCurveFit')
             print(sel.TypeId)
             if sel.TypeId == 'Sketcher::SketchObject' :
                #print(dir(sel))
                gL = sel.Geometry
-               newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
-                           "Fitted Sketch")
-               newSketch.Placement = sel.Placement
+               self.newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
+                           "Fitted_"+sel.Name)
+               self.newSketch.Placement = sel.Placement
                print('Geometry Count : '+str(sel.GeometryCount))
-               self.processGeometry(newSketch, gL, sel.GeometryCount)
-               newSketch.recompute()
+               self.processGeometry(gL, sel.GeometryCount, angle)
+               self.newSketch.recompute()
 
 
-
-    def processCurveBuffer(self, newSketch, pointBuffer):
+    def processCurveBuffer(self, pointBuffer):
         from geomdl import fitting
         lenPB = len(pointBuffer)
         print(f'Process Curve Buffer {lenPB}')
         # Buffer may not contain enough points for curve
         if lenPB < 3:
-            self.insertLines(newSketch, lenPB, pointBuffer)
+            self.insertLines(lenPB, pointBuffer)
         else:
-            self.curveFit(newSketch, lenPB, pointBuffer)
+            self.curveFit(lenPB, pointBuffer)
 
 
-    def insertLines(self, newSketch, lenPb, pointBuffer):
+    def insertLines(self, lenPb, pointBuffer):
         print(pointBuffer)
 
         print(f'Insert Lines {lenPb}')
         for i in pointBuffer:
-             newSketch.addGeometry(Part.LineSegment(i))
+             self.newSketch.addGeometry(Part.LineSegment(i))
 
-    def processGeometry(self, newSketch, gL, gCount):
+
+    def angle_between_lines(self, v1, v2, v3):
+        """
+        Calculate the angle between the line from v1 to v2 and the line from v2 to v3.
+
+        Parameters:
+            v1, v2, v3 (App.Vector): The three FreeCAD vectors.
+
+        Returns:
+            float: The angle in degrees between the two lines.
+        """
+        import numpy as np
+        import math
+
+        # Direction vectors for the lines
+        dir1 = v2 - v1
+        dir2 = v3 - v2
+
+        # Normalize the direction vectors
+        dir1_normalized = dir1.normalize()
+        dir2_normalized = dir2.normalize()
+
+        # Dot product to find cosine of the angle
+        cos_theta = dir1_normalized * dir2_normalized  # Dot product
+        cos_theta = max(min(cos_theta, 1.0), -1.0)  # Clamp to avoid numerical errors
+
+        # Angle in radians
+        angle_radians = np.arccos(cos_theta)
+        # Adjust Angle
+        adjusted_angle = angle_radians - (1 * math.pi)
+        print(f"Angle in Radians {angle_radians} {adjusted_angle}")
+
+        angle_degrees = np.degrees(adjusted_angle)
+
+        print(f"Angle Between Lines {v1} {v2} {v3} angle radians {angle_degrees}")
+        return abs(adjusted_angle)
+
+
+    def processGeometry(self, gL, gCounti, angle=15):
         # UPDATE FOR CURVE ONLY
         #from math import inf
         import numpy as np
         import Draft
         # Initialize an empty NumPy array
         self.vectors = []
-        self.lastPoint = None
+        self.LastPoint = None
         newLine = True
+        tolerance=1e-6
+        angleRadians = np.radians(angle)
         for g in gL:
-            print(f'\t\tTypeId : {g.TypeId}')
+            #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
             if g.TypeId == 'Part::GeomLineSegment':
                 if newLine:
                     self.vectors.append(g.StartPoint)
                     newLine = False
                 else:
-                    if self.lastPoint != g.StartPoint:
+                    if (g.StartPoint-self.LastPoint).Length >= tolerance:
+                        print(f"StartPoint != LastPoint {g.StartPoint} {self.LastPoint}")
                         self.processVectorPoints()
                         self.vectors.append(g.StartPoint)
-                self.lastPoint = g.EndPoint
+
+                    if self.angle_between_lines(g.StartPoint, g.EndPoint, self.LastPoint) >= angleRadians:
+                        self.processVectorPoints()
+                        self.vectors.append(g.StartPoint)
+
+                self.LastPoint = g.EndPoint
                 self.vectors.append(g.EndPoint)
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
+                print(f"Part::GeomArcOfCircle")
                 self.processVectorPoints()
-                newSketch.addGeometry(g)
+                self.newSketch.addGeometry(g)
+                newline = True
+
+        self.processVectorPoints()
 
     def processVectorPoints(self):
-        points = self.vectors_to_2d_array(self.vectors)
-        bSplines = self.fit_bspline(points)
+        #points = self.vectors_to_2d_array(self.vectors)
+        points = self.vectors_to_numpy(self.vectors)
+        #bSplines = self.fit_bspline(points)
+        bSplines = self.fit_bspline_to_geom(points, len(points), max_error=0.5)
+        if len(bSplines) > 0:
+            self.newSketch.addGeometry(bSplines)
 
 
     def vectors_to_2d_array(self, vectors, plane="XY"):
@@ -737,6 +849,40 @@ class toCurveFitFeature :
         return array
 
 
+    def vectors_to_numpy(self, vectors):
+        """
+        Convert a list of FreeCAD.Vector objects to a NumPy array of shape (n, 3).
+
+        Parameters:
+            vectors (list of App.Vector): List of FreeCAD.Vector objects.
+
+        Returns:
+            np.ndarray: A 2D NumPy array of shape (n, 3), where n is the number of vectors.
+        """
+        import numpy as np
+        
+        return np.array([[v.x, v.y, v.z] for v in vectors])
+
+
+    def remove_duplicates(self, points, tolerance=1e-6):
+        """
+        Remove duplicate or near-identical points from a numpy array.
+
+        Parameters:
+            points (np.ndarray): Array of shape (n, 3).
+            tolerance (float): Tolerance for considering points as duplicates.
+
+        Returns:
+            np.ndarray: Filtered array of points.
+        """
+        import numpy as np
+        unique_points = [points[0]]
+        for pt in points[1:]:
+            if np.linalg.norm(pt - unique_points[-1]) > tolerance:
+                unique_points.append(pt)
+        return np.array(unique_points)
+
+
     def fit_bspline_to_geom(self, points, num_points_per_curve=100, max_error=1e-3):
         """
         Fit a set of points to one or more FreeCAD Part::GeomBSplineCurve dynamically.
@@ -749,27 +895,35 @@ class toCurveFitFeature :
         Returns:
             curves (list): A list of Part::GeomBSplineCurve objects.
         """
-
-        from scipy.interpolate import splprep, splev
+        import numpy as np
+        import Part
         curves = []
         n_points = len(points)
         current_start = 0
 
+        print(f"fit bspline to geom : points {len(points)}")
         while current_start < n_points:
             # Try fitting a curve to all remaining points
             remaining_points = points[current_start:]
 
+            # Remove duplicates and validate points
+            remaining_points = self.remove_duplicates(remaining_points)
+            if len(remaining_points) < 4:
+                raise ValueError("Not enough points to fit a B-spline.")
+
             # Fit a B-spline using FreeCAD's Part.BSplineCurve
             spline = Part.BSplineCurve()
-            # Could use approximate - pass close to points
-            # interpolate pass through all points
-            spline.interpolate(remaining_points)
+            spline.interpolate(remaining_points.tolist())
+
+            # Convert spline to a shape for distance calculations
+            spline_shape = spline.toShape()
 
             # Evaluate the error
             errors = []
             for pt in remaining_points:
-                projected = spline.projectPointOnCurve(pt)[0]  # Project point onto spline
-                errors.append(np.linalg.norm(pt - projected))
+                vertex = Part.Vertex(FreeCAD.Vector(*pt))  # Create a vertex for the point
+                distance = spline_shape.distToShape(vertex)[0]
+                errors.append(distance)
             mean_error = np.mean(errors)
 
             if mean_error > max_error:
@@ -777,7 +931,7 @@ class toCurveFitFeature :
                 split_index = len(remaining_points) // 2
                 segment = remaining_points[:split_index]
                 spline_segment = Part.BSplineCurve()
-                spline_segment.interpolate(segment)
+                spline_segment.interpolate(segment.tolist())
                 curves.append(spline_segment)
 
                 current_start += split_index
