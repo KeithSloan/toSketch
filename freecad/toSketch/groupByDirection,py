@@ -1,0 +1,102 @@
+import numpy as np
+import FreeCAD as App
+
+import FreeCAD as App
+import numpy as np
+
+def angle_between_lines(v1, v2, v3):
+    """
+    Calculate the angle between the line from v1 to v2 and the line from v2 to v3.
+
+    Parameters:
+        v1, v2, v3 (App.Vector): The three FreeCAD vectors.
+
+    Returns:
+        float: The angle in degrees between the two lines.
+    """
+    # Direction vectors for the lines
+    dir1 = v2 - v1
+    dir2 = v3 - v2
+
+    # Normalize the direction vectors
+    dir1_normalized = dir1.normalize()
+    dir2_normalized = dir2.normalize()
+
+    # Dot product to find cosine of the angle
+    cos_theta = dir1_normalized * dir2_normalized  # Dot product
+    cos_theta = max(min(cos_theta, 1.0), -1.0)  # Clamp to avoid numerical errors
+
+    # Angle in radians
+    angle_radians = np.arccos(cos_theta)
+
+    # Convert to degrees
+    angle_degrees = np.degrees(angle_radians)
+
+    return angle_degrees
+
+
+
+
+
+
+# Compute the vector from v2 to v1
+# difference_vector = v1 - v2
+
+
+def angle_between_vectors(v1, v2):
+    """
+    Calculate the angle between two vectors in degrees.
+    """
+    cos_theta = (v1.normalize() * v2.normalize())  # Dot product of normalized vectors
+    cos_theta = max(min(cos_theta, 1.0), -1.0)  # Clamp to [-1, 1] to avoid numerical errors
+    return np.degrees(np.arccos(cos_theta))
+
+def group_lines_by_direction(lines, angle_threshold=30.0):
+    """
+    Group a large set of short lines into smaller subsets based on direction changes.
+
+    Parameters:
+        lines (list of tuple): A list of tuples [(start1, end1), (start2, end2), ...],
+                               where start and end are FreeCAD.Vector objects.
+        angle_threshold (float): Maximum allowable angle (in degrees) for grouping lines.
+
+    Returns:
+        list of list: A list of subsets, where each subset is a list of lines.
+    """
+    if len(lines) < 2:
+        return [lines]  # No splitting needed for fewer than 2 lines
+
+    subsets = []
+    current_subset = [lines[0]]  # Start with the first line
+
+    for i in range(1, len(lines)):
+        # Get direction vectors of consecutive lines
+        _, end_prev = lines[i - 1]
+        start_next, end_next = lines[i]
+
+        dir_prev = end_prev - start_next
+        dir_next = end_next - start_next
+
+        # Calculate the angle between the two direction vectors
+        angle = angle_between_vectors(dir_prev, dir_next)
+
+        # Split if the angle exceeds the threshold
+        if angle > angle_threshold:
+            subsets.append(current_subset)
+            current_subset = [lines[i]]  # Start a new subset
+        else:
+            current_subset.append(lines[i])
+
+    # Append the last subset
+    if current_subset:
+        subsets.append(current_subset)
+
+    return subsets
+Choosing an Angle Threshold
+Small Threshold (e.g., 15°):
+Results in more subsets, suitable for sharper features or high precision.
+Large Threshold (e.g., 45° or 90°):
+Results in fewer subsets, good for smoother curves.
+You can dynamically adjust the threshold based on the total number of points or the variance in angles.
+
+Let me know if you need further customization!
