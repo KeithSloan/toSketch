@@ -707,14 +707,25 @@ class toCurveFitFeature :
             print('toCurveFit')
             print(sel.TypeId)
             if sel.TypeId == 'Sketcher::SketchObject' :
-               #print(dir(sel))
-               gL = sel.Geometry
-               self.newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
+                geometry = sel.Geometry
+                self.newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted_"+sel.Name)
-               self.newSketch.Placement = sel.Placement
-               print('Geometry Count : '+str(sel.GeometryCount))
-               self.processGeometry(gL, sel.GeometryCount, angle)
-               self.newSketch.recompute()
+                self.newSketch.Placement = sel.Placement
+                if self.findGeomBreakPoints(sel) > 0:
+                    bp = self.breakPoints
+                    # process ranges
+                    #for r in range(0,len(bp)-1):
+                    #    print(f"r {r}")
+                    #    self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
+                    self.processGeometry(geometry[bp[0]:bp[1]], angle)
+
+                # process rest of buffer and start till 1st break
+                    self.processGeometry(geometry[bp[-1]:]+geometry[:bp[0]], angle)
+
+                else:    #process whole geometry
+                    self.processGeometry(geometry, angle)
+
+               #self.newSketch.recompute()
 
 
     def processCurveBuffer(self, pointBuffer):
@@ -749,6 +760,7 @@ class toCurveFitFeature :
         import numpy as np
         import math
 
+        print(f"{v1} {v2} {v3}")
         # Direction vectors for the lines
         dir1 = v2 - v1
         dir2 = v3 - v2
@@ -767,13 +779,46 @@ class toCurveFitFeature :
         adjusted_angle = angle_radians - (1 * math.pi)
         print(f"Angle in Radians {angle_radians} {adjusted_angle}")
 
-        angle_degrees = np.degrees(adjusted_angle)
+        angle_degrees = np.degrees(angle_radians)
 
-        print(f"Angle Between Lines {v1} {v2} {v3} angle radians {angle_degrees}")
+        print(f"Angle Between Lines {v1} {v2} {v3} angle degrees {angle_degrees}")
+        print(f"Abs angle {angle_degrees} {abs(angle_radians)}")
         return abs(adjusted_angle)
 
 
-    def processGeometry(self, gL, gCounti, angle=15):
+    def findGeomBreakPoints(self, sketch):
+
+        self.breakPoints = []
+        for i, constraint in enumerate(sketch.Constraints):
+            if constraint.Type == 'Coincident':
+                print(f"Coincident Constraint {i}:")
+
+            # Indices of the geometry involved
+            geom1_index = constraint.First
+            geom2_index = constraint.Second
+
+            # Points on the respective geometry
+            point1_index = constraint.FirstPos
+            point2_index = constraint.SecondPos
+
+            print(f"  Geometry {geom1_index}, Point {point1_index}")
+            print(f"  Geometry {geom2_index}, Point {point2_index}")
+
+            print(f" Point 1 - Type {sketch.Geometry[geom1_index].TypeId}")
+            print(f" Point 2 - Type {sketch.Geometry[geom2_index].TypeId}")
+
+            if sketch.Geometry[geom1_index].TypeId != 'Part.Point':
+                self.breakPoints.append(geom1_index)
+            elif sketch.Geometry[geom2_index].TypeId != 'Part.Point':
+                self.breakPoints.append(geom2_index)
+
+        print(f" BreakPoints {self.breakPoints}")
+        self.breakPoints.sort()
+        print(f" Sorted BreakPoints {self.breakPoints}")
+        return len(self.breakPoints)
+
+
+    def processGeometry(self, geom, angle=15):
         # UPDATE FOR CURVE ONLY
         #from math import inf
         import numpy as np
@@ -784,30 +829,40 @@ class toCurveFitFeature :
         newLine = True
         tolerance=1e-6
         angleRadians = np.radians(angle)
-        for g in gL:
-            #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
+        for g in geom:
             if g.TypeId == 'Part::GeomLineSegment':
-                if newLine:
+                print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
+                if newLine == True:
                     self.vectors.append(g.StartPoint)
+                    self.LastStart = g.StartPoint
                     newLine = False
                 else:
                     if (g.StartPoint-self.LastPoint).Length >= tolerance:
                         print(f"StartPoint != LastPoint {g.StartPoint} {self.LastPoint}")
                         self.processVectorPoints()
-                        self.vectors.append(g.StartPoint)
+                        #self.vectors.append(g.StartPoint)
+                        newLine = True
 
-                    if self.angle_between_lines(g.StartPoint, g.EndPoint, self.LastPoint) >= angleRadians:
+                    if self.angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint) >= angleRadians:
                         self.processVectorPoints()
-                        self.vectors.append(g.StartPoint)
+                        #self.vectors.append(g.StartPoint)
+                        newLine = True
 
+                # Last Start should be EndPoint of previous Line
+                self.LastStart = g.StartPoint
                 self.LastPoint = g.EndPoint
                 self.vectors.append(g.EndPoint)
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
                 print(f"Part::GeomArcOfCircle")
+                print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
                 self.processVectorPoints()
                 self.newSketch.addGeometry(g)
                 newline = True
+
+            else:
+                print(f"TypeId {g.TypeId}")
+
 
         self.processVectorPoints()
 
@@ -883,6 +938,33 @@ class toCurveFitFeature :
         return np.array(unique_points)
 
 
+    def create_line_segments_from_vectors(self, vector_list):
+        """
+        Create a list of Part::GeomLineSegment objects connecting consecutive vectors.
+
+
+        Parameters:
+            vector_list (list of FreeCAD.Vector): List of n FreeCAD vectors.
+
+        Returns:
+            list of Part.GeomLineSegment: List of n-1 line segments.
+        """
+        if len(vector_list) < 2:
+            raise ValueError("The list must contain at least two vectors to create line segments.")
+
+        line_segments = []
+        print(vector_list)
+        for i in range(len(vector_list) - 1):
+            # Create a GeomLineSegment between vector[i] and vector[i+1]
+            line_segment = Part.LineSegment(
+                FreeCAD.Vector(vector_list[i]),
+                FreeCAD.Vector(vector_list[i + 1])
+                )
+            line_segments.append(line_segment)
+
+        return line_segments
+
+
     def fit_bspline_to_geom(self, points, num_points_per_curve=100, max_error=1e-3):
         """
         Fit a set of points to one or more FreeCAD Part::GeomBSplineCurve dynamically.
@@ -909,7 +991,9 @@ class toCurveFitFeature :
             # Remove duplicates and validate points
             remaining_points = self.remove_duplicates(remaining_points)
             if len(remaining_points) < 4:
-                raise ValueError("Not enough points to fit a B-spline.")
+                #raise ValueError("Not enough points to fit a B-spline.")
+                print(f"Not enough points to fit a B-spline.")
+                return self.create_line_segments_from_vectors(remaining_points)
 
             # Fit a B-spline using FreeCAD's Part.BSplineCurve
             spline = Part.BSplineCurve()
