@@ -717,15 +717,33 @@ class toCurveFitFeature :
                     #for r in range(0,len(bp)-1):
                     #    print(f"r {r}")
                     #    self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
-                    self.processGeometry(geometry[bp[0]:bp[1]], angle)
+                    print(f" process geometry {bp[0]} to {bp[1]}")
+                    print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
+                    #self.processGeometry(geometry[bp[0]:bp[1]], angle)
+                    #self.debugSketch(geometry[bp[0]:bp[1]], "debug_0-1")
+                    #self.debugSketch(geometry[:bp[1]]+geometry[:bp[0]], "debug_r1-0")
+                    self.debugSketch(geometry[:bp[0]], "debug_first")
+                    self.debugSketch(geometry[bp[0]:bp[1]], "debug_second")
+                    self.debugSketch(geometry[bp[1]:], "debug_third")
+                    g = geometry[bp[0]:bp[1]]+geometry[bp[1]:]
+                    self.debugSketch(g, "debug 2 & 3")
+                    g = geometry[:bp[0]]+geometry[bp[-1]:]
+                    #g = geometry[bp[-1]:]+geometry[:bp[0]]
+                    self.debugSketch(g,"debug first+last")
 
                 # process rest of buffer and start till 1st break
-                    self.processGeometry(geometry[bp[-1]:]+geometry[:bp[0]], angle)
+                #    self.processGeometry(geometry[bp[-1]:]+geometry[:bp[0]], angle)
 
                 else:    #process whole geometry
                     self.processGeometry(geometry, angle)
 
                #self.newSketch.recompute()
+
+
+    def debugSketch(self, geometry, name="Debug"):
+        sketchDbg = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", name)
+        sketchDbg.Geometry = geometry
+        print(f" {name} length {len(geometry)}")
 
 
     def processCurveBuffer(self, pointBuffer):
@@ -777,12 +795,12 @@ class toCurveFitFeature :
         angle_radians = np.arccos(cos_theta)
         # Adjust Angle
         adjusted_angle = angle_radians - (1 * math.pi)
-        print(f"Angle in Radians {angle_radians} {adjusted_angle}")
+        #print(f"Angle in Radians {angle_radians} {adjusted_angle}")
 
         angle_degrees = np.degrees(angle_radians)
 
-        print(f"Angle Between Lines {v1} {v2} {v3} angle degrees {angle_degrees}")
-        print(f"Abs angle {angle_degrees} {abs(angle_radians)}")
+        #print(f"Angle Between Lines {v1} {v2} {v3} angle degrees {angle_degrees}")
+        #print(f"Abs angle {angle_degrees} {abs(angle_radians)}")
         return abs(adjusted_angle)
 
 
@@ -807,9 +825,9 @@ class toCurveFitFeature :
             print(f" Point 1 - Type {sketch.Geometry[geom1_index].TypeId}")
             print(f" Point 2 - Type {sketch.Geometry[geom2_index].TypeId}")
 
-            if sketch.Geometry[geom1_index].TypeId != 'Part.Point':
+            if sketch.Geometry[geom1_index].TypeId != 'Part::GeomPoint':
                 self.breakPoints.append(geom1_index)
-            elif sketch.Geometry[geom2_index].TypeId != 'Part.Point':
+            elif sketch.Geometry[geom2_index].TypeId != 'Part::GeomPoint':
                 self.breakPoints.append(geom2_index)
 
         print(f" BreakPoints {self.breakPoints}")
@@ -831,7 +849,7 @@ class toCurveFitFeature :
         angleRadians = np.radians(angle)
         for g in geom:
             if g.TypeId == 'Part::GeomLineSegment':
-                print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
+                #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
                 if newLine == True:
                     self.vectors.append(g.StartPoint)
                     self.LastStart = g.StartPoint
@@ -1012,7 +1030,8 @@ class toCurveFitFeature :
 
             if mean_error > max_error:
                 # Split and retry if error exceeds max_error
-                split_index = len(remaining_points) // 2
+                #split_index = len(remaining_points) // 2
+                split_index = len(remaining_points) / 2
                 segment = remaining_points[:split_index]
                 spline_segment = Part.BSplineCurve()
                 spline_segment.interpolate(segment.tolist())
@@ -1156,8 +1175,7 @@ class toLineCurveFitFeature :
         tolerance = 1e-03
         lineBuff = lineBuffer(newSketch)
         for g in gL:
-            #print(dir(i))
-            print(f'\t\tTypeId : {g.TypeId}') 
+            #print(f'\t\tTypeId : {g.TypeId}') 
             if g.TypeId == 'Part::GeomLineSegment':
             #if g.TypeId == 'Part::GeomLineSegment':
                 #                          Change of Slope
