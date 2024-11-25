@@ -1,4 +1,4 @@
-#**************************************************************************
+#e**************************************************************************
 #*                                                                        *
 #*   Copyright (c) 2021 Keith Sloan <keith@sloan-home.co.uk>              *
 #*                                                                        *
@@ -714,22 +714,25 @@ class toCurveFitFeature :
                 if self.findGeomBreakPoints(sel) > 0:
                     bp = self.breakPoints
                     # process ranges
-                    #for r in range(0,len(bp)-1):
-                    #    print(f"r {r}")
-                    #    self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
+                    for r in range(0,len(bp)-1):
+                        print(f"r {r}")
+                        self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
                     print(f" process geometry {bp[0]} to {bp[1]}")
                     print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
+                    #g = geometry[bp[-1]:]+geometry[:bp[0]]
+                    g = geometry[bp[-1]:]+geometry[:bp[0]]
+                    self.processGeometry(g, angle)
                     #self.processGeometry(geometry[bp[0]:bp[1]], angle)
                     #self.debugSketch(geometry[bp[0]:bp[1]], "debug_0-1")
-                    #self.debugSketch(geometry[:bp[1]]+geometry[:bp[0]], "debug_r1-0")
-                    self.debugSketch(geometry[:bp[0]], "debug_first")
-                    self.debugSketch(geometry[bp[0]:bp[1]], "debug_second")
-                    self.debugSketch(geometry[bp[1]:], "debug_third")
-                    g = geometry[bp[0]:bp[1]]+geometry[bp[1]:]
-                    self.debugSketch(g, "debug 2 & 3")
-                    g = geometry[:bp[0]]+geometry[bp[-1]:]
+                    #self.debugSketch(geometry[:bp[-1]]+geometry[:bp[0]], "debug_r1-0")
+                    #self.debugSketch(geometry[:bp[0]], "debug_first")
+                    #self.debugSketch(geometry[bp[0]:bp[1]], "debug_second")
+                    #self.debugSketch(geometry[bp[1]:], "debug_third")
+                    #g = geometry[bp[0]:bp[1]]+geometry[bp[1]:]
+                    #self.debugSketch(g, "debug 2 & 3")
+                    #g = geometry[:bp[0]]+geometry[bp[-1]:]
                     #g = geometry[bp[-1]:]+geometry[:bp[0]]
-                    self.debugSketch(g,"debug first+last")
+                    #self.debugSketch(g,"debug first+last")
 
                 # process rest of buffer and start till 1st break
                 #    self.processGeometry(geometry[bp[-1]:]+geometry[:bp[0]], angle)
@@ -807,6 +810,9 @@ class toCurveFitFeature :
     def findGeomBreakPoints(self, sketch):
 
         self.breakPoints = []
+        #self.newSketch.Constraints = sketch.Constraints
+        # Does not work as geometry will be different
+        # Just copy any GeomPoints in processGeometry
         for i, constraint in enumerate(sketch.Constraints):
             if constraint.Type == 'Coincident':
                 print(f"Coincident Constraint {i}:")
@@ -827,8 +833,22 @@ class toCurveFitFeature :
 
             if sketch.Geometry[geom1_index].TypeId != 'Part::GeomPoint':
                 self.breakPoints.append(geom1_index)
+                #print(dir(sketch.Geometry[point2_index]))
+                g = sketch.Geometry[geom1_index]
+                print(f" TypeId {g.TypeId} \n Start {g.StartPoint} EndPoint {g.EndPoint}")
+                g = sketch.Geometry[point2_index]
+                print(f" TypeId {g.TypeId} \n Start {g.StartPoint} EndPoint {g.EndPoint}")
+                #print(dir(sketch.Geometry[point2_index]))
+                #print(dir(sketch.Geometry[geom1_index]))
             elif sketch.Geometry[geom2_index].TypeId != 'Part::GeomPoint':
                 self.breakPoints.append(geom2_index)
+                g = sketch.Geometry[geom2_index]
+                print(f" TypeId {g.TypeId} \n Start {g.StartPoint} EndPoint {g.EndPoint}")
+                g = sketch.Geometry[point2_index]
+                print(f" TypeId {g.TypeId} \n Start {g.StartPoint} EndPoint {g.EndPoint}")
+
+                #print(dir(sketch.Geometry[point1_index]))
+                #print(dir(sketch.Geometry[geom2_index]))
 
         print(f" BreakPoints {self.breakPoints}")
         self.breakPoints.sort()
@@ -856,9 +876,11 @@ class toCurveFitFeature :
                     newLine = False
                 else:
                     if (g.StartPoint-self.LastPoint).Length >= tolerance:
-                        print(f"StartPoint != LastPoint {g.StartPoint} {self.LastPoint}")
+                        print(f"StartPoint != LastPoint StartPoint {g.StartPoint} LastPoint {self.LastPoint}")
+                        print(f" Length {(g.StartPoint-self.LastPoint).Length}")
                         self.processVectorPoints()
                         #self.vectors.append(g.StartPoint)
+                        self.vectors = []
                         newLine = True
 
                     #if self.angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint) >= angleRadians:
