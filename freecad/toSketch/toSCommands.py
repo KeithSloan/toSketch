@@ -861,10 +861,11 @@ class toCurveFitFeature :
                         #self.vectors.append(g.StartPoint)
                         newLine = True
 
-                    if self.angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint) >= angleRadians:
-                        self.processVectorPoints()
-                        #self.vectors.append(g.StartPoint)
-                        newLine = True
+                    #if self.angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint) >= angleRadians:
+                    #    print(f" Large change of angle")
+                    #    self.processVectorPoints()
+                    #    #self.vectors.append(g.StartPoint)
+                    #    newLine = True
 
                 # Last Start should be EndPoint of previous Line
                 self.LastStart = g.StartPoint
@@ -881,10 +882,11 @@ class toCurveFitFeature :
             else:
                 print(f"TypeId {g.TypeId}")
 
-
+        print(f" FlushVectorPoints")
         self.processVectorPoints()
 
     def processVectorPoints(self):
+        print(f" processVectorPoints {len(self.vectors)}")
         #points = self.vectors_to_2d_array(self.vectors)
         points = self.vectors_to_numpy(self.vectors)
         #bSplines = self.fit_bspline(points)
@@ -1030,8 +1032,7 @@ class toCurveFitFeature :
 
             if mean_error > max_error:
                 # Split and retry if error exceeds max_error
-                #split_index = len(remaining_points) // 2
-                split_index = len(remaining_points) / 2
+                split_index = len(remaining_points) // 2
                 segment = remaining_points[:split_index]
                 spline_segment = Part.BSplineCurve()
                 spline_segment.interpolate(segment.tolist())
