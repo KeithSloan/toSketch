@@ -34,6 +34,72 @@ import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
 from PySide import QtGui, QtCore
 from PySide2 import QtWidgets
 
+
+class toSketchDialog(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+
+        # Set the dialog title
+        self.setWindowTitle("Parameters")
+
+        # Main vertical layout for the dialog
+        main_layout = QtWidgets.QVBoxLayout()
+
+        # Group box for Mesh Parameters
+        group_box = QtWidgets.QGroupBox("Mesh Parameters")
+        group_layout = QtWidgets.QVBoxLayout()  # Vertical layout for rows
+
+        # Row 1: LinearDeflection
+        linear_layout = QtWidgets.QHBoxLayout()
+        linear_label = QtWidgets.QLabel("LinearDeflection:")
+        self.linear_input = QtWidgets.QLineEdit("0.1")  # Initial value 0.1
+        linear_layout.addWidget(linear_label)
+        linear_layout.addWidget(self.linear_input)
+
+        # Row 2: AngularDeflection
+        angular_layout = QtWidgets.QHBoxLayout()
+        angular_label = QtWidgets.QLabel("AngularDeflection:")
+        self.angular_input = QtWidgets.QLineEdit("0.523599")  # Initial value 0.523599
+        angular_layout.addWidget(angular_label)
+        angular_layout.addWidget(self.angular_input)
+
+        # Add rows to the vertical group layout
+        group_layout.addLayout(linear_layout)
+        group_layout.addLayout(angular_layout)
+
+        # Set the group layout for the group box
+        group_box.setLayout(group_layout)
+
+        # Add the group box to the main dialog layout
+        main_layout.addWidget(group_box)
+
+        # Add OK and Cancel buttons
+        button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        main_layout.addWidget(button_box)
+
+        # Set the main layout for the dialog
+        self.setLayout(main_layout)
+
+    def get_AngularDeflection(self):
+        """
+
+        Return the value for AngularDeflections.
+        """
+        return self.angular_input.text()
+
+    def get_LinearDeflection(self):
+        """
+        Return the values for LinearDeflection
+
+        """
+        return self.linear_input.text()
+
+
 class toSketchFeature:
     #    def IsActive(self):
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
@@ -104,7 +170,7 @@ class toSketchFeature:
             if sel.TypeId == 'PartDesign::Plane' :
                #print(dir(sel))
                #print(dir(sel.Shape))
-               sketch = self.actionSection(sel.Shape, objs)
+               sketch = self.actionSectionDialog(sel.Shape, objs)
                nVector = sel.Shape.Faces[0].normalAt(1,1)
                pVector = sel.Placement.Base
                dVector = nVector.multiply(nVector.dot(pVector))
@@ -112,10 +178,10 @@ class toSketchFeature:
             elif sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' :
                print(f"Part FeaturePython Plane")
-               sketch = self.actionSection(sel.Shape, objs)
+               sketch = self.actionSectionDialog(sel.Shape, objs)
             elif sel.TypeId == 'Part::Plane' :
                 print(f"Part Plane")
-                self.actionSection(sel, objs)
+                self.actionSectionDialog(sel, objs)
             #elif sel.TypeId == 'Part::Feature' :
             #   sketch = self.shapes2Sketch(sel.Shape,'Sketch')
 
@@ -150,7 +216,16 @@ class toSketchFeature:
                 QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
                 'To Sketch')}
 
-    def actionSection(self, plane, objs):
+    def actionSectionDialog(self, plane, objs):
+        print(f'Action Section Dialog')
+        dialog = toSketchDialog()
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            linearDeflection = dialog.get_LinearDeflection()
+            angularDeflection = dialog.get_AngularDeflection()
+            return self.actionSection(plane, objs, linearDeflection, angularDeflection)
+                
+
+    def actionSection(self, plane, objs, linearDef, angularDef):
         print(f'Action Section {objs}')
         edges = []
         # If no target Objs - Use all Objects
@@ -163,12 +238,13 @@ class toSketchFeature:
             #print(obj.TypeId)
             if hasattr(obj,'Mesh') :
                 print(f"Meshed Object {obj.Label}")
-                #   #print(dir(obj))
-                #   print(dir(obj.Mesh))
                 import Draft, MeshPart, Part
-                shpPlane= MeshPart.meshFromShape(Shape=plane, \
-                    LinearDeflection=0.1, AngularDeflection=0.523599, \
-                    Relative=False)
+                shpPlane = MeshPart.meshFromShape(
+                    plane,
+                    float(linearDef),
+                    AngularDeflection=float(angularDef),
+                    Relative=False
+                    )
                 for edge in obj.Mesh.section(shpPlane):
                     #print(f"edge {edge}")
                     #print(dir(edge))
@@ -720,7 +796,7 @@ class toCurveFitFeature :
                     print(f" process geometry {bp[0]} to {bp[1]}")
                     print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
                     #g = geometry[bp[-1]:]+geometry[:bp[0]]
-                    g = geometry[bp[-1]:]+geometry[:bp[0]]
+                    g = geometry[bp[-1]-1:]+geometry[:bp[0]]
                     self.processGeometry(g, angle)
                     #self.processGeometry(geometry[bp[0]:bp[1]], angle)
                     #self.debugSketch(geometry[bp[0]:bp[1]], "debug_0-1")
