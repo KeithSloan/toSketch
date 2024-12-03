@@ -65,6 +65,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
                     #'addBboxCommand', \
                     'toMacroCommand', \
                     'toLineCurveFitCommand', \
+                    'bSpline2ArcCommand', \
                     'toCurveFitCommand', \
                     'toScaleCommand','toResetOriginCommand']
 
@@ -77,6 +78,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
                     'toMacroCommand', \
                     'toLineCurveFitCommand', \
                     'toCurveFitCommand', \
+                    'bSpline2ArcCommand', \
                     'toScaleCommand','toResetOriginCommand']
 
         import PartGui
