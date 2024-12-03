@@ -34,6 +34,52 @@ import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
 from PySide import QtGui, QtCore
 from PySide2 import QtWidgets
 
+# Copied from toSketch - for Section to Sketch
+def shapes2Sketch(shapes, name) :
+    print(f'shapes2sketch {name}')
+    # need to check len in calling function
+    #if len(shapes) > 0:
+        #Draft.draftify(shapes, makeblock=False, delete=True)
+        # Problems with Auto Constraint code below
+        #try :
+        #    print('Auto Constraint')
+        #    sketch = Draft.makeSketch(shapes, autoconstraints=True, \
+        #        addTo=None, delete=False, name=name,  \
+        #           radiusPrecision=-1, tol=1e-3)
+        #    return sketch
+        #except :
+    #   print('Non Auto Constraint')
+    sketch = Draft.makeSketch(shapes, autoconstraints=False, \
+                addTo=None, delete=False, name=name,  \
+                         radiusPrecision=-1, tol=1e-3)
+    return sketch
+    #else:
+    #        print(f"No shapes for sketch")
+
+
+class section2SketchFeature:
+
+   def Activated(self):
+        #   for obj in FreeCADGui.Selection.getSelection():
+        selectEx = FreeCADGui.Selection.getSelectionEx()
+        for sel in selectEx :
+            print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
+            shapes2Sketch(sel.Object.Shape, sel.ObjectName+"Sketch")
+
+
+   def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+   def GetResources(self):
+       return {'Pixmap'  : 'section2Sketch', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
+                'Section | Wire To Sketch'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
+                'Section | Wire To Sketch')}
+
 
 class toSketchDialog(QtWidgets.QDialog):
     def __init__(self):
@@ -1805,6 +1851,7 @@ class toShapeInfoFeature :
 
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
+FreeCADGui.addCommand('section2SketchCommand',section2SketchFeature())
 FreeCADGui.addCommand('Plane2PartPlaneCommand',toPlane2PartFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('addBboxCommand',addBboxFeature())
