@@ -60,6 +60,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
         commands=['toSPlaneCommand', \
                     'Plane2PartPlaneCommand', \
                     'toSketchCommand', \
+                    'section2SketchCommand', \
                     'removeOuterBoxCommand', \
                     #'addBboxCommand', \
                     'toMacroCommand', \
@@ -70,6 +71,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
         toolbarcommands=['toSPlaneCommand', \
                     'Plane2PartPlaneCommand', \
                     'toSketchCommand', \
+                    'section2SketchCommand', \
                     'removeOuterBoxCommand', \
                     #'addBboxCommand', \
                     'toMacroCommand', \
