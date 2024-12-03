@@ -1,4 +1,4 @@
-#e**************************************************************************
+#**************************************************************************
 #*                                                                        *
 #*   Copyright (c) 2021 Keith Sloan <keith@sloan-home.co.uk>              *
 #*                                                                        *
@@ -1689,9 +1689,9 @@ class toPlane2PartFeature :
     def GetResources(self):
         return {'Pixmap'  : 'Plane2Part', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
-                'Plane to PartPlane'), 'ToolTip': \
+                'toPlane to PartPlane'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
-                'plane to PartPlane')}
+                'toPlane to PartPlane')}
 
 
 class toSPlaneFeature :    
@@ -1719,9 +1719,109 @@ class toSPlaneFeature :
     def GetResources(self):
         return {'Pixmap'  : 'toPlane', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
-                'to Plane'), 'ToolTip': \
+                'create toPlane'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
-                'to Plane')}
+                'create toPlane')}
+
+
+class bSpline2ArcFeature :    
+
+    def Activated(self) :
+        from .toSObjects import toSPlane, ViewProvider
+
+        #   for obj in FreeCADGui.Selection.getSelection():
+        selectEx = FreeCADGui.Selection.getSelectionEx()
+        for sel in selectEx :
+            print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
+            obj = sel.Object
+            if obj.TypeId == 'Sketcher::SketchObject':
+                print(f'Check sketch Splines for possible arcs')
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'BSpline2Arc', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
+                'BSpline to Arc'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
+                'BSpline to Arc')}
+
+    def is_bspline_close_to_circle(bspline, tolerance=1e-3):
+        """
+        Checks if the given B-spline is close to an arc of a circle.
+
+        Args:
+            bspline (Part.BSplineCurve): The B-spline to test.
+            tolerance (float): Maximum allowed deviation from the circle.
+
+        Returns:
+            bool: True if close to a circle, False otherwise.
+            dict: Details about the fitted circle if applicable.
+        """
+        # Sample points along the B-spline
+        num_samples = 100
+        points = [bspline.value(bspline.ParameterRange[0] + 
+                            i * (bspline.ParameterRange[1] -
+                            bspline.ParameterRange[0]) / (num_samples - 1)) 
+                for i in range(num_samples)]
+    
+        # Fit a circle to the points
+        try:
+            circle = Part.Circle()
+            circle.fitThroughPoints(points)
+     
+            # Calculate deviations
+            deviations = [abs(circle.Center.distanceToPoint(p) -
+            circle.Radius) for p in points]
+            max_deviation = max(deviations)
+
+            if max_deviation <= tolerance:
+                return True, {"center": circle.Center, "radius": circle.Radius, "deviation": max_deviation}
+            else:
+                return False, {"max_deviation": max_deviation}
+        except Exception as e:
+                return False, {"error": str(e)}
+
+
+    def subdivide_bspline(bspline, num_segments=5, arc_tolerance=1e-3):
+        """
+        Subdivides a B-spline into smaller B-splines and circular arcs if possible.
+
+        Args:
+            bspline (Part.BSplineCurve): The B-spline to subdivide.
+            num_segments (int): Number of segments to split into.
+            arc_tolerance (float): Tolerance for arc fitting.
+
+        Returns:
+            list: List of sub-elements (B-splines or arcs).
+        """
+        parameter_range = bspline.ParameterRange
+        step = (parameter_range[1] - parameter_range[0]) / num_segments
+
+        segments = []
+
+        for i in range(num_segments):
+            # Subdivide the B-spline
+            start_param = parameter_range[0] + i * step
+            end_param = start_param + step
+            segment = bspline.trim(start_param, end_param)
+
+            # Check if the segment is close to an arc
+            is_arc, details = is_bspline_close_to_circle(segment, tolerance=arc_tolerance)
+            if is_arc:
+                circle = Part.Circle()
+                circle.Center = details["center"]
+                circle.Radius = details["radius"]
+                arc = circle.toShape(segment.startPoint(), segment.endPoint())
+                segments.append(arc)
+            else:
+                segments.append(segment)
+
+        return segments
 
 
 class toScaleFeature :
@@ -1857,6 +1957,7 @@ FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('addBboxCommand',addBboxFeature())
 FreeCADGui.addCommand('toLineCurveFitCommand',toLineCurveFitFeature())
 FreeCADGui.addCommand('toCurveFitCommand',toCurveFitFeature())
+FreeCADGui.addCommand('bSpline2ArcCommand',bSpline2ArcFeature())
 FreeCADGui.addCommand('toMacroCommand',toMacroFeature())
 FreeCADGui.addCommand('toSPlaneCommand',toSPlaneFeature())
 FreeCADGui.addCommand('toScaleCommand',toScaleFeature())
