@@ -44,10 +44,8 @@ class toSPlane :
              "Custom ZDir").ZDir=1.0
         obj.addProperty("App::PropertyFloat","Length","Plane", \
              "Length").Length = 500.0 
-        self.halfLen = 250.0
         obj.addProperty("App::PropertyFloat","Width","Plane", \
              "Width").Width = 500.0 
-        self.halfWidth = 250 
         obj.setEditorMode("Placement",2)
         self.disableAxisParms(obj)
         obj.Proxy = self
@@ -87,6 +85,8 @@ class toSPlane :
            self.updateGeometry(fp)
 
     def getPlaneParms(self, fp) :
+        # Note self values not saved acros file save and open
+        # so getPlaneParms need to be called before any use of them
         print('getplaneParms')
         print(fp.Axis)
         if fp.Axis == 'Custom' : 
@@ -104,6 +104,67 @@ class toSPlane :
         else :
            print('Invalid Axis')
            exit(3)
+        return self.dir, self.point   
+
+    def getPartPlane(self, fp) :
+        # Note self values not saved acros file save and open
+        # so getPlaneParms need to be called before any use of them
+        print('getPartPlane')
+        #print(dir(fp))
+        print(fp.Axis)
+        if fp.Axis == 'Custom' : 
+           normal  = FreeCAD.Vector(fp.XDir, fp.YDir, fp.ZDir)
+           self.point = FreeCAD.Vector(0.0, 0.0, 0.0)
+        elif fp.Axis == 'XY Plane' :
+           normal = FreeCAD.Vector(0.0, 0.0, 1.0)
+           point = FreeCAD.Vector(0.0,0.0,fp.Offset)
+        elif fp.Axis == 'XZ Plane' :
+           normal  = FreeCAD.Vector(0.0, 1.0, 0.0)
+           point = FreeCAD.Vector(0.0,fp.Offset,0.0)
+        elif fp.Axis == 'YZ Plane' :
+           normal  = FreeCAD.Vector(1.0, 0.0, 0.0)
+           point = FreeCAD.Vector(fp.Offset,0.0,0.0)
+        else :
+           print('Invalid Axis')
+           exit(3)
+        distance = fp.Offset
+        position = normal * distance
+        plane = Part.Plane()
+        plane.Position = position
+        plane.Axis = normal
+        #plane = Part.makePlane(fp.Length, fp.Width, position, normal)
+        return plane.toShape(), point
+
+    def getMeshPlane(self, fp) :
+        import Mesh
+        # Note self values not saved acros file save and open
+        # so getPlaneParms need to be called before any use of them
+        print('getMeshPlane')
+        #print(dir(fp))
+        print(fp.Axis)
+        if fp.Axis == 'Custom' : 
+           normal  = FreeCAD.Vector(fp.XDir, fp.YDir, fp.ZDir)
+           self.point = FreeCAD.Vector(0.0, 0.0, 0.0)
+        elif fp.Axis == 'XY Plane' :
+           normal = FreeCAD.Vector(0.0, 0.0, 1.0)
+           point = FreeCAD.Vector(0.0,0.0,fp.Offset)
+        elif fp.Axis == 'XZ Plane' :
+           normal  = FreeCAD.Vector(0.0, 1.0, 0.0)
+           point = FreeCAD.Vector(0.0,fp.Offset,0.0)
+        elif fp.Axis == 'YZ Plane' :
+           normal  = FreeCAD.Vector(1.0, 0.0, 0.0)
+           point = FreeCAD.Vector(fp.Offset,0.0,0.0)
+        else :
+           print('Invalid Axis')
+           exit(3)
+        distance = fp.Offset
+        position = normal * distance
+        plane = Part.Plane()
+        plane.Position = position
+        plane.Axis = normal
+        #plane = Part.makePlane(fp.Length, fp.Width, position, normal)
+        #return plane.toShape(), point
+        return Mesh.Mesh(plane)
 
     def createGeometry(self, fp) :
         print('create Geometry')

@@ -1,4 +1,4 @@
-#e**************************************************************************
+#**************************************************************************
 #*                                                                        *
 #*   Copyright (c) 2021 Keith Sloan <keith@sloan-home.co.uk>              *
 #*                                                                        *
@@ -178,7 +178,8 @@ class toSketchFeature:
             elif sel.TypeId == 'Part::FeaturePython' and \
                sel.Label[:5] == 'Plane' :
                print(f"Part FeaturePython Plane")
-               sketch = self.actionSectionDialog(sel.Shape, objs)
+               #sketch = self.actionSectionDialog(sel.Shape, objs)
+               sketch = self.actionSectionDialog(sel, objs)
             elif sel.TypeId == 'Part::Plane' :
                 print(f"Part Plane")
                 self.actionSectionDialog(sel, objs)
@@ -220,12 +221,19 @@ class toSketchFeature:
         print(f'Action Section Dialog')
         dialog = toSketchDialog()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            linearDeflection = dialog.get_LinearDeflection()
-            angularDeflection = dialog.get_AngularDeflection()
-            return self.actionSection(plane, objs, linearDeflection, angularDeflection)
+            linearDef = dialog.get_LinearDeflection()
+            angularDef = dialog.get_AngularDeflection()
+            return self.actionSection(plane, objs, linearDef, angularDef)
                 
 
     def actionSection(self, plane, objs, linearDef, angularDef):
+        #
+        # plane can be
+        #
+        #   - Plane created by ToPlane Part::TopoShape
+        #   - Datum Plane
+        #   - Part.Plane
+        #
         print(f'Action Section {objs}')
         edges = []
         # If no target Objs - Use all Objects
@@ -237,17 +245,74 @@ class toSketchFeature:
             #print(obj.Label)
             #print(obj.TypeId)
             if hasattr(obj,'Mesh') :
+                import Mesh
                 print(f"Meshed Object {obj.Label}")
                 import Draft, MeshPart, Part
-                shpPlane = MeshPart.meshFromShape(
-                    plane,
-                    float(linearDef),
-                    AngularDeflection=float(angularDef),
-                    Relative=False
-                    )
-                for edge in obj.Mesh.section(shpPlane):
-                    #print(f"edge {edge}")
-                    #print(dir(edge))
+                # Create a MeshPlane from Part Plane
+                #mshPlane = MeshPart.meshFromShape(
+                #    plane,
+                #    float(linearDef),
+                #    AngularDeflection=float(angularDef),
+                #    Relative=False
+                #
+                #    )
+                # Extract the plane's origin and normal
+                #plane_origin = plane.Position
+                #plane_normal = plane.Axis
+                #
+                # test if toSPlane object TypeId Part::TopoShape
+                #print(dir(plane))
+                print(f"Plane {plane.Name} TypeId {plane.TypeId}")
+                #print(plane.Faces)
+                #print(dir(plane.Faces[0]))
+                #if plane.TypeId == "Part::TopoShape":
+                if plane.TypeId == "Part::FeaturePython":
+                    #planeShape, dist = plane.Proxy.getPartPlane(plane) 
+                    mshPlane = plane.Proxy.getMeshPlane(plane) 
+                    if hasattr(plane,"Faces"):
+                        print(f"Has Faces")
+                        #usePlane = Part.Face(plane.Faces[0])
+                        usePlane = plane.Faces[0]
+                        #print(f"usePlane Planar {usePlane.Surface.isPlanar()}")
+
+                        #plane_origin = plane.Faces[0].Placement.Base
+                        #plane_normal = plane.Faces[0].normalAt(0, 0)
+                        #plane_normal = FreeCAD.Vector(0, 0, 1)
+                        #plane_dist = plane.Placement.Base.dot(plane_normal)
+                        #plane_dist = 5 
+                        #plane_normal, plane_dist = plane.getPlaneParms(plane)
+                        #plane = Part.makePlane(10, 10, plane_normal, plane_dist)
+                # Extract the plane's origin and normal
+                #plane_origin = plane.Position
+                #plane_normal = plane.Axis
+
+                # Generate the mesh section
+                # section = Mesh.section(obj.Mesh, plane_origin, plane_normal)
+                #mshShape = Mesh.createBox(10,10,10)
+                #mshShape = Part.Shape(Mesh.createBox(10,10,10))
+                #mshShape = Part.Shape(obj.Mesh)
+                mshPlane = Mesh.Mesh(usePlane)
+                loops = obj.Mesh.section(mshPlane)
+                print(loops)
+                print(dir(loops))
+
+                # Perform the section operation 
+                #section = mshShape.makeSection(usePlane)
+                # Crashes FC
+                #try:
+                #    #section = MeshPart.meshCrossSection(obj.Mesh,
+                #    #section = MeshPart.projectShapeOnMesh(partPlane, obj.Mesh)
+                #    section = MeshPart.projectShapeOnMesh(planeShape, obj.Mesh, dist)
+                #    #   plane_normal,
+                #    #   plane_dist
+                #    #   )
+                #except Exception as e:    
+                #    print(f"Error during mesh sectioning: {e}")
+
+                print(dir(section))
+                for edge in section.Edges:
+                #    #print(f"edge {edge}")
+                #    #print(dir(edge))
                     wire = Part.makePolygon(edge)
                     edges.append(Part.Shape(wire))
 
@@ -304,7 +369,8 @@ class toSketchFeature:
         print(f'shapes2sketch {name}{len(shapes)}')
         if len(shapes) > 0:
             #Draft.draftify(shapes, makeblock=False, delete=True)
-            # Problems with Auto Constraint code below
+            # Problems with Auto Constraint if lots of short lines
+            #code below
             #try :
             #    print('Auto Constraint')
             #    sketch = Draft.makeSketch(shapes, autoconstraints=True, \
