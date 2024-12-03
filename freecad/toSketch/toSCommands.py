@@ -1606,6 +1606,48 @@ class toMacroFeature:
         fp.close()
         print('Macro : '+sketch.Label+' Written')
 
+
+class toPlane2PartFeature :    
+
+    def Activated(self) :
+        from .toSObjects import toSPlane, ViewProvider
+
+        #   for obj in FreeCADGui.Selection.getSelection():
+        selectEx = FreeCADGui.Selection.getSelectionEx()
+        for sel in selectEx :
+            print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
+            obj = sel.Object
+            if obj.TypeId == 'Part::FeaturePython':
+                if obj.Label[:5] == 'Plane':
+                    print(f"Add Part Plane")
+                    partPlane = FreeCAD.ActiveDocument.addObject("Part::Plane","PartPlane")
+                    print(partPlane.Placement)
+                    print(partPlane.Placement.Rotation)
+                    print(dir(partPlane.Placement))
+                    partPlane.Placement.Rotation.Axis = [0.00, 1.00, 0.00]
+                    partPlane.Placement.Rotation.Angle = 1.5708 # 90.0 degrees
+                    partPlane.Placement.Base = [-50, 0, -50]
+                    partPlane.Length = 100
+                    partPlane.Width = 100
+
+                    print(dir(partPlane))
+
+
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument == None:
+           return False
+        else:
+           return True
+
+    def GetResources(self):
+        return {'Pixmap'  : 'Plane2Part', 'MenuText': \
+                QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
+                'Plane to PartPlane'), 'ToolTip': \
+                QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
+                'plane to PartPlane')}
+
+
 class toSPlaneFeature :    
 
     def Activated(self) :
@@ -1634,6 +1676,7 @@ class toSPlaneFeature :
                 'to Plane'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
                 'to Plane')}
+
 
 class toScaleFeature :
 
@@ -1668,6 +1711,7 @@ class toScaleFeature :
                 'To Scale'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toScalesFeature',\
                 'To Scale')}
+
 
 class toResetOriginFeature :
 
@@ -1725,6 +1769,7 @@ class toResetOriginFeature :
                 QtCore.QT_TRANSLATE_NOOP('toResetOriginFeature',\
                 'To Reset Orgin')}
 
+
 class toShapeInfoFeature :
 
     def Activated(self):
@@ -1758,7 +1803,9 @@ class toShapeInfoFeature :
                 QtCore.QT_TRANSLATE_NOOP('toShapeInfo',\
                 'Shape Info')}
 
+
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
+FreeCADGui.addCommand('Plane2PartPlaneCommand',toPlane2PartFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('addBboxCommand',addBboxFeature())
 FreeCADGui.addCommand('toLineCurveFitCommand',toLineCurveFitFeature())

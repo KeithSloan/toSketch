@@ -57,17 +57,21 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
             return text
         
         #import 2SCommands
-        commands=['toSPlaneCommand','toSketchCommand', \
+        commands=['toSPlaneCommand', \
+                    'Plane2PartPlaneCommand', \
+                    'toSketchCommand', \
                     'removeOuterBoxCommand', \
-                    'addBboxCommand', \
+                    #'addBboxCommand', \
                     'toMacroCommand', \
                     'toLineCurveFitCommand', \
                     'toCurveFitCommand', \
                     'toScaleCommand','toResetOriginCommand']
 
-        toolbarcommands=['toSPlaneCommand','toSketchCommand', \
+        toolbarcommands=['toSPlaneCommand', \
+                    'Plane2PartPlaneCommand', \
+                    'toSketchCommand', \
                     'removeOuterBoxCommand', \
-                    'addBboxCommand', \
+                    #'addBboxCommand', \
                     'toMacroCommand', \
                     'toLineCurveFitCommand', \
                     'toCurveFitCommand', \
