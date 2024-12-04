@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;">
+    <g transform="matrix(0.8278,0,0,0.837174,-0.249941,9.06015)">
+        <g id="Layer-1" serif:id="Layer 1">
+            <g id="g3780">
+                <g id="g3848" transform="matrix(0.902012,0,0,0.770101,-68.036,6.36723)">
+                    <path id="path3022" d="M90.956,1.271L117.375,18.666L154.992,3.648L128.221,-11.581L90.956,1.271Z" style="fill:rgb(114,159,207);fill-rule:nonzero;stroke:rgb(11,21,33);stroke-width:3.02px;"/>
+                    <g id="path3792">
+                        <g>
+                            <g>
+                                <clipPath id="_clip1">
+                                    <path d="M117.375,18.89L117.727,54.206L154.802,37.877L154.979,4.054L117.375,18.89Z"/>
+                                </clipPath>
+                                <g clip-path="url(#_clip1)">
+                                    <g transform="matrix(1.2967,0,0,1.67174,117.374,4.05505)">
+                                        <use id="_Image2_" serif:id="_Image2" xlink:href="#_Image2" x="0" y="0" width="29px" height="30px"/>
+                                    </g>
+                                </g>
+                            </g>
+                        </g>
+                        <path d="M117.375,18.89L117.727,54.206L154.802,37.877L154.979,4.054L117.375,18.89Z" style="fill:none;fill-rule:nonzero;stroke:rgb(11,21,33);stroke-width:3.02px;"/>
+                    </g>
+                    <g id="path3794" transform="matrix(1,0,0,0.991133,0,0.0112736)">
+                        <g>
+                            <g>
+                                <clipPath id="_clip3">
+                                    <path d="M117.904,18.666L117.904,53.983L91.133,37.109L91.133,1.271L117.904,18.666Z"/>
+                                </clipPath>
+                                <g clip-path="url(#_clip3)">
+                                    <g transform="matrix(1.33855,0,0,1.70036,91.1321,1.2716)">
+                                        <use id="_Image4_" serif:id="_Image4" xlink:href="#_Image4" x="0" y="0" width="20px" height="31px"/>
+                                    </g>
+                                </g>
+                            </g>
+                        </g>
+                        <path d="M117.904,18.666L117.904,53.983L91.133,37.109L91.133,1.271L117.904,18.666Z" style="fill:none;fill-rule:nonzero;stroke:rgb(11,21,33);stroke-width:3.02px;"/>
+                    </g>
+                </g>
+                <g transform="matrix(1.1898,0,0,1.07947,0.455218,-5.00299)">
+                    <rect x="8.413" y="12.446" width="25.313" height="38.147" style="fill:rgb(248,248,248);"/>
+                </g>
+                <g id="path3096" transform="matrix(1.0379,0,0,1.0085,-1.45217,-0.666558)">
+                    <g transform="matrix(0.837981,0,0,0.776445,4.43125,6.69195)">
+                        <path d="M43.572,15.855L9.443,-0.485L9.602,39.317L43.572,54.932L43.572,15.855Z" style="fill:none;fill-rule:nonzero;stroke:rgb(240,45,31);stroke-width:10.89px;stroke-linejoin:miter;"/>
+                    </g>
+                    <path d="M43.572,15.855L9.443,-0.485L9.602,39.317L43.572,54.932L43.572,15.855Z" style="fill:none;fill-rule:nonzero;stroke:rgb(109,161,188);stroke-width:9.98px;stroke-linejoin:miter;"/>
+                </g>
+                <g id="rect3005" transform="matrix(1.00821,0,0,1,-0.0354421,0)">
+                    <path d="M4.319,-7.747L48.219,12.591L47.742,61.044L5.114,43.821L4.319,-7.747Z" style="fill:none;stroke:rgb(63,63,63);stroke-width:3.14px;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <image id="_Image2" width="29px" height="30px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAeCAYAAADQBxWhAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA8klEQVRIie2WQRbCIAxERx9H8krezHNmXJQWmFDb2ogLzaoM4Q/hEV4vt/uDGBzX0YZ/049HGuJCor6tMaYCzSJqkZW2z/QgVPNYEgDMpsHQZdCkFy3RLBwqK0UnEmlvQxswJQ8AOxoAJDO2EwHQabNemz8SaeFQf2hSKY0rUEk+ACWFVyZAoF/pWahquu9upWeh6K7nIpdKA6G15u8nS59GQkWA9noqRxkHdSukC+RFioG2GK/lSmOhruEEPj2De6EdADvaPOF6PQ+TVRcpCup7XV8kMhzKjtaarlS6Cd0Av4pcaSx021QrHRC/89/7FdMn2VNAXsWmXZYAAAAASUVORK5CYII="/>
+        <image id="_Image4" width="20px" height="31px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAfCAYAAADnTu3OAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAyklEQVRIie2VQRLDIAhFbYcT90I9Uk/kp4s4qanwBcdFF3WlIg/wY3J7PF9aNo77TtgfuGcIM6rmG0BqBT2gRftFAAhMDys3fgFZhmovWKKCikgljTSHniXH77+DGj6Xkp0KKZQCp26BMqYqj9u8jfwMqd9iyYzh9aYASChMoG16ZjgKEMf2s5zKruGzcagcf6rkoDZgQBT/jkdDXGU3wBV6qMyD2lAngq9yIIgaK7fkxW9DkQot3jtbaMU+Q9s9+4oEyKvMxu//6N9C+5JaXMeaGgAAAABJRU5ErkJggg=="/>
+    </defs>
+</svg>
