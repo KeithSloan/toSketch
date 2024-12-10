@@ -1,3 +1,5 @@
+import Draft
+
 # Used by toSketch - for Section to Sketch
 def shapes2Sketch(shapes, name, auto=False) :
     print(f'shapes2sketch {name}')
@@ -46,7 +48,7 @@ def angle_between_lines(v1, v2, v3):
     #print(f"Abs angle {angle_degrees} {abs(angle_radians)}")
     return abs(adjusted_angle)
 
-def vectors_to_numpy(self, vectors):
+def vectors_to_numpy(vectors):
     """
     Convert a list of FreeCAD.Vector objects to a NumPy array of shape (n, 3).
 
@@ -78,31 +80,31 @@ def remove_duplicates(points, tolerance=1e-6):
            unique_points.append(pt)
     return np.array(unique_points)
 
- def create_line_segments_from_vectors(vector_list):
-     """
-     Create a list of Part::GeomLineSegment objects connecting consecutive vectors.
+def create_line_segments_from_vectors(vector_list):
+    """
+    Create a list of Part::GeomLineSegment objects connecting consecutive vectors.
 
 
-     Parameters:
-        vector_list (list of FreeCAD.Vector): List of n FreeCAD vectors.
+    Parameters:
+       vector_list (list of FreeCAD.Vector): List of n FreeCAD vectors.
 
-     Returns:
-        list of Part.GeomLineSegment: List of n-1 line segments.
-     """
-     if len(vector_list) < 2:
-        raise ValueError("The list must contain at least two vectors to create line segments.")
+    Returns:
+       list of Part.GeomLineSegment: List of n-1 line segments.
+    """
+    if len(vector_list) < 2:
+       raise ValueError("The list must contain at least two vectors to create line segments.")
 
-     line_segments = []
-     print(vector_list)
-     for i in range(len(vector_list) - 1):
-        # Create a GeomLineSegment between vector[i] and vector[i+1]
+    line_segments = []
+    print(vector_list)
+    for i in range(len(vector_list) - 1):
+       # Create a GeomLineSegment between vector[i] and vector[i+1]
         line_segment = Part.LineSegment(
             FreeCAD.Vector(vector_list[i]),
             FreeCAD.Vector(vector_list[i + 1])
-
+            )   
         line_segments.append(line_segment)
 
-     return line_segments
+    return line_segments
 
 def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
     """
@@ -116,6 +118,7 @@ def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
     Returns:
         curves (list): A list of Part::GeomBSplineCurve objects.
     """
+    import FreeCAD
     import numpy as np
     import Part
     curves = []
@@ -128,11 +131,11 @@ def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
         remaining_points = points[current_start:]
 
         # Remove duplicates and validate points
-        remaining_points = self.remove_duplicates(remaining_points)
+        remaining_points = remove_duplicates(remaining_points)
         if len(remaining_points) < 4:
             #raise ValueError("Not enough points to fit a B-spline.")
             print(f"Not enough points to fit a B-spline.")
-            return self.create_line_segments_from_vectors(remaining_points)
+            return create_line_segments_from_vectors(remaining_points)
 
         # Fit a B-spline using FreeCAD's Part.BSplineCurve
         spline = Part.BSplineCurve()
