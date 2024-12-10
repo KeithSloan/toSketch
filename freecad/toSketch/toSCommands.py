@@ -35,7 +35,8 @@ from PySide import QtGui, QtCore
 from PySide2 import QtWidgets
 
 # Used by toSketch - for Section to Sketch
-from .toSharedFunc import shapes2sketch
+from .toSharedFunc import shapes2Sketch, angle_between_lines, vectors_to_numpy, fit_bspline_to_geom
+
 
 class section2SketchFeature:
 
@@ -164,7 +165,7 @@ class toSketchFeature:
                      face = sel.SubObjects[0]
                      # move face to origin
                      face.translate(face.Placement.Base.negative())
-                     sketch = toSketchShapes2Sketch([face],'Sketch'+sel.ObjectName)
+                     sketch = self.toSketchShapes2Sketch([face],'Sketch'+sel.ObjectName)
                      # Pop the Plane parts of sketch
                      self.addConstraints(sketch)
                      #print(dir(sketch))
@@ -213,7 +214,7 @@ class toSketchFeature:
 
             elif sel.TypeId == 'Part::Offset2D':
                 print(f"Part::Offset2D")
-                sketch = toSketchShapes2Sketch(sel.Shape,'Sketch')
+                sketch = self.toSketchShapes2Sketch(sel.Shape,'Sketch')
 
             #elif sel.TypeId == 'Mesh::Feature':
             #    print(f"Mesh Feature")
@@ -297,7 +298,7 @@ class toSketchFeature:
             name = "Sketch_"+objs[0].Label
         else:
             name = 'Sketch'
-        sketch = self.toSketchshapes2Sketch(edges,name)
+        sketch = self.toSketchShapes2Sketch(edges,name)
         #self.addConstraints(sketch)
         return sketch
 
@@ -330,7 +331,7 @@ class toSketchFeature:
         print(f'shapes2sketch {name}{len(shapes)}')
         if len(shapes) > 0:
             # Use shared function
-            shapes2sketch(shapes, name, auto=False)
+            shapes2Sketch(shapes, name, auto=False)
         else:
             print(f"No shapes for sketch")
 
@@ -910,7 +911,7 @@ class toCurveFitFeature :
 
     def processGeometry(self, geom, angle=15):
         # UPDATE FOR CURVE ONLY
-        #from math import inf
+        import math
         import numpy as np
         import Draft
         # Initialize an empty NumPy array
@@ -918,7 +919,7 @@ class toCurveFitFeature :
         self.LastPoint = None
         newLine = True
         tolerance=1e-6
-        angleRadians = np.radians(angle)
+        angleRadians = math.radians(angle)
         for g in geom:
             if g.TypeId == 'Part::GeomLineSegment':
                 #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
@@ -960,11 +961,12 @@ class toCurveFitFeature :
         self.processVectorPoints()
 
     def processVectorPoints(self):
+        import numpy
         print(f" processVectorPoints {len(self.vectors)}")
         #points = self.vectors_to_2d_array(self.vectors)
         points = vectors_to_numpy(self.vectors)
         #bSplines = self.fit_bspline(points)
-        bSplines = self.fit_bspline_to_geom(points, len(points), max_error=0.5)
+        bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
         if len(bSplines) > 0:
             self.newSketch.addGeometry(bSplines)
 
@@ -1011,8 +1013,6 @@ class toCurveFitFeature :
                 'to CurveFit')}
 
 
-
-
 class toLineCurveFitFeature :
 
     def Activated(self) :
@@ -1021,27 +1021,12 @@ class toLineCurveFitFeature :
             print(sel.TypeId)
             if sel.TypeId == 'Sketcher::SketchObject' :
                #print(dir(sel))
-               gL = sel.Geometry
                newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted Sketch")
                newSketch.Placement = sel.Placement
-               dL = []
-               start = 0
                print('Geometry Count : '+str(sel.GeometryCount))
-               self.processGeometry(newSketch, gL, sel.GeometryCount)
+               self.processGeometry(newSketch, sel.Geometry)
                newSketch.recompute()
-
-
-    def processCurveBuffer(self, newSketch, pointBuffer):
-        from geomdl import fitting
-        lenPB = len(pointBuffer)
-        print(f'Process Curve Buffer {lenPB}')
-        # Buffer may not contain enough points for curve
-        if lenPB < 3:
-            self.insertLines(newSketch, lenPB, pointBuffer)
-        else:
-            self.curveFit(newSketch, lenPB, pointBuffer)
-
 
     def insertLines(self, newSketch, lenPb, pointBuffer):
         print(pointBuffer)
@@ -1050,81 +1035,70 @@ class toLineCurveFitFeature :
         for i in pointBuffer:
              newSketch.addGeometry(Part.LineSegment(i))
 
-    #def curveFit(self, newSketch, lenPb, pointBuffer):
-    #    print(f'Curve Fit {lenPb}') 
-    #    points = tuple(pointBuffer)
-    #    degree = 3
-    #    #curveI = fitting.interpolate_curve(points, degree)
-    #    curve = fitting.approximate_curve(points, degree, \
-    #            centripetal=True, ctrlpts_size = 4)
-    #    #print(dir(curve))
-    #    #print(curve._control_points)
-    #    fcCp = []
-    #    for cp in curve._control_points :
-    #        fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
-    #    print(curve.degree)
-    #    print(curve._geometry_type)
-    #    print('Number of Control points : '+str(len(curve._control_points)))
-    #    #print('Number of Control points : '+str(len(curveI._control_points)))
-    #    print('Knot Vector : '+str(curve.knotvector))
-    #    newSketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
-    #                         curve.degree,None,False))
-
-
-    def processGeometry(self, newSketch, gL, gCount):
-        from math import inf
-        shortLine = 1.5
-        tolerance = 1e-03
-        lineBuff = lineBuffer(newSketch)
-        for g in gL:
-            #print(f'\t\tTypeId : {g.TypeId}') 
+    def processGeometry(self, newSketch, geom, angle=15.0):
+        # UPDATE FOR CURVE ONLY
+        import math 
+        import numpy as np
+        import Draft
+        # Initialize an empty NumPy array
+        self.newSketch = newSketch
+        self.vectors = []
+        self.LastPoint = None
+        newLine = True
+        tolerance=1e-6
+        print(f"Angle {angle}")
+        angleRadians = math.radians(angle)
+        for g in geom:
             if g.TypeId == 'Part::GeomLineSegment':
-            #if g.TypeId == 'Part::GeomLineSegment':
-                #                          Change of Slope
-                #                     Yes                  No
-                #
-                #             Yes   Flush Line          Flush Curve
-                #                   Add Curve Buffer    Add Line Buffer
-                # Short Line  
-                #             No    Flush Curve         Add Line Buffer
-                #                   Add Line Bufer
-                #
-                sp = g.StartPoint
-                print(f'\t\t {sp}')
-                ep = g.EndPoint
-                print(f'\t\t {ep}')
-                del_y = ep.y - sp.y
-                del_x = ep.x - sp.x
-                if del_x == 0:
-                    slope = inf
+                #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
+                if newLine == True:
+                    self.vectors.append(g.StartPoint)
+                    self.LastStart = g.StartPoint
+                    newLine = False
                 else:
-                    slope = del_y / del_x
-                print(f'\t\t slope : {slope}')
-                lineLen = g.length()
-                print(f'\t\t Length : {lineLen}')
-                lineBuff.checkCont(sp)
+                    if (g.StartPoint-self.LastPoint).Length >= tolerance:
+                        print(f"StartPoint != LastPoint StartPoint {g.StartPoint} LastPoint {self.LastPoint}")
 
-                if lineLen < shortLine:
-                    #lineBuff.flushLine()
-                    if lineBuff.checkSlope(slope):
-                        lineBuff.addShortLine(sp, ep, slope)
-                    else:
-                        lineBuff.flushCurve(slope)
-                        lineBuff.addShortLine(sp, ep, slope)
-                else:
-                    lineBuff.flushCurve(slope)
-                    lineBuff.addLine(sp, ep, slope)
+                        print(f" Length {(g.StartPoint-self.LastPoint).Length}")
+                        self.processVectorPoints()
+                        #self.vectors.append(g.StartPoint)
+                        self.vectors = []
+                        newLine = True
+
+                    #if self.angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint) >= angleRadians:
+                    #    print(f" Large change of angle")
+                    #    self.processVectorPoints()
+                    #    #self.vectors.append(g.StartPoint)
+                    #    newLine = True
+
+                # Last Start should be EndPoint of previous Line
+                self.LastStart = g.StartPoint
+
+                self.LastPoint = g.EndPoint
+                self.vectors.append(g.EndPoint)
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
-                lineBuff.addArcOfCircle(g)
+                print(f"Part::GeomArcOfCircle")
+                print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
+                self.processVectorPoints()
+
+                self.newSketch.addGeometry(g)
+                newline = True
+
             else:
-                lineBuff.addSegment(g)
+                print(f"TypeId {g.TypeId}")
 
-        # Flush tails
-        print(f'Flush tails')
-        lineBuff.flushLine()
-        lineBuff.flushCurve(None)
+        print(f" FlushVectorPoints")
+        self.processVectorPoints()
 
+    def processVectorPoints(self):
+        print(f" processVectorPoints {len(self.vectors)}")
+        #points = self.vectors_to_2d_array(self.vectors)
+        points = vectors_to_numpy(self.vectors)
+        #bSplines = self.fit_bspline(points)
+        bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
+        if len(bSplines) > 0:
+            self.newSketch.addGeometry(bSplines)
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -1138,45 +1112,6 @@ class toLineCurveFitFeature :
                 'to LineCurveFit'), 'ToolTip': \
                 QtCore.QT_TRANSLATE_NOOP('toLineCurveFitFeature',\
                 'to LineCurveFit')}
-
-    #def curveFit(self, sketch, gL) :
-    #    #print('Curve Fit : points : '+str(len(gL)))
-    #    if len(gL) < 2 :
-    #       for i in gL :
-    #           sketch.addGeometry(i, False)
-    #    else :
-    #       print('Curve Fit : '+str(len(gL)))
-    #       #print(dir(gL[0]))
-    #       #print(gL[0].StartPoint)
-    #       #print(gL[0].EndPoint)
-    #       #sketch.addGeometry(Part.LineSegment(gL[0].StartPoint,gL[-1].EndPoint))
-    #       #try :
-    #       from geomdl import fitting
-              
-    #       points = []
-    #       for i in gL :
-    #           points.append([i.StartPoint.x, i.StartPoint.y])
-    #       points.append([i.EndPoint.x, i.EndPoint.y])
-    #       points = tuple(points)
-    #       degree = 3
-    #       #curveI = fitting.interpolate_curve(points, degree)
-    #       curve = fitting.approximate_curve(points, degree, \
-    #               centripetal=True, ctrlpts_size = 4)
-    #       #print(dir(curve))
-    #       #print(curve._control_points)
-    #       fcCp = []
-    #       for cp in curve._control_points :
-    #           fcCp.append(FreeCAD.Vector(cp[0],cp[1],0))
-    #       print(curve.degree)
-    #       print(curve._geometry_type)
-    #       print('Number of Control points : '+str(len(curve._control_points)))
-    #       #print('Number of Control points : '+str(len(curveI._control_points)))
-    #       print('Knot Vector : '+str(curve.knotvector))
-    #       sketch.addGeometry(Part.BSplineCurve(fcCp,None,None,False, \
-    #                         curve.degree,None,False))
-    #
-    #       #except :
-    #       #   print('You need to install NURBS-Python : geomdl')
 
     def processLines(self, sketch, start, end, gL, dL) :
         import numpy
