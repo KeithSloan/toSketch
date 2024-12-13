@@ -10,6 +10,34 @@ def shapes2Sketch(shapes, name, auto=False) :
     #else:
     #        print(f"No shapes for sketch")
 
+# Function to test if two GeomLineSegments are contiguous
+def are_contiguous(line1, line2, tolerance=1e-6):
+    """
+    Check if two Geom.LineSegment objects are contiguous.
+
+    :param line1: First Geom.LineSegment
+    :param line2: Second Geom.LineSegment
+    :param tolerance: Maximum distance to consider as contiguous
+    :return: True if the lines are contiguous, False otherwise
+    """
+    # Get the start and end points of the first line
+    start1 = line1.StartPoint
+    end1 = line1.EndPoint
+    
+    # Get the start and end points of the second line
+    start2 = line2.StartPoint
+    end2 = line2.EndPoint
+    
+    # Check if any endpoint of one line matches the endpoint of the other line
+    if (start1.distanceToPoint(start2) <= tolerance or
+        start1.distanceToPoint(end2) <= tolerance or
+        end1.distanceToPoint(start2) <= tolerance or
+        end1.distanceToPoint(end2) <= tolerance):
+        return True
+    
+    return False
+
+
 def angle_between_lines(v1, v2, v3):
     """
     Calculate the angle between the line from v1 to v2 and the line from v2 to v3.

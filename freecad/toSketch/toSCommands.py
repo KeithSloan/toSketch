@@ -945,6 +945,7 @@ class toCurveFitFeature :
                 # Last Start should be EndPoint of previous Line
                 self.LastStart = g.StartPoint
                 self.LastPoint = g.EndPoint
+                print(f"Last Point {self.LastPoint}")
                 self.vectors.append(g.EndPoint)
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
@@ -1028,12 +1029,44 @@ class toLineCurveFitFeature :
                self.processGeometry(newSketch, sel.Geometry)
                newSketch.recompute()
 
-    def insertLines(self, newSketch, lenPb, pointBuffer):
-        print(pointBuffer)
+    #def insertLines(self, newSketch, lenPb, pointBuffer):
+    #      print(pointBuffer)
         
-        print(f'Insert Lines {lenPb}')
-        for i in pointBuffer:
-             newSketch.addGeometry(Part.LineSegment(i))
+    #    print(f'Insert Lines {lenPb}')
+    #    for i in pointBuffer:
+    #         newSketch.addGeometry(Part.LineSegment(i))
+
+    # Function to test if two GeomLineSegments are contiguous
+    def are_contiguous(self, startPoint, endPoint, tolerance=1e-6):
+        """
+        Check if two Geom.LineSegment objects are contiguous.
+
+        :param line1: First Geom.LineSegment
+        :param line2: Second Geom.LineSegment
+        :param tolerance: Maximum distance to consider as contiguous
+        :return: True if the lines are contiguous, False otherwise
+        """
+    
+        # Check if any endpoint of one line matches the endpoint of the other line
+        print(f"Are_contig? start {startPoint} end {endPoint}")
+        print(f"LastStart {self.LastStart} LastPoint {self.LastPoint}")
+        if  self.LastPoint.distanceToPoint(startPoint) <= tolerance:
+            print(f"LastPoint = nextstart")
+            return 1, self.LastStart, endPoint
+
+        if  self.LastStart.distanceToPoint(endPoint) <= tolerance:
+            # need to swap ??
+            return 1, startPoint, endPoint
+
+        if  self.LastStart.distanceToPoint(startPoint) <= tolerance:
+            # need to swap ??
+            return 1, endPoint, startPoint
+
+        if  self.LastPoint.distanceToPoint(endPoint) <= tolerance:
+            # need to swap ??
+            return 1, endPoint, startPoint
+
+        return 0, self.LastStart, self.LastPoint
 
     def processGeometry(self, newSketch, geom, angle=15.0):
         # UPDATE FOR CURVE ONLY
@@ -1045,37 +1078,56 @@ class toLineCurveFitFeature :
         self.vectors = []
         self.LastPoint = None
         newLine = True
+        flushLine = False
         tolerance=1e-6
-        print(f"Angle {angle}")
+        #print(f"Angle {angle}")
         angleRadians = math.radians(angle)
+        #geom.sort()
         for g in geom:
             if g.TypeId == 'Part::GeomLineSegment':
-                #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
+                print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
                 if newLine == True:
                     self.vectors.append(g.StartPoint)
                     self.LastStart = g.StartPoint
+                    self.LastPoint = g.EndPoint
                     newLine = False
+                    flushLine = True
                 else:
-                    if (g.StartPoint-self.LastPoint).Length >= tolerance:
+                    contig, newStart, newEnd = self.are_contiguous(
+                        g.StartPoint,
+                        g.EndPoint
+                        )
+                    print(f"Are Contig Results : {contig} newLastStart {newStart} newLastPoint {newEnd}")
+                    if contig == 0:
+                        print(f"Not contigous")
                         print(f"StartPoint != LastPoint StartPoint {g.StartPoint} LastPoint {self.LastPoint}")
-
-                        print(f" Length {(g.StartPoint-self.LastPoint).Length}")
                         self.processVectorPoints()
                         #self.vectors.append(g.StartPoint)
                         self.vectors = []
                         newLine = True
 
-                    #if self.angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint) >= angleRadians:
-                    #    print(f" Large change of angle")
-                    #    self.processVectorPoints()
-                    #    #self.vectors.append(g.StartPoint)
-                    #    newLine = True
-
-                # Last Start should be EndPoint of previous Line
-                self.LastStart = g.StartPoint
-
-                self.LastPoint = g.EndPoint
-                self.vectors.append(g.EndPoint)
+                    angle = angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint)
+                    print(f"Angle {angle}")
+                    if angle > 0.005 and angle < 3.13 :
+                        if flushLine == True:
+                            print(f"\n\nFlush line {self.LastStart} {self.LastPoint}")
+                            self.newSketch.addGeometry(
+                                Part.LineSegment(
+                                    self.LastStart,
+                                    self.LastPoint
+                                    )
+                                )
+                            self.vectors = []
+                            self.vectors.append(self.LastPoint)
+                            flushLine = False
+                        # No - Straight Line no change Last Start or End
+                        # Last Start should be EndPoint of previous Line
+                        self.LastStart = self.LastPoint
+                        self.LastPoint = g.EndPoint
+                        self.vectors.append(g.EndPoint)
+                    else:    
+                        self.LastStart = newStart
+                        self.LastPoint = newEnd
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
                 print(f"Part::GeomArcOfCircle")
@@ -1088,17 +1140,25 @@ class toLineCurveFitFeature :
             else:
                 print(f"TypeId {g.TypeId}")
 
-        print(f" FlushVectorPoints")
+        print(f" End Flush Vector Points")
         self.processVectorPoints()
 
     def processVectorPoints(self):
         print(f" processVectorPoints {len(self.vectors)}")
-        #points = self.vectors_to_2d_array(self.vectors)
-        points = vectors_to_numpy(self.vectors)
-        #bSplines = self.fit_bspline(points)
-        bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
-        if len(bSplines) > 0:
-            self.newSketch.addGeometry(bSplines)
+        if len(self.vectors) < 4:
+            print(f"Vectors {self.vectors}")
+            for v in self.vectors:
+                self.newSketch.addGeometry(
+                                Part.LineSegment(self.LastStart, v)
+                                )
+                self.LastStart = v
+        else:        
+            #points = self.vectors_to_2d_array(self.vectors)
+            points = vectors_to_numpy(self.vectors)
+            #bSplines = self.fit_bspline(points)
+            bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
+            if len(bSplines) > 0:
+                self.newSketch.addGeometry(bSplines)
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
