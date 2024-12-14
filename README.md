@@ -74,7 +74,7 @@ Constraints
 
 ### toLineCurve  ( Alpha - Under Development )
 
-Select a Sketch and click on toLineCurve will create a new sketch
+Select a Sketch and click on toLineCurve will create a new sketch.
 Where lines are within 0.012 radians or 3.14 - 0.12 radians
 they are combined into one line.
 
