@@ -119,6 +119,7 @@ def create_line_segments_from_vectors(vector_list):
     Returns:
        list of Part.GeomLineSegment: List of n-1 line segments.
     """
+    import FreeCAD, Part
     if len(vector_list) < 2:
        raise ValueError("The list must contain at least two vectors to create line segments.")
 
