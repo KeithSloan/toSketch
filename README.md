@@ -23,20 +23,21 @@ Clone into FreeCAD's Mod directory see https://wiki.freecadweb.org/Installing_mo
 
 ## Use
 
-### Face to Sketch : to Sketch
+### Face to Sketch : toSketch
 
 * Select a single planar Face
 * Click on toSketch Icon - Should create a new sketch from the selected Face
 
-### Create Plane : to Plane
+### Create Plane : toPlane
 
 * Select the toPlane Icon to create a Plane
-* Edit properties to adjust Plane
+* Edit properties to adjust Plane i.e Axis XY, XZ, YZ, Offset
 
-### Section Plane to Sketch : to Sketch
+### Section Plane to Sketch : toSketch
 
 * Select Plane in treeView
-* Click on toSketch Icon - Should create a section of the Plane and other objects
+* Select Objects
+* Click on toSketch Icon - Should create a section of the Plane and the selected Object or Objects
                            that is then opened as a new sketch
 
 ### Remove Outer Box
@@ -71,8 +72,41 @@ Constraints
          * Vertical
          * Horizontal
 
+### toLineCurve  ( Alpha - Under Development )
 
-### Section a Mesh Cross Section : to CurveFit ( Alpha - Under Development )
+Select a Sketch and click on toLineCurve will create a new sketch
+Where lines are within 0.012 radians or 3.14 - 0.12 radians
+they are combined into one line.
+
+Otherwise if there at least three lines a BSpline curve is fitted.
+
+If there is less than four lines, they are transferred to the new sketch.
+
+note: Currently the items in the sketch must be in order, which should be
+the case with the toSketch command
+
+### toCurveFit  ( Alpha - Under Development )
+
+Select a sketch and click on toCurveFit will fit a BSpline to all the Straight line points.
+
+You can control where new BSpline curves start as follows.
+
+First review the target sketch and decide where new curves should start.
+With an unconstrained sketch add single points near where new curves should start.
+Add a conincident constrant for the where the new curve should start and the added single point.
+The order should be to select a point on one of the existing lines, then click on the single point.
+Otherwise the line will move.
+
+Then when invoking the toCurveFit a panel will open, select 'Break at Coincident Constraints'
+
+### Note the curvefitting is performed by 
+
+Creating a Part.BSplineCurve with s number of control points as the number of line ending.
+Need to find a way of fitting with a minimum of control points
+
+### Section a Mesh Cross Section : to CurveFit - not in current code but saved
+Need to look at possiblity of determining minimum number of control points
+
 
 Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
 
@@ -97,6 +131,7 @@ Requires NURBS-Python ( geomdl ) see https://nurbs-python.readthedocs.io/en/5.x/
 
         Creates a Raw Sketch
 
+
     * Select Created Sketch, click on 'To CurveFit' icon
 
         Creates a Sketch with some line and Curve Fitting
@@ -107,6 +142,18 @@ Note: Ideally constraints should be set on a geometric basis, however there is a
       the option to fix all points with the installable Macro SketcherFixAllPoints.FCMacro
       see Addon Manager for installation.
 
+### toPlane to PartPlane
+
+Creates a new PartPlane from a toPlane
+
+### Section | Wire to sketch
+
+Under development
+
+### BSpline to Arc
+
+For future development
+Test each BSpline in a sketch and if the curve would fit an arc of a circle, replace BSpline with Arc of Circe.
 
 ## The following are intended to help with Objects created via import of STEP files
 
