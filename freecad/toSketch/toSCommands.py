@@ -44,8 +44,12 @@ class section2SketchFeature:
         #   for obj in FreeCADGui.Selection.getSelection():
         selectEx = FreeCADGui.Selection.getSelectionEx()
         for sel in selectEx :
-            print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
-            shapes2Sketch(sel.Object.Shape, sel.ObjectName+"Sketch")
+            print(f"Selected-Ex {sel.ObjectName} {sel.Object.TypeId}")
+            if sel.Object.TypeId == "Mesh::Feature":
+                shapes2Sketch(sel.Object.Mesh, sel.ObjectName+"Sketch")
+            else:
+                if hasattr(sel.Object, "Shape"):
+                    shapes2Sketch(sel.Object.Shape, sel.ObjectName+"Sketch")
 
 
    def IsActive(self):
@@ -141,7 +145,7 @@ class toSketchFeature:
                 obj = sel.Object
                 if obj.TypeId not in excludeTypeIds:
                     if obj.TypeId == 'Part::FeaturePython':
-                        if obj.Label[:5] != 'Plane':
+                        if obj.Label[:7] != 'toPlane':
                             objs.append(obj)
                     else:
                        objs.append(obj)
@@ -203,7 +207,7 @@ class toSketchFeature:
                dVector = nVector.multiply(nVector.dot(pVector))
                sketch.Placement.move(dVector)
             elif sel.TypeId == 'Part::FeaturePython' and \
-               sel.Label[:5] == 'Plane' :
+               sel.Label[:7] == 'toPlane' :
                print(f"Part FeaturePython Plane")
                sketch = self.actionSectionDialog(sel.Shape, objs)
             elif sel.TypeId == 'Part::Plane' :
@@ -738,25 +742,43 @@ class lineBuffer :
             self.buffer = []
 
 
-class BreakAngleDialog(QtWidgets.QDialog):
+class toLineCurveDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        super(BreakAngleDialog, self).__init__(parent)
+        super(toLineCurveDialog, self).__init__(parent)
+        from PySide2.QtWidgets import QRadioButton
 
         # Set dialog title
         self.setWindowTitle("Parameters")
 
+        # Create layout 2
+        layout = QtWidgets.QVBoxLayout()
+
         # Create layout
-        layout = QtWidgets.QHBoxLayout()
+        #layout2 = QtWidgets.QHBoxLayout()
 
         # Create label
-        self.label = QtWidgets.QLabel("Break Angle in Degrees")
-        layout.addWidget(self.label)
+        #self.label = QtWidgets.QLabel("Break Angle in Degrees")
+        #layout2.addWidget(self.label)
 
         # Create text input
-        self.text_edit = QtWidgets.QLineEdit()
+        #self.text_edit = QtWidgets.QLineEdit()
         #self.text_edit.setPlaceholderText("Enter Angle")
-        self.text_edit.setText("15")
-        layout.addWidget(self.text_edit)
+        #self.text_edit.setText("15")
+        #layout2.addWidget(self.text_edit)
+
+        #layout.addLayout(layout2)
+
+        # Create layout 3
+        layout3 = QtWidgets.QHBoxLayout()
+
+        # Create label
+        #self.label = QtWidgets.QLabel("Break at Coincident Constraints")
+        #layout3.addWidget(self.label)
+
+        #self.Coincident = QtWidgets.QRadioButton("Break at Coincident Constraints", Null)
+        self.use_coincidents = QRadioButton("Break at Coincident Constraints")
+        layout3.addWidget(self.use_coincidents)
+        layout.addLayout(layout3)
 
         # Add buttons (optional)
         self.button_box = QtWidgets.QDialogButtonBox(
@@ -779,18 +801,27 @@ class BreakAngleDialog(QtWidgets.QDialog):
         except ValueError:
             return None
 
+    def get_use_coincidents(self):
+        """Retrieve the coincidents radio button."""
+        try:
+            return self.use_coincidents.isChecked()
+
+        except ValueError:
+            return None
+
 
 class toCurveFitFeature :
     
     def Activated(self) :
-        dialog = BreakAngleDialog()
+        dialog = toLineCurveDialog()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            angle = dialog.get_angle()
-            if angle is not None:
-                print(f"Break Angle: {angle} degrees")
-            else:
-                print("Invalid input: Angle set to 15")
-                angle = 15
+            #angle = dialog.get_angle()
+            #if angle is not None:
+            #    print(f"Break Angle: {angle} degrees")
+            #else:
+            #    print("Invalid input: Angle set to 15")
+            angle = 15
+            useCoincidents = dialog.get_use_coincidents()
         else:
             print("Dialog canceled.")
             angle = 15
@@ -802,66 +833,32 @@ class toCurveFitFeature :
                 self.newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted_"+sel.Name)
                 self.newSketch.Placement = sel.Placement
-                if self.findGeomBreakPoints(sel) > 0:
-                    bp = self.breakPoints
-                    # process ranges
-                    for r in range(0,len(bp)-1):
-                        print(f"r {r}")
-                        self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
-                    print(f" process geometry {bp[0]} to {bp[1]}")
-                    print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
-                    #g = geometry[bp[-1]:]+geometry[:bp[0]]
-                    g = geometry[bp[-1]-1:]+geometry[:bp[0]]
-                    self.processGeometry(g, angle)
-                    #self.processGeometry(geometry[bp[0]:bp[1]], angle)
-                    #self.debugSketch(geometry[bp[0]:bp[1]], "debug_0-1")
-                    #self.debugSketch(geometry[:bp[-1]]+geometry[:bp[0]], "debug_r1-0")
-                    #self.debugSketch(geometry[:bp[0]], "debug_first")
-                    #self.debugSketch(geometry[bp[0]:bp[1]], "debug_second")
-                    #self.debugSketch(geometry[bp[1]:], "debug_third")
-                    #g = geometry[bp[0]:bp[1]]+geometry[bp[1]:]
-                    #self.debugSketch(g, "debug 2 & 3")
-                    #g = geometry[:bp[0]]+geometry[bp[-1]:]
-                    #g = geometry[bp[-1]:]+geometry[:bp[0]]
-                    #self.debugSketch(g,"debug first+last")
-
-                # process rest of buffer and start till 1st break
-                #    self.processGeometry(geometry[bp[-1]:]+geometry[:bp[0]], angle)
-
-                else:    #process whole geometry
+                if useCoincidents == True:
+                    self.processWithBreakPoints(sel, angle)
+                else:
                     self.processGeometry(geometry, angle)
 
-               #self.newSketch.recompute()
 
+    def processWithBreakPoints(self, sketch, angle):
+        # break points not really use angle but maybe whole of geometry
+        geometry = sketch.Geometry
+        if self.findGeomBreakPoints(sketch) > 0:
+            bp = self.breakPoints
+            # process ranges
+            for r in range(0,len(bp)-1):
+                print(f"r {r}")
+                self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
+                print(f" process geometry {bp[0]} to {bp[1]}")
+                print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
+                #g = geometry[bp[-1]:]+geometry[:bp[0]]
+                g = geometry[bp[-1]-1:]+geometry[:bp[0]]
+                self.processGeometry(g, angle)
 
-    def debugSketch(self, geometry, name="Debug"):
-        sketchDbg = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", name)
-        sketchDbg.Geometry = geometry
-        print(f" {name} length {len(geometry)}")
-
-
-    def processCurveBuffer(self, pointBuffer):
-        from geomdl import fitting
-        lenPB = len(pointBuffer)
-        print(f'Process Curve Buffer {lenPB}')
-        # Buffer may not contain enough points for curve
-        if lenPB < 3:
-            self.insertLines(lenPB, pointBuffer)
-        else:
-            self.curveFit(lenPB, pointBuffer)
-
-
-    def insertLines(self, lenPb, pointBuffer):
-        print(pointBuffer)
-
-        print(f'Insert Lines {lenPb}')
-        for i in pointBuffer:
-             self.newSketch.addGeometry(Part.LineSegment(i))
-
-    #def angle_between_lines(self, v1, v2, v3):
+        else:  # process whole geometry
+            self.processGeometry(geometry, angle)
 
     def findGeomBreakPoints(self, sketch):
-
+        
         self.breakPoints = []
         #self.newSketch.Constraints = sketch.Constraints
         # Does not work as geometry will be different
@@ -869,7 +866,7 @@ class toCurveFitFeature :
         for i, constraint in enumerate(sketch.Constraints):
             if constraint.Type == 'Coincident':
                 print(f"Coincident Constraint {i}:")
-
+                
             # Indices of the geometry involved
             geom1_index = constraint.First
             geom2_index = constraint.Second
@@ -907,6 +904,31 @@ class toCurveFitFeature :
         self.breakPoints.sort()
         print(f" Sorted BreakPoints {self.breakPoints}")
         return len(self.breakPoints)
+
+
+    def debugSketch(self, geometry, name="Debug"):
+        sketchDbg = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", name)
+        sketchDbg.Geometry = geometry
+        print(f" {name} length {len(geometry)}")
+
+
+    def processCurveBuffer(self, pointBuffer):
+        from geomdl import fitting
+        lenPB = len(pointBuffer)
+        print(f'Process Curve Buffer {lenPB}')
+        # Buffer may not contain enough points for curve
+        if lenPB < 3:
+            self.insertLines(lenPB, pointBuffer)
+        else:
+            self.curveFit(lenPB, pointBuffer)
+
+
+    def insertLines(self, lenPb, pointBuffer):
+        print(pointBuffer)
+
+        print(f'Insert Lines {lenPb}')
+        for i in pointBuffer:
+             self.newSketch.addGeometry(Part.LineSegment(i))
 
 
     def processGeometry(self, geom, angle=15):
@@ -961,15 +983,23 @@ class toCurveFitFeature :
         print(f" FlushVectorPoints")
         self.processVectorPoints()
 
+
     def processVectorPoints(self):
         import numpy
         print(f" processVectorPoints {len(self.vectors)}")
-        #points = self.vectors_to_2d_array(self.vectors)
-        points = vectors_to_numpy(self.vectors)
-        #bSplines = self.fit_bspline(points)
-        bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
-        if len(bSplines) > 0:
-            self.newSketch.addGeometry(bSplines)
+        if len(self.vectors) > 3:
+            #points = self.vectors_to_2d_array(self.vectors)
+            points = vectors_to_numpy(self.vectors)
+            #bSplines = self.fit_bspline(points)
+            bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
+            if len(bSplines) > 0:
+                self.newSketch.addGeometry(bSplines)
+        else:
+            for v in self.vectors:
+                self.newSketch.addGeometry(
+                                Part.LineSegment(self.LastStart, v)
+                                )
+                self.LastStart = v
 
 
     def vectors_to_2d_array(self, vectors, plane="XY"):
@@ -1000,11 +1030,13 @@ class toCurveFitFeature :
 
         return array
 
+
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
            return False
         else:
            return True
+
 
     def GetResources(self):
         return {'Pixmap'  : 'toCurveFit', 'MenuText': \
@@ -1108,7 +1140,8 @@ class toLineCurveFitFeature :
 
                     angle = angle_between_lines(self.LastStart, g.StartPoint, g.EndPoint)
                     print(f"Angle {angle}")
-                    if angle > 0.005 and angle < 3.13 :
+                    delta = 0.012
+                    if angle > delta and angle < (3.142 - delta):
                         if flushLine == True:
                             print(f"\n\nFlush line {self.LastStart} {self.LastPoint}")
                             self.newSketch.addGeometry(
@@ -1416,19 +1449,19 @@ class toPlane2PartFeature :
             print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
             obj = sel.Object
             if obj.TypeId == 'Part::FeaturePython':
-                if obj.Label[:5] == 'Plane':
+                if obj.Label[:7] == 'toPlane':
                     print(f"Add Part Plane")
                     partPlane = FreeCAD.ActiveDocument.addObject("Part::Plane","PartPlane")
-                    print(partPlane.Placement)
-                    print(partPlane.Placement.Rotation)
-                    print(dir(partPlane.Placement))
+                    #print(partPlane.Placement)
+                    #print(partPlane.Placement.Rotation)
+                    #print(dir(partPlane.Placement))
                     partPlane.Placement.Rotation.Axis = [0.00, 1.00, 0.00]
                     partPlane.Placement.Rotation.Angle = 1.5708 # 90.0 degrees
                     partPlane.Placement.Base = [-50, 0, -50]
                     partPlane.Length = 100
                     partPlane.Width = 100
 
-                    print(dir(partPlane))
+                    #print(dir(partPlane))
 
 
 
@@ -1452,7 +1485,7 @@ class toSPlaneFeature :
         from .toSObjects import toSPlane, ViewProvider
 
         obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', \
-                   'Plane')
+                   'toPlane')
         toSPlane(obj)
         ViewProvider(obj.ViewObject)
         FreeCAD.ActiveDocument.recompute()
