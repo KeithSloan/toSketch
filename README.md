@@ -80,7 +80,7 @@ they are combined into one line.
 
 Otherwise if there at least three lines a BSpline curve is fitted.
 
-If there is less than four lines, they are transferred to the new sketch.
+If there is less than three lines, they are transferred to the new sketch.
 
 note: Currently the items in the sketch must be in order, which should be
 the case with the toSketch command
