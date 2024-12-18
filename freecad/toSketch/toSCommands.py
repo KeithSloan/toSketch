@@ -145,7 +145,7 @@ class toSketchFeature:
                 obj = sel.Object
                 if obj.TypeId not in excludeTypeIds:
                     if obj.TypeId == 'Part::FeaturePython':
-                        if obj.Label[:7] != 'toPlane':
+                        if obj.Label[:7] != 'toPlane' and obj.Label[:5] != 'Plane':
                             objs.append(obj)
                     else:
                        objs.append(obj)
@@ -207,7 +207,8 @@ class toSketchFeature:
                dVector = nVector.multiply(nVector.dot(pVector))
                sketch.Placement.move(dVector)
             elif sel.TypeId == 'Part::FeaturePython' and \
-               sel.Label[:7] == 'toPlane' :
+                    (sel.Label[:7] == 'toPlane' or \
+                    sel.Label[:5] == "Plane"):
                print(f"Part FeaturePython Plane")
                sketch = self.actionSectionDialog(sel.Shape, objs)
             elif sel.TypeId == 'Part::Plane' :
@@ -846,13 +847,15 @@ class toCurveFitFeature :
             bp = self.breakPoints
             # process ranges
             for r in range(0,len(bp)-1):
+            #for r in range(0, 1):
                 print(f"r {r}")
-                self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
-                print(f" process geometry {bp[0]} to {bp[1]}")
+                print(f" process geometry {bp[r]} to {bp[r+1]}")
                 print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
+                self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
                 #g = geometry[bp[-1]:]+geometry[:bp[0]]
-                g = geometry[bp[-1]-1:]+geometry[:bp[0]]
-                self.processGeometry(g, angle)
+
+                #g = geometry[bp[-1]-1:]+geometry[:bp[0]]
+                #self.processGeometry(g, angle)
 
         else:  # process whole geometry
             self.processGeometry(geometry, angle)
@@ -937,6 +940,7 @@ class toCurveFitFeature :
         import numpy as np
         import Draft
         # Initialize an empty NumPy array
+        print(f"Process Geometry len {len(geom)}")
         self.vectors = []
         self.LastPoint = None
         newLine = True
@@ -967,7 +971,7 @@ class toCurveFitFeature :
                 # Last Start should be EndPoint of previous Line
                 self.LastStart = g.StartPoint
                 self.LastPoint = g.EndPoint
-                print(f"Last Point {self.LastPoint}")
+                #print(f"Last Point {self.LastPoint}")
                 self.vectors.append(g.EndPoint)
 
             elif g.TypeId == 'Part::GeomArcOfCircle':
@@ -987,11 +991,20 @@ class toCurveFitFeature :
     def processVectorPoints(self):
         import numpy
         print(f" processVectorPoints {len(self.vectors)}")
+        for v in self.vectors:
+            print(v)
         if len(self.vectors) > 3:
             #points = self.vectors_to_2d_array(self.vectors)
             points = vectors_to_numpy(self.vectors)
             #bSplines = self.fit_bspline(points)
-            bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
+            print(f"First three Points")
+            print(f"{points[0]} {points[1]} {points[2]}")
+            print(f"Last three Points")
+            print(f"{points[-1]} {points[-2]} {points[-3]}")
+            bSplines = fit_bspline_to_geom(points,
+                    tolerance=1e-4,
+                     max_error=0.5
+                     )
             if len(bSplines) > 0:
                 self.newSketch.addGeometry(bSplines)
         else:
@@ -1449,7 +1462,7 @@ class toPlane2PartFeature :
             print(f"Selected-Ex {sel.ObjectName} {sel.TypeId}")
             obj = sel.Object
             if obj.TypeId == 'Part::FeaturePython':
-                if obj.Label[:7] == 'toPlane':
+                if obj.Label[:7] == 'toPlane' or obj.Label[:5] == 'Plane':
                     print(f"Add Part Plane")
                     partPlane = FreeCAD.ActiveDocument.addObject("Part::Plane","PartPlane")
                     #print(partPlane.Placement)

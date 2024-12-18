@@ -135,7 +135,7 @@ def create_line_segments_from_vectors(vector_list):
 
     return line_segments
 
-def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
+def fit_bspline_to_geom(points, tolerance, max_error):
     """
     Fit a set of points to one or more FreeCAD Part::GeomBSplineCurve dynamically.
 
@@ -155,12 +155,12 @@ def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
     current_start = 0
 
     print(f"fit bspline to geom : points {len(points)}")
+    # Remove duplicates and validate points
+    points = remove_duplicates(points)
     while current_start < n_points:
         # Try fitting a curve to all remaining points
         remaining_points = points[current_start:]
 
-        # Remove duplicates and validate points
-        remaining_points = remove_duplicates(remaining_points)
         if len(remaining_points) < 4:
             #raise ValueError("Not enough points to fit a B-spline.")
             print(f"Not enough points to fit a B-spline.")
@@ -168,7 +168,17 @@ def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
 
         # Fit a B-spline using FreeCAD's Part.BSplineCurve
         spline = Part.BSplineCurve()
-        spline.interpolate(remaining_points.tolist())
+        #spline.interpolate(remaining_points.tolist())
+        spline.approximate(Points = remaining_points.tolist(), 
+            DegMin=3,
+            DegMax=5,       # DegMax=8
+            Tolerance = 1e-4,
+            ParamType="Centripetal",
+            #Continuity = 'C2',
+            #LengthWeight =
+            #CurvatureWeight =
+            #TorsiorWeight
+            )
 
         # Convert spline to a shape for distance calculations
         spline_shape = spline.toShape()
@@ -182,11 +192,13 @@ def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
         mean_error = np.mean(errors)
 
         if mean_error > max_error:
+            print(f"Mean Error {mean_error} > Max Error {max_error}") 
             # Split and retry if error exceeds max_error
             split_index = len(remaining_points) // 2
             segment = remaining_points[:split_index]
             spline_segment = Part.BSplineCurve()
-            spline_segment.interpolate(segment.tolist())
+            #spline_segment.interpolate(segment.tolist())
+            spline_segment.approximate(Points = segment.tolist(), DegMin=3)
             curves.append(spline_segment)
 
             current_start += split_index
@@ -197,7 +209,7 @@ def fit_bspline_to_geom(points, num_points_per_curve=100, max_error=1e-3):
 
     return curves
 
-def fit_bspline(points, num_points_per_curve=100, max_error=1e-3):
+def scripy_fit_bspline(points, num_points_per_curve=100, max_error=1e-3):
     """
     Fit a set of points to one or more B-spline curves dynamically.
 
