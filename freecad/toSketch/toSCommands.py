@@ -743,42 +743,41 @@ class lineBuffer :
             self.buffer = []
 
 
-class toLineCurveDialog(QtWidgets.QDialog):
+class toCurveDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        super(toLineCurveDialog, self).__init__(parent)
+        super(toCurveDialog, self).__init__(parent)
         from PySide2.QtWidgets import QRadioButton
 
         # Set dialog title
         self.setWindowTitle("Parameters")
 
-        # Create layout 2
+        # Create layout
         layout = QtWidgets.QVBoxLayout()
 
-        # Create layout
-        #layout2 = QtWidgets.QHBoxLayout()
-
-        # Create label
-        #self.label = QtWidgets.QLabel("Break Angle in Degrees")
-        #layout2.addWidget(self.label)
-
-        # Create text input
-        #self.text_edit = QtWidgets.QLineEdit()
-        #self.text_edit.setPlaceholderText("Enter Angle")
-        #self.text_edit.setText("15")
-        #layout2.addWidget(self.text_edit)
-
-        #layout.addLayout(layout2)
-
-        # Create layout 3
-        layout3 = QtWidgets.QHBoxLayout()
+        # Create layout 2
+        layout2 = QtWidgets.QHBoxLayout()
 
         # Create label
         #self.label = QtWidgets.QLabel("Break at Coincident Constraints")
-        #layout3.addWidget(self.label)
-
-        #self.Coincident = QtWidgets.QRadioButton("Break at Coincident Constraints", Null)
+        #layout2.addWidget(self.label)
         self.use_coincidents = QRadioButton("Break at Coincident Constraints")
-        layout3.addWidget(self.use_coincidents)
+        layout2.addWidget(self.use_coincidents)
+        layout.addLayout(layout2)
+
+        # Create layout
+        layout3 = QtWidgets.QHBoxLayout()
+
+        # Create label
+        self.useFraction = QRadioButton("Process start end & fraction of lines")
+        layout3.addWidget(self.useFraction)
+
+        # Create Percentage ComboBox
+        self.percentage = QtWidgets.QComboBox()
+        self.percentage.setPlaceholderText("Percentage")
+        percentageList = [f"{i}%" for i in range(0, 105, 5)]
+        self.percentage.addItems(percentageList)
+        self.percentage.setCurrentIndex(8)
+        layout3.addWidget(self.percentage)
         layout.addLayout(layout3)
 
         # Add buttons (optional)
@@ -814,18 +813,13 @@ class toLineCurveDialog(QtWidgets.QDialog):
 class toCurveFitFeature :
     
     def Activated(self) :
-        dialog = toLineCurveDialog()
+        dialog = toCurveDialog()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            #angle = dialog.get_angle()
-            #if angle is not None:
-            #    print(f"Break Angle: {angle} degrees")
-            #else:
-            #    print("Invalid input: Angle set to 15")
-            angle = 15
             useCoincidents = dialog.get_use_coincidents()
         else:
             print("Dialog canceled.")
-            angle = 15
+            useCoincidents = False
+        angle = 15      # Not current used - Update code?    
         for sel in FreeCADGui.Selection.getSelection() :
             print('toCurveFit')
             print(sel.TypeId)
