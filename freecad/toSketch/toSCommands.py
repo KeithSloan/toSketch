@@ -754,6 +754,7 @@ class toCurveDialog(QtWidgets.QDialog):
         # Create layout
         layout = QtWidgets.QVBoxLayout()
 
+        # Break Coincident Constraints
         # Create layout 2
         layout2 = QtWidgets.QHBoxLayout()
 
@@ -764,6 +765,7 @@ class toCurveDialog(QtWidgets.QDialog):
         layout2.addWidget(self.use_coincidents)
         layout.addLayout(layout2)
 
+        # Process Fraction
         # Create layout
         layout3 = QtWidgets.QHBoxLayout()
 
@@ -780,13 +782,20 @@ class toCurveDialog(QtWidgets.QDialog):
         layout3.addWidget(self.percentBox)
         layout.addLayout(layout3)
 
+        # BSpline Method
         layout4 = QtWidgets.QHBoxLayout()
-        
+
         # Create label
-        self.bsplineMethod = QCheckBox("BSpline fitting method")
+        self.label = QtWidgets.QLabel("      BSpline fitting method")
+        layout4.addWidget(self.label)
+        # Create ComboBox
+        self.bsplineMethod = QtWidgets.QComboBox()
+        #self.bsplineMethod.setPlaceholderText("BSpline fitting method")
+        optionsList = ["PartBSpline","Scipy","Geomdl"]
+        self.bsplineMethod.addItems(optionsList)
+        self.bsplineMethod.setCurrentIndex(0)
         layout4.addWidget(self.bsplineMethod)
-
-
+        layout.addLayout(layout4)
 
         # Add buttons (optional)
         self.button_box = QtWidgets.QDialogButtonBox(
@@ -848,6 +857,15 @@ class toCurveDialog(QtWidgets.QDialog):
             useFract = self.useFraction.isChecked()
             print(f"UseFraction {useFract}")
             return useFract
+
+        except ValueError:
+            return None
+
+    def get_bspline_method_setting(self):
+        try:
+            bsplineMethod = self.bsplineMethod.text()
+            print(f"BSpline Method  {bsplineMethod}")
+            return bsplineMethod
 
         except ValueError:
             return None
