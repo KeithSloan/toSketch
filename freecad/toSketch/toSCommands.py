@@ -35,7 +35,7 @@ from PySide import QtGui, QtCore
 from PySide2 import QtWidgets
 
 # Used by toSketch - for Section to Sketch
-from .toSharedFunc import shapes2Sketch, angle_between_lines, vectors_to_numpy, fit_bspline_to_geom
+from .toSharedFunc import shapes2Sketch, angle_between_lines, vectors_to_numpy, fit_bspline_to_geom, reduce_list_by_percentage
 
 
 class section2SketchFeature:
@@ -746,7 +746,7 @@ class lineBuffer :
 class toCurveDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(toCurveDialog, self).__init__(parent)
-        from PySide2.QtWidgets import QRadioButton
+        from PySide2.QtWidgets import QCheckBox
 
         # Set dialog title
         self.setWindowTitle("Parameters")
@@ -760,7 +760,7 @@ class toCurveDialog(QtWidgets.QDialog):
         # Create label
         #self.label = QtWidgets.QLabel("Break at Coincident Constraints")
         #layout2.addWidget(self.label)
-        self.use_coincidents = QRadioButton("Break at Coincident Constraints")
+        self.use_coincidents = QCheckBox("Break at Coincident Constraints")
         layout2.addWidget(self.use_coincidents)
         layout.addLayout(layout2)
 
@@ -768,17 +768,25 @@ class toCurveDialog(QtWidgets.QDialog):
         layout3 = QtWidgets.QHBoxLayout()
 
         # Create label
-        self.useFraction = QRadioButton("Process start end & fraction of lines")
+        self.useFraction = QCheckBox("Process start end plus fraction of lines")
         layout3.addWidget(self.useFraction)
 
         # Create Percentage ComboBox
-        self.percentage = QtWidgets.QComboBox()
-        self.percentage.setPlaceholderText("Percentage")
+        self.percentBox = QtWidgets.QComboBox()
+        self.percentBox.setPlaceholderText("Percentage")
         percentageList = [f"{i}%" for i in range(0, 105, 5)]
-        self.percentage.addItems(percentageList)
-        self.percentage.setCurrentIndex(8)
-        layout3.addWidget(self.percentage)
+        self.percentBox.addItems(percentageList)
+        self.percentBox.setCurrentIndex(8)
+        layout3.addWidget(self.percentBox)
         layout.addLayout(layout3)
+
+        layout4 = QtWidgets.QHBoxLayout()
+        
+        # Create label
+        self.bsplineMethod = QCheckBox("BSpline fitting method")
+        layout4.addWidget(self.bsplineMethod)
+
+
 
         # Add buttons (optional)
         self.button_box = QtWidgets.QDialogButtonBox(
@@ -809,17 +817,59 @@ class toCurveDialog(QtWidgets.QDialog):
         except ValueError:
             return None
 
+    def get_fraction_settings(self):
+        print(f"get fraction settings")
+        try:
+            percent = float(self.percentBox.currentText())
+            print(f"percentage {percent}")
+            useFract = self.useFraction.isChecked()
+            print(f"UseFraction {useFract}")
+            # return tuple
+            #return self.useFraction.isChecked(), float(self.percentage.currentText())
+            return useFract, percent
+
+        except ValueError:
+            return None
+
+    def get_fraction_percentage(self):
+        print(f"get fraction percentage")
+        try:
+            print(f"percentage {self.percentBox.currentText()}")
+            percentText = self.percentBox.currentText()
+            print(f"percentage {percentText}")
+            print(f"percentage {percentText[:-1]}")
+            return float(percentText[:-1])/ 100
+
+        except ValueError:
+            return None
+
+    def get_useFract_setting(self):
+        try:
+            useFract = self.useFraction.isChecked()
+            print(f"UseFraction {useFract}")
+            return useFract
+
+        except ValueError:
+            return None
+
 
 class toCurveFitFeature :
     
     def Activated(self) :
         dialog = toCurveDialog()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            useCoincidents = dialog.get_use_coincidents()
+            self.useCoincidents = dialog.get_use_coincidents()
+            #self.useFraction, self.percentage = dialog.get_fraction_settings()
+            #print(f"Fraction Settings {fraction_settings}")
+            self.percentage = dialog.get_fraction_percentage()
+            print(f"Percentage {self.percentage}")
+            self.useFraction = dialog.get_useFract_setting()
         else:
             print("Dialog canceled.")
-            useCoincidents = False
-        angle = 15      # Not current used - Update code?    
+            self.useCoincidents = False
+            self.useFraction = False
+            self.percentage = 10
+        self.angle = 15      # Not current used - Update code?    
         for sel in FreeCADGui.Selection.getSelection() :
             print('toCurveFit')
             print(sel.TypeId)
@@ -828,13 +878,12 @@ class toCurveFitFeature :
                 self.newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted_"+sel.Name)
                 self.newSketch.Placement = sel.Placement
-                if useCoincidents == True:
-                    self.processWithBreakPoints(sel, angle)
+                if self.useCoincidents == True:
+                    self.processWithBreakPoints(sel)
                 else:
-                    self.processGeometry(geometry, angle)
+                    self.processGeometry(geometry)
 
-
-    def processWithBreakPoints(self, sketch, angle):
+    def processWithBreakPoints(self, sketch):
         # break points not really use angle but maybe whole of geometry
         geometry = sketch.Geometry
         if self.findGeomBreakPoints(sketch) > 0:
@@ -845,14 +894,15 @@ class toCurveFitFeature :
                 print(f"r {r}")
                 print(f" process geometry {bp[r]} to {bp[r+1]}")
                 print(f" len bp {len(bp)} bp {bp} bp[-1] {bp[-1]}")
-                self.processGeometry(geometry[bp[r]:bp[r+1]], angle)
+                self.processGeometry( geometry[bp[r]:bp[r+1]])
+
                 #g = geometry[bp[-1]:]+geometry[:bp[0]]
 
                 #g = geometry[bp[-1]-1:]+geometry[:bp[0]]
                 #self.processGeometry(g, angle)
 
         else:  # process whole geometry
-            self.processGeometry(geometry, angle)
+            self.processGeometry(geometry)
 
     def findGeomBreakPoints(self, sketch):
         
@@ -908,18 +958,6 @@ class toCurveFitFeature :
         sketchDbg.Geometry = geometry
         print(f" {name} length {len(geometry)}")
 
-
-    def processCurveBuffer(self, pointBuffer):
-        from geomdl import fitting
-        lenPB = len(pointBuffer)
-        print(f'Process Curve Buffer {lenPB}')
-        # Buffer may not contain enough points for curve
-        if lenPB < 3:
-            self.insertLines(lenPB, pointBuffer)
-        else:
-            self.curveFit(lenPB, pointBuffer)
-
-
     def insertLines(self, lenPb, pointBuffer):
         print(pointBuffer)
 
@@ -927,8 +965,7 @@ class toCurveFitFeature :
         for i in pointBuffer:
              self.newSketch.addGeometry(Part.LineSegment(i))
 
-
-    def processGeometry(self, geom, angle=15):
+    def processGeometry(self, geom):
         # UPDATE FOR CURVE ONLY
         import math
         import numpy as np
@@ -939,7 +976,7 @@ class toCurveFitFeature :
         self.LastPoint = None
         newLine = True
         tolerance=1e-6
-        angleRadians = math.radians(angle)
+        angleRadians = math.radians(self.angle)
         for g in geom:
             if g.TypeId == 'Part::GeomLineSegment':
                 #print(f'\t\tTypeId : {g.TypeId} Start {g.StartPoint} End {g.EndPoint}')
@@ -985,28 +1022,34 @@ class toCurveFitFeature :
     def processVectorPoints(self):
         import numpy
         print(f" processVectorPoints {len(self.vectors)}")
-        for v in self.vectors:
-            print(v)
+        #print(f"{self.vectors}")
+        #for v in self.vectors:
+        #    print(v)
         if len(self.vectors) > 3:
-            #points = self.vectors_to_2d_array(self.vectors)
-            points = vectors_to_numpy(self.vectors)
-            #bSplines = self.fit_bspline(points)
-            print(f"First three Points")
-            print(f"{points[0]} {points[1]} {points[2]}")
-            print(f"Last three Points")
-            print(f"{points[-1]} {points[-2]} {points[-3]}")
-            bSplines = fit_bspline_to_geom(points,
+            if self.useFraction == True:
+                reducedPoints = reduce_list_by_percentage(
+                    self.vectors,
+                    self.percentage
+                    )
+                print(f"Reduced list {len(reducedPoints)}")
+                points = vectors_to_numpy(reducedPoints)
+                #bSplines = self.fit_bspline(points)
+                #print(f"First three Points")
+                #print(f"{points[0]} {points[1]} {points[2]}")
+                #print(f"Last three Points")
+                #print(f"{points[-1]} {points[-2]} {points[-3]}")
+                bSplines = fit_bspline_to_geom(points,
                     tolerance=1e-4,
                      max_error=0.5
                      )
-            if len(bSplines) > 0:
-                self.newSketch.addGeometry(bSplines)
-        else:
-            for v in self.vectors:
-                self.newSketch.addGeometry(
+                if len(bSplines) > 0:
+                    self.newSketch.addGeometry(bSplines)
+            else:
+                for v in self.vectors:
+                    self.newSketch.addGeometry(
                                 Part.LineSegment(self.LastStart, v)
                                 )
-                self.LastStart = v
+                    self.LastStart = v
 
 
     def vectors_to_2d_array(self, vectors, plane="XY"):

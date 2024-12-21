@@ -1,4 +1,5 @@
 import Draft
+import math
 
 # Used by toSketch - for Section to Sketch
 def shapes2Sketch(shapes, name, auto=False) :
@@ -134,6 +135,33 @@ def create_line_segments_from_vectors(vector_list):
         line_segments.append(line_segment)
 
     return line_segments
+
+def reduce_list_by_percentage(lst, percentage):
+    """
+    Retain first and last items of list, reduce the rest the list by a given percentage.
+
+    Args:
+        lst (list): The original list to be reduced.
+        percentage (float): The percentage of the list to retain (e.g., 50 for 50%).
+
+    Note: There is no check on validity of percentage value, comes from ComboBox
+   
+   Returns:
+        list: A reduced list with first and last items and  specified percentage of intervening elements retained.
+
+    """
+    # list without first and last items
+    to_reduce = lst[1:-1]
+    
+    # Calculate the skip number to retain percentage of a list
+    skip = int(100 / percentage - 1)  # skip = 1 (every 2nd element retained)
+
+    # Select evenly spaced items from the list
+    #reduced_list = to_reduce[::skip]
+    reduced_list = to_reduce[::3]
+
+    # Prepend the skipped items back to the reduced list
+    return [lst[0]] + reduced_list + [lst[-1]]
 
 def fit_bspline_to_geom(points, tolerance, max_error):
     """
