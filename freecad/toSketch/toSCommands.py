@@ -863,7 +863,7 @@ class toCurveDialog(QtWidgets.QDialog):
 
     def get_bspline_method_setting(self):
         try:
-            bsplineMethod = self.bsplineMethod.text()
+            bsplineMethod = self.bsplineMethod.currentText()
             print(f"BSpline Method  {bsplineMethod}")
             return bsplineMethod
 
@@ -882,11 +882,14 @@ class toCurveFitFeature :
             self.percentage = dialog.get_fraction_percentage()
             print(f"Percentage {self.percentage}")
             self.useFraction = dialog.get_useFract_setting()
+            self.BSplineMethod = dialog.get_bspline_method_setting()
+            print(f"BSplineMethod {self.BSplineMethod}")
         else:
             print("Dialog canceled.")
             self.useCoincidents = False
             self.useFraction = False
             self.percentage = 10
+            self.BSplineMethod = "PartBSpline"
         self.angle = 15      # Not current used - Update code?    
         for sel in FreeCADGui.Selection.getSelection() :
             print('toCurveFit')
@@ -1056,10 +1059,12 @@ class toCurveFitFeature :
                 #print(f"{points[0]} {points[1]} {points[2]}")
                 #print(f"Last three Points")
                 #print(f"{points[-1]} {points[-2]} {points[-3]}")
-                bSplines = fit_bspline_to_geom(points,
+                bSplines = fit_bspline_to_geom(
+                    self.BSplineMethod,
+                    points,
                     tolerance=1e-4,
-                     max_error=0.5
-                     )
+                    max_error=0.5
+                    )
                 if len(bSplines) > 0:
                     self.newSketch.addGeometry(bSplines)
             else:
@@ -1257,7 +1262,15 @@ class toLineCurveFitFeature :
             #points = self.vectors_to_2d_array(self.vectors)
             points = vectors_to_numpy(self.vectors)
             #bSplines = self.fit_bspline(points)
-            bSplines = fit_bspline_to_geom(points, len(points), max_error=0.5)
+            #bSplines = fit_bspline_to_geom(
+            #    points,
+            #    len(points), max_error=0.5)
+            bSplines = fit_bspline_to_geom(
+                   self.BSplineMethod,
+                   points,
+                   tolerance=1e-4,
+                   max_error=0.5
+                   )
             if len(bSplines) > 0:
                 self.newSketch.addGeometry(bSplines)
 

@@ -163,7 +163,20 @@ def reduce_list_by_percentage(lst, percentage):
     # Prepend the skipped items back to the reduced list
     return [lst[0]] + reduced_list + [lst[-1]]
 
-def fit_bspline_to_geom(points, tolerance, max_error):
+def fit_bspline_to_geom(method, points, tolerance, max_error):
+    print(f"fit_bspline_to_geom method {method}")
+    if method == "PartBSpline":
+        curves = fit_bspline_to_geom_PartBSpline(points, tolerance, max_error)
+        return curves
+    elif method == "Scipy":
+        curves = fit_bspline_to_geom_scipy(points, tolerance, max_error)
+        return curves
+    elif method == "Geomdl":
+        curves = fit_bspline_to_geom_geomdl(points, tolerance, max_error)
+        return curves
+    print("Invalid Method")    
+
+def fit_bspline_to_geom_PartBSpline(points, tolerance, max_error):
     """
     Fit a set of points to one or more FreeCAD Part::GeomBSplineCurve dynamically.
 
@@ -237,6 +250,9 @@ def fit_bspline_to_geom(points, tolerance, max_error):
 
     return curves
 
+def fit_bspline_to_geom_scipy(points, tolerance, max_error):
+    print(f"fit_bspline_to_geom_scipy")
+
 def scripy_fit_bspline(points, num_points_per_curve=100, max_error=1e-3):
     """
     Fit a set of points to one or more B-spline curves dynamically.
@@ -285,3 +301,7 @@ def scripy_fit_bspline(points, num_points_per_curve=100, max_error=1e-3):
             break
 
     return curves
+
+def fit_bspline_to_geom_geomdl(points, tolerance, max_error):
+    print(f"fit_bspline_to_geom_geomdl")
+
