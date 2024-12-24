@@ -879,8 +879,8 @@ class toCurveFitFeature :
             self.useCoincidents = dialog.get_use_coincidents()
             #self.useFraction, self.percentage = dialog.get_fraction_settings()
             #print(f"Fraction Settings {fraction_settings}")
-            self.percentage = dialog.get_fraction_percentage()
-            print(f"Percentage {self.percentage}")
+            self.percent = dialog.get_fraction_percentage()
+            print(f"Percentage {self.percent}")
             self.useFraction = dialog.get_useFract_setting()
             self.BSplineMethod = dialog.get_bspline_method_setting()
             print(f"BSplineMethod {self.BSplineMethod}")
@@ -1050,7 +1050,7 @@ class toCurveFitFeature :
             if self.useFraction == True:
                 reducedPoints = reduce_list_by_percentage(
                     self.vectors,
-                    self.percentage
+                    self.percent
                     )
                 print(f"Reduced list {len(reducedPoints)}")
                 points = vectors_to_numpy(reducedPoints)
@@ -1059,20 +1059,24 @@ class toCurveFitFeature :
                 #print(f"{points[0]} {points[1]} {points[2]}")
                 #print(f"Last three Points")
                 #print(f"{points[-1]} {points[-2]} {points[-3]}")
-                bSplines = fit_bspline_to_geom(
-                    self.BSplineMethod,
-                    points,
-                    tolerance=1e-4,
-                    max_error=0.5
-                    )
-                if len(bSplines) > 0:
-                    self.newSketch.addGeometry(bSplines)
             else:
-                for v in self.vectors:
-                    self.newSketch.addGeometry(
-                                Part.LineSegment(self.LastStart, v)
-                                )
-                    self.LastStart = v
+                points = vectors_to_numpy(self.vectors)
+            # fit BSpline    
+            bSplines = fit_bspline_to_geom(
+                self.BSplineMethod,
+                points,
+                tolerance=1e-4,
+                max_error=0.5
+                )
+            if len(bSplines) > 0:
+                self.newSketch.addGeometry(bSplines)
+                    
+        else:
+            for v in self.vectors:
+                self.newSketch.addGeometry(
+                            Part.LineSegment(self.LastStart, v)
+                            )
+                self.LastStart = v
 
 
     def vectors_to_2d_array(self, vectors, plane="XY"):

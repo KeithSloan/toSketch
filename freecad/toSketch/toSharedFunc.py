@@ -1,4 +1,4 @@
-import Draft
+import FreeCAD, Draft, Part
 import math
 
 # Used by toSketch - for Section to Sketch
@@ -138,11 +138,11 @@ def create_line_segments_from_vectors(vector_list):
 
 def reduce_list_by_percentage(lst, percentage):
     """
-    Retain first and last items of list, reduce the rest the list by a given percentage.
+    Retain first and last items of list, reduce the rest the list by a given fraction.
 
     Args:
         lst (list): The original list to be reduced.
-        percentage (float): The percentage of the list to retain (e.g., 50 for 50%).
+        percentage (int): The percentagen
 
     Note: There is no check on validity of percentage value, comes from ComboBox
    
@@ -152,18 +152,25 @@ def reduce_list_by_percentage(lst, percentage):
     """
     # list without first and last items
     to_reduce = lst[1:-1]
+    length = len(to_reduce)
     
     # Calculate the skip number to retain percentage of a list
-    skip = int(100 / percentage - 1)  # skip = 1 (every 2nd element retained)
+    target_length = length * percentage
+
+    skip = int(length / target_length)
+    int(100 / percentage - 1)  # skip = 1 (every 2nd element retained)
+    print(f"Percentage {percentage} Skip {skip}")
 
     # Select evenly spaced items from the list
-    #reduced_list = to_reduce[::skip]
-    reduced_list = to_reduce[::3]
+    reduced_list = to_reduce[::skip]
+    #reduced_list = to_reduce[::3]
 
     # Prepend the skipped items back to the reduced list
     return [lst[0]] + reduced_list + [lst[-1]]
 
 def fit_bspline_to_geom(method, points, tolerance, max_error):
+    # Remove duplicates and validate points
+    points = remove_duplicates(points)
     print(f"fit_bspline_to_geom method {method}")
     if method == "PartBSpline":
         curves = fit_bspline_to_geom_PartBSpline(points, tolerance, max_error)
@@ -196,8 +203,6 @@ def fit_bspline_to_geom_PartBSpline(points, tolerance, max_error):
     current_start = 0
 
     print(f"fit bspline to geom : points {len(points)}")
-    # Remove duplicates and validate points
-    points = remove_duplicates(points)
     while current_start < n_points:
         # Try fitting a curve to all remaining points
         remaining_points = points[current_start:]
@@ -215,7 +220,7 @@ def fit_bspline_to_geom_PartBSpline(points, tolerance, max_error):
             DegMax=5,       # DegMax=8
             Tolerance = 1e-4,
             ParamType="Centripetal",
-            #Continuity = 'C2',
+            Continuity = 'C0',  #C0 point, C1 tangent, C2 Curvature, C3 rate of C
             #LengthWeight =
             #CurvatureWeight =
             #TorsiorWeight
@@ -302,6 +307,94 @@ def scripy_fit_bspline(points, num_points_per_curve=100, max_error=1e-3):
 
     return curves
 
+def geomdl_bspline_to_Part_BSplineCurve(curve):
+    """
+    Convert geomdl BSpline to Part_BSPline
+    """
+    # Extract control points (poles) and weights
+    poles = curve.ctrlpts  # Control points
+    weights = curve.weights  # Weights
+    print(f"weights {weights}")
+    #if weights is None:         # non rational
+    #    #weights = 1.0
+    #    weights = 1
+    #    #weights = [1] * len(poles)
+    knots = curve.knotvector  # Knot vector
+    print(f"knots {len(knots)}")
+    print(f"Start knots {knots[:4]} End knots {knots[-4:]}")
+    degree = curve.degree     # Curve degree
+    print(f"degree {degree}")
+    start_point = curve.evaluate_single(0.0)
+    end_point = curve.evaluate_single(1.0)
+    is_closed = start_point == end_point
+
+    print(f"len knots {len(knots)}")
+    print(f"check {len(poles) + degree + 1}")
+
+    # Convert poles to FreeCAD Vectors
+    poles_fc = [FreeCAD.Vector(pt[0], pt[1], 0) for pt in poles]
+    print(f"FC poles {len(poles_fc)}")
+
+    # Compute Multiplicities
+    #internal_mults = [1] * (len(knots) - 2 * (degree + 1))
+    #start_mults = [3] * (degree + 1)
+    #end_mults = [3] * (degree + 1)
+    #mults = [degree + 1] + [1] * internal_mults + [degree + 1]
+    #mults = start_mults + internal_mults + end_mults
+    mults = [1] * len(poles)
+    print(f"FC mults {len(mults)} sum {sum(mults)}")
+    print(f" mults first {mults[:4]} last {mults[-4:]}")
+
+    # Create a BSpline geometry using poles, knots, weights, and degree
+    bspline = Part.BSplineCurve()
+    # Build the curve from the poles, multiplicities, knots, and degree
+    #bspline_fc.buildFromPolesMultsKnots(poles=poles_fc, multiplicities=multiplicities_fc,
+    #                                knots=knots_geomdl, degree=degree_geomdl)
+    if weights is None:     # Non Rational
+        print(f"lens mults {len(mults)} sum {sum(mults)} poles {len(poles_fc)}")
+        #bspline.buildFromPolesMultsKnots(
+        #        poles_fc,       # Poles (Control points)
+        #        mults,          # Multiplicities
+        #        knots,          # knot vector
+        #        False,          #is_closed,      # Open {False} or Close {True}
+        #        degree,         # Degree
+        #        )
+        bspline.buildFromPoles(
+            poles_fc
+            )
+    else:
+        bspline.buildFromPolesMultsKnots(
+                poles_fc,       # Poles (Control points)
+                mults,          # Multiplicities
+                knots,          # knot vector
+                is_closed,      # Open {False} or Close {True}
+                #degree,        # Degree
+                weights         # Weights
+                )
+    return bspline
+
 def fit_bspline_to_geom_geomdl(points, tolerance, max_error):
+    """
+    BSpline fit using geomdl library
+    """
+    from geomdl import fitting
     print(f"fit_bspline_to_geom_geomdl")
+    print(points[1:3])
+    # Convert to list of tuples
+    tuple_list = [tuple(point) for point in points]
+
+    try:
+        curve = fitting.approximate_curve(tuple_list, 3)
+
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    is_rational = curve.rational
+    if is_rational:
+        print("The curve is Rational (NURBS).")
+    else:
+        print("The curve is Non-Rational (B-Spline).")    
+
+    bspline = geomdl_bspline_to_Part_BSplineCurve(curve)     
+    return bspline
 
