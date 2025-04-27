@@ -30,9 +30,8 @@ __url__ = ["http://www.freecadweb.org"]
 This Script includes the GUI Commands of the 2S module
 '''
 
-import FreeCAD,FreeCADGui, Part, Draft, Sketcher, Show
-from PySide import QtGui, QtCore
-from PySide2 import QtWidgets
+import FreeCAD,FreeCADGui, Part, Sketcher, Show
+from PySide import QtCore, QtWidgets
 
 # Used by toSketch - for Section to Sketch
 from .toSharedFunc import shapes2Sketch, angle_between_lines, vectors_to_numpy, fit_bspline_to_geom
@@ -53,7 +52,7 @@ class section2SketchFeature:
 
 
    def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
            return False
         else:
            return True
@@ -161,7 +160,7 @@ class toSketchFeature:
             #print(dir(sel))
             #print(sel.ObjectName)
             #print(sel.FullName)
-            if sel.HasSubObjects == True :  # Not sure what this does?
+            if sel.HasSubObjects:  # Not sure what this does?
                print('SubObjects')
                if hasattr(sel.SubObjects[0],'Surface') :
                   if str(sel.SubObjects[0].Surface) == '<Plane object>' :
@@ -236,7 +235,7 @@ class toSketchFeature:
 
 
     def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
            return False
         else:
            return True
@@ -354,7 +353,7 @@ class removeOuterBoxFeature:
                 self.removeOuterBox(sel)
 
     def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
            return False
         else:
            return True
@@ -419,7 +418,7 @@ class addBboxFeature:
 
 
     def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
            return False
         else:
            return True
@@ -601,8 +600,6 @@ class lineBuffer :
         self.lineCount = 0
         self.sp = g.StartPoint 
         self.ep = g.EndPoint
-        print(dir(segment))
-
 
     def flushLine(self):
         if self.lineCount > 0:
@@ -834,7 +831,7 @@ class toCurveFitFeature :
                 self.newSketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", \
                            "Fitted_"+sel.Name)
                 self.newSketch.Placement = sel.Placement
-                if useCoincidents == True:
+                if useCoincidents:
                     self.processWithBreakPoints(sel, angle)
                 else:
                     self.processGeometry(geometry, angle)
@@ -863,6 +860,7 @@ class toCurveFitFeature :
     def findGeomBreakPoints(self, sketch):
         
         self.breakPoints = []
+        # break points at set by user with a coincident constraint
         #self.newSketch.Constraints = sketch.Constraints
         # Does not work as geometry will be different
         # Just copy any GeomPoints in processGeometry
@@ -934,7 +932,7 @@ class toCurveFitFeature :
              self.newSketch.addGeometry(Part.LineSegment(i))
 
 
-    def processGeometry(self, geom, angle=15):
+    def processGeometry(self, geom, angle=15):          # toCurveFit
         # UPDATE FOR CURVE ONLY
         import math
         import numpy as np
@@ -990,6 +988,7 @@ class toCurveFitFeature :
 
     def processVectorPoints(self):
         import numpy
+        from freecad.toSketch.toSharedFunc import check3PointsOneLine
         print(f" processVectorPoints {len(self.vectors)}")
         for v in self.vectors:
             print(v)
@@ -1008,12 +1007,34 @@ class toCurveFitFeature :
             if len(bSplines) > 0:
                 self.newSketch.addGeometry(bSplines)
         else:
-            for v in self.vectors:
+            # less than three in vectors
+            vecLen = len(self.vectors)
+            print(f" Len Vectors {vecLen} not enough for curve")
+            if vecLen == 1:     # length = 1, must be checked first
                 self.newSketch.addGeometry(
-                                Part.LineSegment(self.LastStart, v)
-                                )
-                self.LastStart = v
-
+                    Part.LineSegment(
+                        self.LastStart, self.vectors))
+                self.LastStart = self.vectors  
+            elif vecLen == 2 or check3PointsOneLine(self.vectors):
+                #   Use first and last
+                self.newSketch.addGeometry(
+                                Part.LineSegment(
+                                    self.vectors[0],
+                                    self.vectors[-1]
+                                ))
+            else: # vecLen == 3:   # len = 3
+                self.newSketch.addGeometry(
+                                Part.LineSegment(
+                                    self.vectors[0],
+                                    self.vectors[1]
+                                ))
+                self.newSketch.addGeometry(
+                                Part.LineSegment(
+                                    self.vectors[1],
+                                    self.vectors[2]
+                                ))
+            
+                  
 
     def vectors_to_2d_array(self, vectors, plane="XY"):
         """
@@ -1113,7 +1134,7 @@ class toLineCurveFitFeature :
 
         return 0, self.LastStart, self.LastPoint
 
-    def processGeometry(self, newSketch, geom, angle=15.0):
+    def processGeometry(self, newSketch, geom, angle=15.0):     # LineCurve
         # UPDATE FOR CURVE ONLY
         import math 
         import numpy as np
@@ -1455,7 +1476,6 @@ class toPlane2PartFeature :
 
     def Activated(self) :
         from .toSObjects import toSPlane, ViewProvider
-
         #   for obj in FreeCADGui.Selection.getSelection():
         selectEx = FreeCADGui.Selection.getSelectionEx()
         for sel in selectEx :
@@ -1636,7 +1656,7 @@ class toScaleFeature :
              ViewProvider(obj.ViewObject)
           else :
              obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython','Scale')
-             toScale(obj, sel.Shape, sle.Shape.BoundBox)
+             toScale(obj, sel.Shape, sel.Shape.BoundBox)
              ViewProvider(obj.ViewObject)
           for i in sel.OutList :
               obj.addObject(i) 

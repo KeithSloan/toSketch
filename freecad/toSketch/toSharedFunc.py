@@ -76,6 +76,20 @@ def angle_between_lines(v1, v2, v3):
     #print(f"Abs angle {angle_degrees} {abs(angle_radians)}")
     return abs(adjusted_angle)
 
+def check3PointsOneLine(vectors3):
+    # past as list of three
+    # Check if three points merge to one line
+    v1 = vectors3[0]
+    v2 = vectors3[1]
+    v3 = vectors3[2]
+    angle = angle_between_lines(v1, v2, v3)
+    print(f"Angle {angle}")
+    delta = 0.012
+    if angle > delta and angle < (3.142 - delta):
+        return False
+    else:
+        return True
+
 def vectors_to_numpy(vectors):
     """
     Convert a list of FreeCAD.Vector objects to a NumPy array of shape (n, 3).
