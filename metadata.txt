@@ -1,2 +1,2 @@
 workbenches=Sketcher
-pylibs=geomdl, scripy
+pylibs=geomdl, scipy

@@ -6,9 +6,28 @@ def shapes2Sketch(shapes, name, auto=False) :
     sketch = Draft.makeSketch(shapes, autoconstraints=auto, \
                 addTo=None, delete=False, name=name,  \
                          radiusPrecision=-1, tol=1e-3)
+    reportSketchGeometry(sketch)
     return sketch
     #else:
     #        print(f"No shapes for sketch")
+
+
+def reportSketchGeometry(sketch):
+    print(dir(sketch))
+    print(f"GeometryCount {sketch.GeometryCount}")
+    for i,g in(enumerate(sketch.Geometry, start=1)):
+        #print(f"{i} TypeId {g.TypeId} FirstParm {g.FirstParameter} LastParm {g.LastParameter}")
+        print(f"{i} TypeId {g.TypeId}")
+        if g.TypeId == "Part::GeomLineSegment":
+            print(f"Continuity {g.Continuity} StartPoint {g.StartPoint} EndPoint {g.EndPoint}")
+        elif(g.TypeId == "Part::GeomCircle"):
+            print(f"Center {g.Center}  Radius {g.Radius}")
+        elif(g.TypeId == "Part::GeomArcOfCircle"):
+            print(f"Center {g.Center}  Radius {g.Radius}")
+        else:
+            print(dir(g))
+ 
+
 
 # Function to test if two GeomLineSegments are contiguous
 def are_contiguous(line1, line2, tolerance=1e-6):
