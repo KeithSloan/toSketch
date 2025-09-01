@@ -627,7 +627,7 @@ class lineBuffer :
     def calcHausdorff(self, npPointBuff, curve):
         print(f"Calc Hausdorff")
         import numpy as np
-        import scripy.spatial.distance.directed.hausdorff as hausdorff
+        import scipy.spatial.distance.directed.hausdorff as hausdorff
 
         #print(dir(hausdorff))
         # Create evaluated points
