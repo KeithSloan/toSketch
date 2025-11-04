@@ -303,7 +303,6 @@ class toResetOrigin() :
                 Since no data were serialized nothing needs to be done here.'''
         return None
 
-
 class ViewProvider():
    def __init__(self, obj):
        '''Set this object to the proxy object of the actual view provider'''

@@ -170,7 +170,7 @@ class toSketchFeature:
                      face.translate(face.Placement.Base.negative())
                      sketch = self.toSketchShapes2Sketch([face],'Sketch'+sel.ObjectName)
                      # Pop the Plane parts of sketch
-                     self.addConstraints(sketch)
+                     #self.addConstraints(sketch)
                      #print(dir(sketch))
                      sketch.MapMode ='FlatFace'
                      sketch.MapReversed = False    # ????
@@ -200,7 +200,7 @@ class toSketchFeature:
             if sel.TypeId == 'PartDesign::Plane' :
                #print(dir(sel))
                #print(dir(sel.Shape))
-               sketch = self.actionSectionDialog(sel.Shape, objs)
+               sketch = self.actionSectionDialog(sel, sel.Shape, objs)
                nVector = sel.Shape.Faces[0].normalAt(1,1)
                pVector = sel.Placement.Base
                dVector = nVector.multiply(nVector.dot(pVector))
@@ -209,10 +209,10 @@ class toSketchFeature:
                     (sel.Label[:7] == 'toPlane' or \
                     sel.Label[:5] == "Plane"):
                print(f"Part FeaturePython Plane")
-               sketch = self.actionSectionDialog(sel.Shape, objs)
+               sketch = self.actionSectionDialog(sel, sel.Shape, objs)
             elif sel.TypeId == 'Part::Plane' :
                 print(f"Part Plane")
-                self.actionSectionDialog(sel, objs)
+                self.actionSectionDialog(sel, sel.Shape, objs)
             #elif sel.TypeId == 'Part::Feature' :
             #   sketch = self.shapes2Sketch(sel.Shape,'Sketch')
 
@@ -247,26 +247,34 @@ class toSketchFeature:
                 QtCore.QT_TRANSLATE_NOOP('toSketchFeature',\
                 'To Sketch')}
 
-    def actionSectionDialog(self, plane, objs):
+    def actionSectionDialog(self, selected, plane, objs):
         print(f'Action Section Dialog')
         dialog = toSketchDialog()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             linearDeflection = dialog.get_LinearDeflection()
             angularDeflection = dialog.get_AngularDeflection()
-            return self.actionSection(plane, objs, linearDeflection, angularDeflection)
+            return self.actionSection(selected, plane, objs, linearDeflection, angularDeflection)
                 
 
-    def actionSection(self, plane, objs, linearDef, angularDef):
-        print(f'Action Section {objs}')
+    def actionSection(self, selected, plane, objs, linearDef, angularDef):
+        print(f"Action Section {objs} Selected {selected.Label} Plane {plane}")
         edges = []
-        # If no target Objs - Use all Objects
+        # If no target Objs - Use all Objects except selected
         if len(objs) == 0:
             objs = FreeCAD.ActiveDocument.Objects
+            #for o in objs:
+            #    print(o.Label)
+            objs.remove(selected)
+            print("After removal")
+            for o in objs:
+                print(o.Label)
 
         for obj in objs :
             sect = None
             #print(obj.Label)
             #print(obj.TypeId)
+            if obj.TypeId.startswith("App::"):    # Ignore App::Origin etc
+                break
             if hasattr(obj,'Mesh') :
                 print(f"Meshed Object {obj.Label}")
                 import Draft, MeshPart, Part
@@ -286,11 +294,11 @@ class toSketchFeature:
                   obj.TypeId != 'Sketcher::SketchObject' and \
                   obj.TypeId != 'PartDesign::Body' : # Otherwise Body & Content
                if obj.Shape.Volume > 0 :
-                  print(obj.Label+' : Has shape')
+                  print(obj.Label+' : Has Shape')
                   sect = obj.Shape.section(plane)
             if sect is not None:
                #print(sect)
-               print(sect.ShapeType)
+               print(f"Section Shape Type : {sect.ShapeType} SubShapes {len(sect.SubShapes)}")
                if len(sect.SubShapes) > 0 :
                   print('Intersect : '+obj.Label)
                   print(len(sect.SubShapes))
@@ -1493,10 +1501,7 @@ class toPlane2PartFeature :
                     partPlane.Placement.Base = [-50, 0, -50]
                     partPlane.Length = 100
                     partPlane.Width = 100
-
-                    #print(dir(partPlane))
-
-
+        
 
     def IsActive(self):
         if FreeCAD.ActiveDocument == None:
@@ -1568,7 +1573,7 @@ class bSpline2ArcFeature :
                 QtCore.QT_TRANSLATE_NOOP('toSPlaneFeature',\
                 'BSpline to Arc')}
 
-    def is_bspline_close_to_circle(bspline, tolerance=1e-3):
+    def check_bspline_close_to_circle(self, bspline, tolerance=1e-3):
         """
         Checks if the given B-spline is close to an arc of a circle.
 
@@ -1605,7 +1610,7 @@ class bSpline2ArcFeature :
                 return False, {"error": str(e)}
 
 
-    def subdivide_bspline(bspline, num_segments=5, arc_tolerance=1e-3):
+    def subdivide_bspline(self, bspline, num_segments=5, arc_tolerance=1e-3):
         """
         Subdivides a B-spline into smaller B-splines and circular arcs if possible.
 
@@ -1629,7 +1634,7 @@ class bSpline2ArcFeature :
             segment = bspline.trim(start_param, end_param)
 
             # Check if the segment is close to an arc
-            is_arc, details = is_bspline_close_to_circle(segment, tolerance=arc_tolerance)
+            is_arc, details = self.check_bspline_close_to_circle(segment, tolerance=arc_tolerance)
             if is_arc:
                 circle = Part.Circle()
                 circle.Center = details["center"]
@@ -1767,10 +1772,102 @@ class toShapeInfoFeature :
                 QtCore.QT_TRANSLATE_NOOP('toShapeInfo',\
                 'Shape Info')}
 
+class ConstraintsGroupFeature:
+    """Group of Constraints Commands"""
+
+    def GetCommands(self):
+        """Tuple of Commands"""
+        return ("CheckSymmetryCmd", "CheckHorizontalCmd" "CheckVerticalCmd")
+
+    def GetResources(self):
+        """Set icon, menu and tooltip."""
+
+        return {
+            "Pixmap": "Constraints_Group", 
+            "MenuText": QtCore.QT_TRANSLATE_NOOP("Constraints Group", "Constraints Group"),
+            "ToolTip": QtCore.QT_TRANSLATE_NOOP(
+                "Constraints Group", " Group of Constraints Commands"
+            ),
+        }
+
+    def IsActive(self):
+        """Return True when this command should be available."""
+        return True
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+class CheckSymmetryFeature:
+    def Activated(self):
+        print("Activate CheckSymmetry")
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def GetResources(self):
+        return {
+            "Pixmap": "CheckSymmetry",
+            "MenuText": QtCore.QT_TRANSLATE_NOOP(
+                "CheckSymmetry", "CheckSymmetry Command"
+            ),
+            "CheckSymmetry": QtCore.QT_TRANSLATE_NOOP(
+                "CheckSymmetry", "CheckSymmetry Command"
+            ),
+        }
+
+class CheckHorizontalFeature:
+    def Activated(self):
+        print("Activate CheckHorizontal")
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def GetResources(self):
+        return {
+            "Pixmap": "CheckHorizontal",
+            "MenuText": QtCore.QT_TRANSLATE_NOOP(
+                "CheckHorizontal", "CheckHorizontal Command"
+            ),
+            "CheckHorizontal": QtCore.QT_TRANSLATE_NOOP(
+                "CheckHorizontal", "CheckHorizontal Command"
+            ),
+        }
+
+class CheckVerticalFeature:
+    def Activated(self):
+        print("Activate CheckVertical")
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def GetResources(self):
+        return {
+            "Pixmap": "CheckVertical",
+            "MenuText": QtCore.QT_TRANSLATE_NOOP(
+                "CheckVertical", "CheckVertical Command"
+            ),
+            "CheckHorizontal": QtCore.QT_TRANSLATE_NOOP(
+                "CheckVertical", "CheckVertical Command"
+            ),
+        }
 
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('section2SketchCommand',section2SketchFeature())
 FreeCADGui.addCommand('Plane2PartPlaneCommand',toPlane2PartFeature())
+FreeCADGui.addCommand('ConstraintsGroupCmd',ConstraintsGroupFeature())
+FreeCADGui.addCommand('CheckSymmetryCmd',CheckSymmetryFeature())
+FreeCADGui.addCommand('CheckVerticalCmd',CheckVerticalFeature())
+FreeCADGui.addCommand('CheckHorizontalCmd',CheckHorizontalFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('addBboxCommand',addBboxFeature())
 FreeCADGui.addCommand('toLineCurveFitCommand',toLineCurveFitFeature())
