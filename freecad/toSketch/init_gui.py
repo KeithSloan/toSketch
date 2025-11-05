@@ -64,7 +64,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
                     'removeOuterBoxCommand', \
                     #'addBboxCommand', \
                     'toMacroCommand', \
-                    #'ConstraintsGroupCmd', \
+                    'ConstraintsGroupCmd', \
                     'toLineCurveFitCommand', \
                     'bSpline2ArcCommand', \
                     'toCurveFitCommand', \

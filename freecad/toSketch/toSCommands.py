@@ -1777,7 +1777,7 @@ class ConstraintsGroupFeature:
 
     def GetCommands(self):
         """Tuple of Commands"""
-        return ("CheckSymmetryCmd", "CheckHorizontalCmd" "CheckVerticalCmd")
+        return ("CheckSymmetryCmd", "CheckHorizontalCmd", "CheckVerticalCmd")
 
     def GetResources(self):
         """Set icon, menu and tooltip."""
@@ -1831,6 +1831,7 @@ class CheckHorizontalFeature:
         print("Activate CheckHorizontal")
 
     def IsActive(self):
+        return True
         if FreeCAD.ActiveDocument is None:
             return False
         else:
