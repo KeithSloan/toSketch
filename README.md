@@ -142,6 +142,24 @@ Note: Ideally constraints should be set on a geometric basis, however there is a
       the option to fix all points with the installable Macro SketcherFixAllPoints.FCMacro
       see Addon Manager for installation.
 
+## Constraints Experimental
+
+If to sketch operations are performed on imported STEP files then the sketch will have a correct geometry but no constraints.
+An experimental AddConstraints Group has been added which offers GUi Commands to perform the following funtions
+
+* CheckSymmetry Command
+
+    Scan sketch for symmetry and add an appropriate constraint
+
+* AddHorizontal Command
+
+    Scan sketch for Horizonatal Lines  and add an appropriate constraint
+
+* AddVertical Command
+
+   Scan sketch for Vertical Lines  and add an appropriate constraint
+
+
 ### toPlane to PartPlane
 
 Creates a new PartPlane from a toPlane
