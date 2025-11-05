@@ -1808,6 +1808,8 @@ class CheckSymmetryFeature:
             #print(dir(sel))
             if sel.TypeId == 'Sketcher::SketchObject' :
                add_symmetric_constraints(sel, tol=1e-5)
+            else:
+                print("Please select a Sketch first.")
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -1828,7 +1830,14 @@ class CheckSymmetryFeature:
 
 class CheckHorizontalFeature:
     def Activated(self):
+        from freecad.toSketch.addHorizontalConstraints import add_horizontal_constraints
+
         print("Activate CheckHorizontal")
+        sel = FreeCADGui.Selection.getSelection()
+        if sel and sel[0].TypeId == 'Sketcher::SketchObject':
+            add_horizontal_constraints(sel[0])
+        else:
+            print("Please select a Sketch first.")
 
     def IsActive(self):
         return True
@@ -1851,6 +1860,14 @@ class CheckHorizontalFeature:
 class CheckVerticalFeature:
     def Activated(self):
         print("Activate CheckVertical")
+        from freecad.toSketch.addVerticalConstraints import add_vertical_constraints
+
+        print("Activate CheckHorizontal")
+        sel = FreeCADGui.Selection.getSelection()
+        if sel and sel[0].TypeId == 'Sketcher::SketchObject':
+            add_vertical_constraints(sel[0])
+        else:
+            print("Please select a Sketch first.")
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
