@@ -1,5 +1,6 @@
-import FreeCAD as App, FreeCADGui as Gui
-import Sketcher, Part
+import FreeCAD as App
+import Sketcher
+import Part
 
 def add_vertical_constraints(sketch, tol=1e-6):
     """

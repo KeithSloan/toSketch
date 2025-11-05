@@ -1777,7 +1777,7 @@ class ConstraintsGroupFeature:
 
     def GetCommands(self):
         """Tuple of Commands"""
-        return ("CheckSymmetryCmd", "CheckHorizontalCmd", "CheckVerticalCmd")
+        return ("CheckSymmetryCmd", "CheckHorizontalCmd", "CheckVerticalCmd","addParallelCmd")
 
     def GetResources(self):
         """Set icon, menu and tooltip."""
@@ -1840,7 +1840,6 @@ class CheckHorizontalFeature:
             print("Please select a Sketch first.")
 
     def IsActive(self):
-        return True
         if FreeCAD.ActiveDocument is None:
             return False
         else:
@@ -1886,12 +1885,44 @@ class CheckVerticalFeature:
             ),
         }
 
+class addParallelConstraintsFeature:
+    """
+    Scan a FreeCAD Sketch and add Parallel constraints between pairs of lines
+    only if there are no existing constraints involving those two elements.
+    """
+    def Activated(self):
+        from freecad.toSketch.addParallelConstraints import add_parallel_constraints
+        print("Activate addParallelConstraints")
+
+        sel = FreeCADGui.Selection.getSelection()
+        if sel and sel[0].TypeId == 'Sketcher::SketchObject':
+            add_parallel_constraints(sel[0])
+        else:
+            print("Please select a Sketch first.")
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def GetResources(self):
+        return {
+            "Pixmap": "AddParallelCmd",
+            "MenuText": QtCore.QT_TRANSLATE_NOOP(
+                "AddParallelCmd", "Add Parallel Constraints Command"
+            ),
+            "CheckHorizontal": QtCore.QT_TRANSLATE_NOOP(
+               "AddParallelCmd", "Add Parallel Constraints Command"
+            ),
+        }
 FreeCADGui.addCommand('toSketchCommand',toSketchFeature())
 FreeCADGui.addCommand('section2SketchCommand',section2SketchFeature())
 FreeCADGui.addCommand('Plane2PartPlaneCommand',toPlane2PartFeature())
 FreeCADGui.addCommand('ConstraintsGroupCmd',ConstraintsGroupFeature())
 FreeCADGui.addCommand('CheckSymmetryCmd',CheckSymmetryFeature())
 FreeCADGui.addCommand('CheckVerticalCmd',CheckVerticalFeature())
+FreeCADGui.addCommand('addParallelCmd',addParallelConstraintsFeature())
 FreeCADGui.addCommand('CheckHorizontalCmd',CheckHorizontalFeature())
 FreeCADGui.addCommand('removeOuterBoxCommand',removeOuterBoxFeature())
 FreeCADGui.addCommand('addBboxCommand',addBboxFeature())

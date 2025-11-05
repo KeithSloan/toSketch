@@ -1,41 +1,54 @@
-import FreeCAD as App, FreeCADGui as Gui
-import Sketcher, Part
+import FreeCAD as App
+import Sketcher
+import Part
+import math
 
-def add_horizontal_constraints(sketch, tol=1e-6):
+def add_horizontal_constraints(sketch, angle_tolerance_deg=0.5):
     """
-    Scan the given Sketch for all horizontal lines
-    and add Horizontal constraints to any not already constrained.
-
-    Parameters:
-        sketch (Sketcher::SketchObject)
-        tol (float): tolerance for detecting horizontality
+    Add Horizontal constraints to nearly horizontal line segments
+    in a Sketch that do not already have one.
     """
-    doc = App.ActiveDocument
-    geom = sketch.Geometry
-    cons = sketch.Constraints
+    if sketch is None or sketch.TypeId != 'Sketcher::SketchObject':
+        raise ValueError("❌ Must pass a valid Sketcher::SketchObject")
 
-    # --------------------------------------------------------
-    # Step 1: collect existing horizontal constraints
-    # --------------------------------------------------------
-    already_constrained = set()
-    for c in cons:
-        if c.Type == 'Horizontal':
-            already_constrained.add(c.Geometry1)
+    geo_list = sketch.Geometry
+    constraints = sketch.Constraints
 
-    # --------------------------------------------------------
-    # Step 2: find horizontal lines
-    # --------------------------------------------------------
+    # Find which geometry indices already have a Horizontal constraint
+    has_horizontal = set()
+    for c in constraints:
+        if c.Type == 'Horizontal' and hasattr(c, 'First'):
+            has_horizontal.add(c.First)
+
     added = 0
-    for i, g in enumerate(geom):
-        if not isinstance(g, Part.LineSegment):
-            continue
-        dx = g.EndPoint.x - g.StartPoint.x
-        dy = g.EndPoint.y - g.StartPoint.y
-        if abs(dy) <= tol and abs(dx) > tol:  # horizontal
-            if i not in already_constrained:
-                sketch.addConstraint(Sketcher.Constraint('Horizontal', i))
-                added += 1
+    tolerance_rad = math.radians(angle_tolerance_deg)
 
-    doc.recompute()
-    print(f"Added {added} Horizontal constraints.")
-    return added
+    for i, geo in enumerate(geo_list):
+        if not isinstance(geo, Part.LineSegment):
+            continue
+
+        if i in has_horizontal:
+            continue  # Already horizontal
+
+        # Compute line vector
+        dx = geo.EndPoint.x - geo.StartPoint.x
+        dy = geo.EndPoint.y - geo.StartPoint.y
+        length = math.hypot(dx, dy)
+        if length == 0:
+            continue
+
+        # Compute angle to X-axis
+        angle = abs(math.atan2(dy, dx))
+        if angle < tolerance_rad or abs(angle - math.pi) < tolerance_rad:
+            sketch.addConstraint(Sketcher.Constraint('Horizontal', i))
+            print(f"✅ Added Horizontal constraint to line {i}")
+            added += 1
+        else:
+            print(f"Line {i} not horizontal (angle={math.degrees(angle):.2f}°)")
+
+    if added == 0:
+        print("ℹ️  No new horizontal constraints added.")
+    else:
+        print(f"✅ {added} horizontal constraint(s) added.")
+
+    App.ActiveDocument.recompute()
