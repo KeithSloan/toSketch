@@ -1800,7 +1800,14 @@ class ConstraintsGroupFeature:
 
 class CheckSymmetryFeature:
     def Activated(self):
+        from freecad.toSketch.symmetricConstraints import add_symmetric_constraints
         print("Activate CheckSymmetry")
+        for sel in FreeCADGui.Selection.getSelection() :
+            print("Selected")
+            print(sel.TypeId)
+            #print(dir(sel))
+            if sel.TypeId == 'Sketcher::SketchObject' :
+               add_symmetric_constraints(sel, tol=1e-5)
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
