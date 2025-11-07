@@ -1777,14 +1777,20 @@ class ConstraintsGroupFeature:
 
     def GetCommands(self):
         """Tuple of Commands"""
-        return ("CheckSymmetryCmd", "CheckHorizontalCmd", "CheckVerticalCmd","addParallelCmd")
+        return ("CheckSymmetryCmd",
+                "CheckCoincidentCmd",
+                "CheckHorizontalCmd",
+                "CheckVerticalCmd",
+                "addParallelCmd",
+                )
 
     def GetResources(self):
         """Set icon, menu and tooltip."""
 
         return {
             "Pixmap": "Constraints_Group", 
-            "MenuText": QtCore.QT_TRANSLATE_NOOP("Constraints Group", "Constraints Group"),
+            "MenuText": QtCore.QT_TRANSLATE_NOOP("Constraints Group", \
+                "Constraints Group"),
             "ToolTip": QtCore.QT_TRANSLATE_NOOP(
                 "Constraints Group", " Group of Constraints Commands"
             ),
@@ -1821,15 +1827,44 @@ class CheckSymmetryFeature:
         return {
             "Pixmap": "CheckSymmetry",
             "MenuText": QtCore.QT_TRANSLATE_NOOP(
-                "CheckSymmetry", "CheckSymmetry Command"
+                "CheckSymmetry", "Check & Add Symmetry Command"
             ),
             "CheckSymmetry": QtCore.QT_TRANSLATE_NOOP(
-                "CheckSymmetry", "CheckSymmetry Command"
+                "CheckSymmetry", "Check & Add Symmetry Command"
+            ),
+        }
+
+class CheckCoincidentFeature:
+    def Activated(self):
+        from freecad.toSketch.addCoincidentConstraints import add_coincident_constraints
+
+        print("Activate Check and Add Coincident")
+        sel = FreeCADGui.Selection.getSelection()
+        if sel and sel[0].TypeId == 'Sketcher::SketchObject':
+            add_coincident_constraints(sel[0])
+        else:
+            print("Please select a Sketch first.")
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def GetResources(self):
+        return {
+            "Pixmap": "CheckCoincident",
+            "MenuText": QtCore.QT_TRANSLATE_NOOP(
+                "CheckCoincident", "Check & Add Coincident Command"
+            ),
+            "CheckCoincident": QtCore.QT_TRANSLATE_NOOP(
+                "CheckCoincident", "Check & Add Coincident Command"
             ),
         }
 
 class CheckHorizontalFeature:
     def Activated(self):
+        print("Activate CheckHorizontal")
         from freecad.toSketch.addHorizontalConstraints import add_horizontal_constraints
 
         print("Activate CheckHorizontal")
@@ -1849,10 +1884,10 @@ class CheckHorizontalFeature:
         return {
             "Pixmap": "CheckHorizontal",
             "MenuText": QtCore.QT_TRANSLATE_NOOP(
-                "CheckHorizontal", "CheckHorizontal Command"
+                "CheckHorizontal", "Check & Add Horizontal Command"
             ),
             "CheckHorizontal": QtCore.QT_TRANSLATE_NOOP(
-                "CheckHorizontal", "CheckHorizontal Command"
+                "CheckHorizontal", "Check & Add Horizontal Command"
             ),
         }
 
@@ -1878,10 +1913,10 @@ class CheckVerticalFeature:
         return {
             "Pixmap": "CheckVertical",
             "MenuText": QtCore.QT_TRANSLATE_NOOP(
-                "CheckVertical", "CheckVertical Command"
+                "CheckVertical", "Check & Add Vertical Command"
             ),
-            "CheckHorizontal": QtCore.QT_TRANSLATE_NOOP(
-                "CheckVertical", "CheckVertical Command"
+            "CheckVertical": QtCore.QT_TRANSLATE_NOOP(
+                "CheckVertical", "Check & Add Vertical Command"
             ),
         }
 
@@ -1921,6 +1956,7 @@ FreeCADGui.addCommand('section2SketchCommand',section2SketchFeature())
 FreeCADGui.addCommand('Plane2PartPlaneCommand',toPlane2PartFeature())
 FreeCADGui.addCommand('ConstraintsGroupCmd',ConstraintsGroupFeature())
 FreeCADGui.addCommand('CheckSymmetryCmd',CheckSymmetryFeature())
+FreeCADGui.addCommand('CheckCoincidentCmd',CheckCoincidentFeature())
 FreeCADGui.addCommand('CheckVerticalCmd',CheckVerticalFeature())
 FreeCADGui.addCommand('addParallelCmd',addParallelConstraintsFeature())
 FreeCADGui.addCommand('CheckHorizontalCmd',CheckHorizontalFeature())
