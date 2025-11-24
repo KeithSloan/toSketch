@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.0-or-later
+# SPDX-FileNotice: Part of the ToSketch addon.
+
 #**************************************************************************
 #*                                                                        *
 #*   Copyright (c) 2021 Keith Sloan <keith@sloan-home.co.uk>              *
