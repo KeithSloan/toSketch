@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileNotice: Part of the ToSketch addon.
+
 # Example list of FreeCAD Vectors
 vectors = [App.Vector(1, 2, 3), App.Vector(4, 5, 6), App.Vector(7, 8, 9)]
 
