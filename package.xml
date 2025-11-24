@@ -1,23 +1,88 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
-  <name>toSketch</name>
-  <description>Add toSketch facility for FreeCAD. This WB help with remodelling of existing models.</description>
-  <version>1.0.1</version>
-  <maintainer email="keith@sloan-home.co.uk">Keith Sloan</maintainer>
-  <license file="LICENSE">GPL-2.0-or-later</license>
-  <url type="repository" branch="main">https://github.com/KeithSloan/toSketch</url>
-  <url type="readme">https://github.com/KeithSloan/toSketch/blob/main/README.md</url>
+<?xml
+    version = '1.0'
+    encoding = 'UTF-8'
+    standalone = 'no'
+?>
+<package
+    format = '1'
+    xmlns = 'https://wiki.freecad.org/Package_Metadata'
+>
 
-  <content>
-    <workbench>
-      <classname>toSketch_Workbench</classname>
-      <subdirectory>./</subdirectory>
-      <icon>freecad/toSketch/Resources/icons/toSketchlogo.svg</icon>
-      <freecadmin>0.19.0</freecadmin>
-      <tag>sketcher</tag>
-      <depend>geomdl</depend>
-      <depend>scipy</depend>
-    </workbench>
-  </content>
+    <!--[ Versions ]―――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <freecadmin>0.19.0</freecadmin>
+    <version>1.0.1</version>
+    <date>2022-09-21</date>
+
+    <!--[ Dependencies ]―――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <depend>geomdl</depend>
+    <depend>scipy</depend>
+
+    <!--[ Info ]―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <description>Tools to help recreate models from STEP files.</description>
+    <name>toSketch</name>
+
+    <!--[ Tags ]―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <tag>Sketcher</tag>
+    <tag>Recreate</tag>
+   
+    <tag>Ellipse</tag>
+    <tag>Circle</tag>
+    <tag>Spline</tag>
+    <tag>Point</tag>
+    <tag>Plane</tag>
+    <tag>Line</tag>
+    <tag>Arc</tag>
+   
+    <tag>STEP</tag>
+
+    <!--[ Maintainer ]―――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <maintainer
+        email = 'keith@sloan-home.co.uk'
+    >Keith Sloan</maintainer>
+
+    <!--[ Authors ]――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <author
+        email = 'keith@sloan-home.co.uk'
+    >Keith Sloan</author>
+
+    <!--[ License ]――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <license
+        file = 'LICENSE'
+    >GPL-2.0-or-later</license>
+
+    <!--[ Icon ]―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <icon>freecad/toSketch/Resources/icons/toSketchlogo.svg</icon>
+
+    <!--[ Urls ]―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <url
+        branch = 'Latest'
+        type = 'repository'
+    >https://github.com/KeithSloan/toSketch</url>
+
+    <url
+        type = 'bugtracker'
+    >https://github.com/KeithSloan/toSketch/issues</url>
+
+    <url
+        type = 'readme'
+    >https://github.com/KeithSloan/toSketch/blob/main/README.md</url>
+
+    <!--[ Content ]――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
+
+    <content>
+        <workbench>
+            <classname>toSketch_Workbench</classname>
+            <subdirectory>.</subdirectory>
+        </workbench>
+    </content>
 
 </package>
