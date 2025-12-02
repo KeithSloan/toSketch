@@ -1270,15 +1270,15 @@ class toMacroFeature:
     #    return FreeCADGui.Selection.countObjectsOfType('Part::Feature') > 0
 
     def Activated(self):
-        print('ToMacro') 
+        QtWidgets.QMessageBox.information(None, "Debug", "Activated called!")
+        FreeCAD.Console.PrintMessage('ToMacro\n') 
         for sel in FreeCADGui.Selection.getSelection() :
-            print("Selected")
-            print(sel.TypeId)
-            #print(dir(sel))
+            FreeCAD.Console.PrintMessage(f"Selected TypeId{sel.TypeId}\n")
             if sel.TypeId == 'Sketcher::SketchObject' :
                self.actionToMacro(sel)
 
     def IsActive(self):
+        return True
         if FreeCAD.ActiveDocument == None:
            return False
         else:
@@ -1330,8 +1330,8 @@ class toMacroFeature:
     def actionToMacro(self,sketch):
         import math
 
-        print('Action To Macro : '+sketch.Label)
-        print('Geometry Count : '+str(sketch.GeometryCount))
+        FreeCAD.Console.PrintMessage(f"Action To Macro : {sketch.Label}\n")
+        FreeCAD.Console.PrintMessage(f"Geometry Count : {sketch.GeometryCount}\n")
         geo = sketch.Geometry
         # macro path
         param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Macro")
