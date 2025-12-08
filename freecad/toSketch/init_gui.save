@@ -1,0 +1,38 @@
+# toSketch/init_gui.py
+
+import os, pkgutil
+import FreeCADGui
+
+def initialize():
+    from . import commands
+
+    FreeCADGui.addIconPath(":/Mod/toSketch/Resources/icons")
+    FreeCADGui.addLanguagePath(":/Mod/toSketch/Resources/translations")
+
+    # ----------------------------------------------
+    # AUTO-LOAD ALL COMMANDS IN toSketch/commands/
+    # ----------------------------------------------
+    for _, module_name, _ in pkgutil.iter_modules(commands.__path__):
+        module = __import__(f"toSketch.commands.{module_name}",
+                            fromlist=[module_name])
+
+        if hasattr(module, "Command"):
+            cmd = module.Command
+            FreeCADGui.addCommand(cmd.Name, cmd)
+            print(f"[toSketch] Loaded command: {cmd.Name}")
+
+    # ----------------------------------------------
+    # TOOLBAR + MENU = ALL COMMANDS AUTOMATICALLY
+    # ----------------------------------------------
+    all_commands = [m for m in FreeCADGui.listCommands()
+                    if m.startswith("toSketch_") or m.endswith("Command")]
+
+    FreeCADGui.addToolbar("toSketch Tools", all_commands)
+    FreeCADGui.addMenu("toSketch", all_commands)
+
+    print("[toSketch] GUI initialized\n")
+
+
+def finalize():
+    print("[toSketch] GUI unloaded")
+

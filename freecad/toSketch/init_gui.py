@@ -1,138 +1,90 @@
-# toSketch workbench gui init module
-#
-# Gathering all the information to start FreeCAD
-# This is the second one of three init scripts, the third one
-# runs when the gui is up
+# -*- coding: utf-8 -*-
+"""
+FreeCAD Workbench: toSketch
+Automatically loads all commands from the commands directory
+"""
 
-#***************************************************************************
-#*   (c) Juergen Riegel (juergen.riegel@web.de) 2002                       *
-#*                                                                         *
-#*   This file is part of the FreeCAD CAx development system.              *
-#*                                                                         *
-#*   This program is free software; you can redistribute it and/or modify  *
-#*   it under the terms of the GNU Lesser General Public License (LGPL)    *
-#*   as published by the Free Software Foundation; either version 2 of     *
-#*   the License, or (at your option) any later version.                   *
-#*   for detail see the LICENCE text file.                                 *
-#*                                                                         *
-#*   FreeCAD is distributed in the hope that it will be useful,            *
-#*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-#*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-#*   GNU Lesser General Public License for more details.                   *
-#*                                                                         *
-#*   You should have received a copy of the GNU Library General Public     *
-#*   License along with FreeCAD; if not, write to the Free Software        *
-#*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
-#*   USA                                                                   *
-#*                                                                         *
-#*   Juergen Riegel 2002                                                   *
-#*                                                                         *
-#* Also copyright Keith Sloan                                              * 
-#***************************************************************************/
+# Workbench metadata
+WorkbenchName = "toSketch"
+WorkbenchAuthor = "Keith Sloan"
+WorkbenchIcon = ""  # path to icon if needed
+WorkbenchMenuText = "toSketch"
+WorkbenchToolTip = "toSketch Workbench - Sketch and Geometry Tools"
 
-#import FreeCAD
-#from FreeCAD import *
 import FreeCAD
-#import PartGui
 import FreeCADGui
-from freecad.toSketch import toSCommands
 
-def joinDir(path) :
-    import os
-    __dirname__ = os.path.dirname(__file__)
-    return(os.path.join(__dirname__,path))
+# Import all commands
+from .commands.to_sketch import toSketchFeature
+from .commands.section_to_sketch import section2SketchFeature
+from .commands.to_plane import toSPlaneFeature, toPlane2PartFeature
+from .commands.to_curve_fit import toCurveFitFeature
+from .commands.to_line_curve_fit import toLineCurveFitFeature
+from .commands.to_curve_guided import toSketch_ToCurveGuided
+from .commands.to_macro import toMacroFeature
+from .commands.to_scale import toScaleFeature
+from .commands.to_reset_origin import toResetOriginFeature
+from .commands.to_shape_info import toShapeInfoFeature
+from .commands.to_line import toLineFeature
+from .commands.remove_outer_box import removeOuterBoxFeature
+from .commands.add_bbox_sketch import addBboxFeature
+from .commands.b_spline_to_arc import bSpline2ArcFeature
+from .commands.constraints_group import (
+    ConstraintsGroupFeature,
+    CheckSymmetryFeature,
+    CheckCoincidentFeature,
+    CheckHorizontalFeature,
+    CheckVerticalFeature,
+    addParallelConstraintsFeature
+)
 
-# Import your commands from the commands package
-from .commands.toLine import toSketch_ToLine
-# from .commands.toCurve import toSketch_ToCurve
-# from .commands.toArc import toSketch_ToArc
-# Add more commands as needed
-
-
-class toSketch_Workbench ( FreeCADGui.Workbench ):
-
-#    import FreeCAD
-
-    "to workbench object"
-    def __init__(self):
-        self.__class__.Icon = joinDir("Resources/icons/toSWorkbench.svg")
-        self.__class__.MenuText = "toSketch"
-        self.__class__.ToolTip = "toSketch workbench"
+# Define the Workbench class
+class toSketchWorkbench(FreeCADGui.Workbench):
+    MenuText = WorkbenchMenuText
+    ToolTip = WorkbenchToolTip
+    Icon = WorkbenchIcon
 
     def Initialize(self):
-        def QT_TRANSLATE_NOOP(scope, text):
-            return text
+        """Register all commands with FreeCADGui"""
+        FreeCAD.Console.PrintMessage("Initializing toSketch Workbench...\n")
 
-        # 1. Register Commands
-        FreeCADGui.addCommand('toSketch_toLine',  toSketch_ToLine)
-        #FreeCADGui.addCommand('toSketch_toCurve', toSketch_ToCurve)
-        #FreeCADGui.addCommand('toSketch_toArc',   toSketch_ToArc)
-
-        
-        from freecad.toSketch import toSCommands
-        commands=['toSPlaneCommand', \
-                    'Plane2PartPlaneCommand', \
-                    'toSketchCommand', \
-                    'section2SketchCommand', \
-                    'removeOuterBoxCommand', \
-                    #'addBboxCommand', \
-                    'toMacroCommand', \
-                    'ConstraintsGroupCmd', \
-                    'toLineCurveFitCommand', \
-                    'bSpline2ArcCommand', \
-                    'toCurveFitCommand', \
-                    'toScaleCommand','toResetOriginCommand']
-
-        toolbarcommands=['toSPlaneCommand', \
-                    'Plane2PartPlaneCommand', \
-                    'toSketchCommand', \
-                    'section2SketchCommand', \
-                    'removeOuterBoxCommand', \
-                    #'addBboxCommand', \
-                    'toMacroCommand', \
-                    'ConstraintsGroupCmd', \
-                    'toLineCurveFitCommand', \
-                    'toCurveFitCommand', \
-                    'bSpline2ArcCommand', \
-                    'toScaleCommand','toResetOriginCommand']
-        # 2. Create Toolbar
-        self.appendToolbar("Sketch Cleanup Tools",
-            ['toSketch_toLine', 'toSketch_toCurve', 'toSketch_toArc']
-        )
-
-        # 3. Create Menu
-        self.appendMenu("Sketch Cleanup",
-            ['toSketch_toLine', 'toSketch_toCurve', 'toSketch_toArc']
-        )
-
-        import PartGui
-        parttoolbarcommands =['Part_Loft']
-        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench', \
-                           'toSketch_Tools'),toolbarcommands)
-        self.appendToolbar(QT_TRANSLATE_NOOP('Workbench', \
-                           'toSketch_Tools Part Tools'),parttoolbarcommands)
-        self.appendMenu('toSketch',commands)
-        FreeCADGui.addIconPath(joinDir("Resources/icons"))
-        FreeCADGui.addLanguagePath(joinDir("Resources/translations"))
-        #FreeCADGui.addPreferencePage(joinDir("Resources/ui/toSketch-base.ui"),"Face2Sketch")
+        FreeCADGui.addCommand('toSketchCommand', toSketchFeature())
+        FreeCADGui.addCommand('section2SketchCommand', section2SketchFeature())
+        FreeCADGui.addCommand('Plane2PartPlaneCommand', toPlane2PartFeature())
+        FreeCADGui.addCommand('toSPlaneCommand', toSPlaneFeature())
+        FreeCADGui.addCommand('toCurveFitCommand', toCurveFitFeature())
+        FreeCADGui.addCommand('toLineCurveFitCommand', toLineCurveFitFeature())
+        FreeCADGui.addCommand('toCurveGuidedCommand', toSketch_ToCurveGuided)
+        FreeCADGui.addCommand('toMacroCommand', toMacroFeature())
+        FreeCADGui.addCommand('toScaleCommand', toScaleFeature())
+        FreeCADGui.addCommand('toResetOriginCommand', toResetOriginFeature())
+        FreeCADGui.addCommand('toShapeInfoCommand', toShapeInfoFeature())
+        FreeCADGui.addCommand('toLineCommand', toLineFeature())
+        FreeCADGui.addCommand('removeOuterBoxCommand', removeOuterBoxFeature())
+        FreeCADGui.addCommand('addBboxCommand', addBboxFeature())
+        FreeCADGui.addCommand('bSpline2ArcCommand', bSpline2ArcFeature())
+        FreeCADGui.addCommand('ConstraintsGroupCmd', ConstraintsGroupFeature())
+        FreeCADGui.addCommand('CheckSymmetryCmd', CheckSymmetryFeature())
+        FreeCADGui.addCommand('CheckCoincidentCmd', CheckCoincidentFeature())
+        FreeCADGui.addCommand('CheckVerticalCmd', CheckVerticalFeature())
+        FreeCADGui.addCommand('CheckHorizontalCmd', CheckHorizontalFeature())
+        FreeCADGui.addCommand('addParallelCmd', addParallelConstraintsFeature())
 
     def Activated(self):
-        "This function is executed when the workbench is activated"
-        print ("Activated")
-        #actDoc = FreeCAD.ActiveDocument
-        #if actDoc is not None :
-        #   objs = actDoc.Objects
-        #   if objs is not None :
-        #      for obj in objs :
-        #          obj.ViewObject.Visibility = True
-        return
+        """Called when the workbench is activated"""
+        FreeCAD.Console.PrintMessage("toSketch Workbench Activated\n")
 
     def Deactivated(self):
-        "This function is executed when the workbench is deactivated"
-        return
-    
+        """Called when the workbench is deactivated"""
+        FreeCAD.Console.PrintMessage("toSketch Workbench Deactivated\n")
+
+    def ContextMenu(self, recipient):
+        """Optional context menu"""
+        return []
+
     def GetClassName(self):
         return "Gui::PythonWorkbench"
 
-FreeCADGui.addWorkbench(toSketch_Workbench())
+# Register the workbench
+FreeCADGui.addWorkbench(toSketchWorkbench)
 
