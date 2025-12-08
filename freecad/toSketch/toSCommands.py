@@ -632,6 +632,7 @@ class lineBuffer :
         print(f'shortCount {self.shortCount}')
         return self.shortCount
 
+
     def calcHausdorff(self, npPointBuff, curve):
         print(f"Calc Hausdorff")
         import numpy as np
@@ -656,7 +657,6 @@ class lineBuffer :
 
 
     def curveFit(self, curveCnt):
-
         import numpy as np
         # fit points for last curveCnt points in buffer
         print(f'==> Curve Fit buffer len {len(self.buffer)} start {self.straightCount} curveCount {curveCnt}')
@@ -746,6 +746,15 @@ class lineBuffer :
 
             self.shortCount = 0
             self.buffer = []
+
+
+
+class toSketchDialog(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+
+        # Set the dialog title
+        self.setWindowTitle("Parameters")
 
 
 class toLineCurveDialog(QtWidgets.QDialog):
@@ -848,7 +857,7 @@ class toCurveFitFeature :
     def processWithBreakPoints(self, sketch, angle):
         # break points not really use angle but maybe whole of geometry
         geometry = sketch.Geometry
-        if self.findGeomBreakPoints(sketch) > 0:
+        if findGeomBreakPoints(sketch) > 0:
             bp = self.breakPoints
             # process ranges
             for r in range(0,len(bp)-1):
@@ -865,6 +874,7 @@ class toCurveFitFeature :
         else:  # process whole geometry
             self.processGeometry(geometry, angle)
 
+    ### Shared with several features
     def findGeomBreakPoints(self, sketch):
         
         self.breakPoints = []

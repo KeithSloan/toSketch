@@ -42,6 +42,13 @@ def joinDir(path) :
     __dirname__ = os.path.dirname(__file__)
     return(os.path.join(__dirname__,path))
 
+# Import your commands from the commands package
+from .commands.toLine import toSketch_ToLine
+# from .commands.toCurve import toSketch_ToCurve
+# from .commands.toArc import toSketch_ToArc
+# Add more commands as needed
+
+
 class toSketch_Workbench ( FreeCADGui.Workbench ):
 
 #    import FreeCAD
@@ -55,8 +62,14 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
     def Initialize(self):
         def QT_TRANSLATE_NOOP(scope, text):
             return text
+
+        # 1. Register Commands
+        FreeCADGui.addCommand('toSketch_toLine',  toSketch_ToLine)
+        #FreeCADGui.addCommand('toSketch_toCurve', toSketch_ToCurve)
+        #FreeCADGui.addCommand('toSketch_toArc',   toSketch_ToArc)
+
         
-        #import 2SCommands
+        from freecad.toSketch import toSCommands
         commands=['toSPlaneCommand', \
                     'Plane2PartPlaneCommand', \
                     'toSketchCommand', \
@@ -82,6 +95,15 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
                     'toCurveFitCommand', \
                     'bSpline2ArcCommand', \
                     'toScaleCommand','toResetOriginCommand']
+        # 2. Create Toolbar
+        self.appendToolbar("Sketch Cleanup Tools",
+            ['toSketch_toLine', 'toSketch_toCurve', 'toSketch_toArc']
+        )
+
+        # 3. Create Menu
+        self.appendMenu("Sketch Cleanup",
+            ['toSketch_toLine', 'toSketch_toCurve', 'toSketch_toArc']
+        )
 
         import PartGui
         parttoolbarcommands =['Part_Loft']
