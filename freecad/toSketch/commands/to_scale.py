@@ -2,7 +2,7 @@
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore
-from .toSObjects import toScale, ViewProvider
+from freecad.toSketch.toSObjects import toScale, ViewProvider
 
 class ToScaleFeature:
     """Create a scaled copy of a selected object"""

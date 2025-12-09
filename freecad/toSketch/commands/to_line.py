@@ -3,7 +3,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore
 import Part
-from freecad.toSketch import vector_utils  # central vector helper
+from freecad.toSketch.commands import vector_utils  # central vector helper
 
 class ToLineFeature:
     """

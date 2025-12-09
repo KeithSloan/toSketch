@@ -3,7 +3,7 @@ import FreeCAD
 import FreeCADGui
 import Part
 from PySide import QtCore
-from freecad.toSketch import vector_utils as vu
+from freecad.toSketch.commands import vector_utils as vu
 
 class ToLineCurveFitFeature:
     """Fits selected sketch geometry to line and curve segments."""

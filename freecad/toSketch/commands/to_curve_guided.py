@@ -2,8 +2,8 @@
 import FreeCAD
 import FreeCADGui
 import Part
-from .vector_utils import EPS_COINCIDENT
-from .geomutils import ordered_vertices
+from freecad.toSketch.commands.vector_utils import EPS_COINCIDENT
+from freecad.toSketch.commands.geomutils import ordered_vertices
 
 class ToCurveGuidedFeature:
     """

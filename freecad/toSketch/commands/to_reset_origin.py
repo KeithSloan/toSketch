@@ -2,7 +2,7 @@
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore
-from .toSObjects import toResetOrigin, ViewProvider
+from freecad.toSketch.toSObjects import toResetOrigin, ViewProvider
 
 class ToResetOriginFeature:
 
