@@ -29,7 +29,6 @@
 # This is the second one of three init scripts, the third one
 # runs when the gui is up
 
-#import FreeCAD
 #from FreeCAD import *
 import FreeCAD
 #import PartGui
@@ -42,8 +41,6 @@ def joinDir(path) :
     return(os.path.join(__dirname__,path))
 
 class toSketch_Workbench ( FreeCADGui.Workbench ):
-
-#    import FreeCAD
 
     "to workbench object"
     def __init__(self):
@@ -92,10 +89,11 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
         FreeCADGui.addIconPath(joinDir("Resources/icons"))
         FreeCADGui.addLanguagePath(joinDir("Resources/translations"))
         #FreeCADGui.addPreferencePage(joinDir("Resources/ui/toSketch-base.ui"),"Face2Sketch")
+        FreeCAD.Console.PrintMessage("Start toSketch Workbench v.1.0.\r")
 
     def Activated(self):
         "This function is executed when the workbench is activated"
-        print ("Activated")
+        FreeCAD.Console.PrintMessage("toSketch v.1.0 activated\r")
         #actDoc = FreeCAD.ActiveDocument
         #if actDoc is not None :
         #   objs = actDoc.Objects
@@ -106,6 +104,7 @@ class toSketch_Workbench ( FreeCADGui.Workbench ):
 
     def Deactivated(self):
         "This function is executed when the workbench is deactivated"
+        FreeCAD.Console.PrintMessage("toSketch v.1.0 deactivated\r")
         return
     
     def GetClassName(self):
